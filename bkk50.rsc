@@ -1,4 +1,4 @@
-# 2024-12-06 15:19:45 by RouterOS 7.16
+# 2024-12-06 17:34:24 by RouterOS 7.16
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -8,12 +8,12 @@
 /interface ethernet set [ find default-name=ether10 ] comment=bkk-sax-01-9950x
 /interface ethernet set [ find default-name=sfp-sfpplus1 ] advertise=10G-baseCR comment="atm to bkk10 hk" fec-mode=fec91
 /interface ethernet set [ find default-name=sfp-sfpplus2 ] advertise=10G-baseCR comment="atm to bkk20 sg" fec-mode=fec91
-/interface wireguard add listen-port=52281 mtu=1420 name=bkk-sax-wg
+/interface wireguard add listen-port=52281 mtu=1420 name=bkk_sax_wg
 /interface wireguard add listen-port=52180 mtu=1420 name=wg_rotko
 /interface bonding add comment=BKK10-sfp1 lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=BKK20-sfp11 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus2 transmit-hash-policy=layer-2-and-3
-/interface bonding add comment=saxemberg-9950X-client disabled=yes name=SAX-BKK-01 slaves=ether10
-/interface bonding add comment=saxemberg-9950X-asrock-ipmi-client disabled=yes name=SAX-BKK-01-KVM slaves=ether9
+/interface bonding add comment=saxemberg-9950X-client name=SAX-BKK-01 slaves=ether10
+/interface bonding add comment=saxemberg-9950X-asrock-ipmi-client name=SAX-BKK-01-KVM slaves=ether9
 /interface list add name=WAN
 /interface list add name=local
 /interface list add name=WG
@@ -36,8 +36,8 @@
 /interface bridge port add bridge=bridge_local interface=ether6
 /interface bridge port add bridge=bridge_local interface=ether7
 /interface bridge port add bridge=bridge_local interface=ether8
-/interface bridge port add bridge=bridge_local interface=ether9
-/interface bridge port add bridge=bridge_local interface=ether10
+/interface bridge port add bridge=bridge_local disabled=yes interface=ether9
+/interface bridge port add bridge=bridge_local disabled=yes interface=ether10
 /interface bridge port add bridge=bridge_local interface=ether11
 /interface bridge port add bridge=bridge_local comment=bkk06 interface=ether12
 /interface bridge port add bridge=bridge_local comment=bkk06mgmt interface=ether13
@@ -75,7 +75,7 @@
 /interface wireguard peers add allowed-address=172.31.0.10/32 comment=bkk10 disabled=yes interface=wg_rotko name=peer3 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
 /interface wireguard peers add allowed-address=172.30.50.4/32 comment=bkk04 interface=wg_rotko name=peer7 public-key="SRPXYavqbiZpuLFMhNRT/mieCy6hsYaOODb3zNtzriw="
 /interface wireguard peers add allowed-address=172.30.50.6/32 comment=alarchlinux interface=wg_rotko name=peer11 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
-/interface wireguard peers add allowed-address=172.35.51.11/32 comment=al interface=bkk-sax-wg name=peer12 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
+/interface wireguard peers add allowed-address=172.29.169.11/32 comment=al interface=bkk_sax_wg name=peer12 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
 /ip address add address=192.168.88.50/24 comment=defconf interface=bridge_local network=192.168.88.0
 /ip address add address=10.50.0.1/12 interface=bridge_local network=10.48.0.0
 /ip address add address=192.168.69.1/16 interface=bridge_local network=192.168.0.0
@@ -89,9 +89,10 @@
 /ip address add address=10.50.0.1/8 interface=bridge_local network=10.0.0.0
 /ip address add address=160.22.181.169/29 interface=SAX-BKK-01 network=160.22.181.168
 /ip address add address=10.169.0.1/24 interface=SAX-BKK-01-KVM network=10.169.0.0
-/ip address add address=172.35.51.1/24 interface=bkk-sax-wg network=172.35.51.0
-/ip address add address=160.22.181.181/29 interface=BKK20-LAG network=160.22.181.176
-/ip address add address=160.22.181.181/29 interface=BKK10-LAG network=160.22.181.176
+/ip address add address=172.29.169.1/24 interface=bkk_sax_wg network=172.29.169.0
+/ip address add address=160.22.181.181/29 interface=bridge_local network=160.22.181.176
+/ip address add address=160.22.181.169 interface=lo network=160.22.181.169
+/ip address add address=160.22.181.169/29 interface=SAX-BKK-01-KVM network=160.22.181.168
 /ip dhcp-server lease add address=192.168.69.233 client-id=1:48:da:35:6f:e7:7c comment="bkk02nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:E7:7C server=dhcp1
 /ip dhcp-server lease add address=192.168.69.232 client-id=1:48:da:35:6f:6b:66 comment="bkk09nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:6B:66 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.231 client-id=1:e4:5f:1:de:47:96 comment="bkk02blikvm, port 80 for kvm & and 8008 for the screen" mac-address=E4:5F:01:DE:47:96 server=dhcp1
