@@ -1,4 +1,4 @@
-# 2025-03-19 14:51:30 by RouterOS 7.18.2
+# 2025-03-19 17:13:20 by RouterOS 7.18.2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -95,18 +95,17 @@
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=amdnuc public-key="IlZR7z5LVE6BKwkApq+VTvXRGaOp0hvmKSSrgi1R/V4="
 /interface wireguard peers add allowed-address=172.31.0.50/32 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
-/ip address add address=10.20.0.1/8 interface=bridge_local network=10.0.0.0
 /ip address add address=118.143.234.74/29 interface=SG-HGC-IPTx-vlan2520 network=118.143.234.72
 /ip address add address=172.31.0.20/16 interface=wg_rotko network=172.31.0.0
 /ip address add address=10.155.255.2 interface=lo network=10.155.255.2
 /ip address add address=103.100.140.31/24 interface=BKK-AMS-IX-vlan911 network=103.100.140.0
-/ip address add address=192.168.69.2/16 interface=bridge_local network=192.168.0.0
 /ip address add address=103.247.139.76/25 interface=HK-AMS-IX-vlan3994 network=103.247.139.0
 /ip address add address=172.16.0.2/30 comment=from_bkk10 interface=BKK10-LAG network=172.16.0.0
 /ip address add address=172.16.20.1/30 comment=to_bkk50 interface=BKK50-LAG network=172.16.20.0
 /ip address add address=160.22.181.178 comment=pub_ip interface=lo network=160.22.181.178
 /ip address add address=103.168.174.178/30 interface=HK-HGC-IPTx-backup-vlan2517 network=103.168.174.176
 /ip address add address=172.16.30.2/30 interface=edge-to-bkk00 network=172.16.30.0
+/ip address add address=192.168.88.20/24 comment=bkk20-mgmt interface=bridge_local network=192.168.88.0
 /ip dhcp-client add comment=defconf disabled=yes interface=bridge_local
 /ip dns set servers=1.0.0.1,1.1.1.1
 /ip firewall address-list add address=0.0.0.0/8 comment="RFC 1122: This host on this network" list=ipv4-bogons
@@ -397,7 +396,7 @@
 /routing filter community-list add communities=graceful-shutdown list=shutdown
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 130; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
 /routing filter rule add chain=iBGP-IN comment="this is new edge router" rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=iBGP-OUT rule="set bgp-large-communities ibgp-communities; accept;"
@@ -460,11 +459,11 @@
 /routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Accept route v4" rule="set bgp-large-communities amsix-ban-communities; set bgp-local-pref 190; accept"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Accept route v4" rule="set bgp-large-communities hgc-sg-communities; set bgp-local-pref 140; accept"
 /routing filter rule add chain=AMSIX-HK-IN-v4 comment="Accept route v4" rule="set bgp-large-communities amsix-hk-communities; set bgp-local-pref 150; accept"
-/routing filter rule add chain=HGC-HK-IN-v4 comment="Accept route v4" rule="set bgp-large-communities hgc-th-hk-communities; set bgp-local-pref 140; accept"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="Accept route v4" rule="set bgp-large-communities hgc-th-hk-communities; set bgp-local-pref 130; accept"
 /routing filter rule add chain=AMSIX-BAN-IN-v6 comment="Accept route v6" rule="set bgp-large-communities amsix-ban-communities; set bgp-local-pref 190; accept"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Accept route v6" rule="set bgp-large-communities hgc-sg-communities; set bgp-local-pref 140; accept"
 /routing filter rule add chain=AMSIX-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities amsix-hk-communities; set bgp-local-pref 150; accept"
-/routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities hgc-th-hk-communities; set bgp-local-pref 140; accept"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities hgc-th-hk-communities; set bgp-local-pref 130; accept"
 /routing filter rule add chain=graceful-shutdown rule="set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept"
 /routing ospf interface-template add area=backbone comment=BKK20-LO disabled=no networks=10.155.255.2 use-bfd=no
 /routing ospf interface-template add area=backbone-v6 comment=AMSIX-BAN-v6 disabled=no networks=2402:b740:15:388::/64 passive use-bfd=no

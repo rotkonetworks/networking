@@ -1,4 +1,4 @@
-# 2025-03-19 14:50:47 by RouterOS 7.17.1
+# 2025-03-19 17:12:07 by RouterOS 7.17.1
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -28,8 +28,8 @@
 /ipv6 pool add name=pool_181_global prefix=2401:a860:181::/64 prefix-length=64
 /port set 0 name=serial0
 /routing id add id=10.155.255.3 name=main select-dynamic-id=only-static select-from-vrf=main
-/routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=always redistribute=connected,static router-id=10.155.255.3
-/routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=always redistribute=connected,static router-id=10.155.255.3 version=3
+/routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 router-id=10.155.255.3
+/routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 router-id=10.155.255.3 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
 /system logging action set 3 bsd-syslog=yes remote=192.168.77.92 syslog-facility=local0
@@ -93,7 +93,6 @@
 /ip address add address=10.50.0.1 interface=lo network=10.50.0.1
 /ip address add address=192.168.69.1 interface=lo network=192.168.69.1
 /ip address add address=172.30.50.1/24 interface=wg_rotko network=172.30.50.0
-/ip address add address=10.50.0.1/8 interface=bridge_local network=10.0.0.0
 /ip address add address=172.29.169.1/24 interface=bkk_sax_wg network=172.29.169.0
 /ip address add address=160.22.181.181/28 interface=bridge_local network=160.22.181.176
 /ip address add address=160.22.181.169/29 interface=SAX-BKK-01 network=160.22.181.168

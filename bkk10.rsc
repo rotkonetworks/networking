@@ -1,4 +1,4 @@
-# 2025-03-19 14:49:17 by RouterOS 7.18.2
+# 2025-03-19 17:12:33 by RouterOS 7.18.2
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -113,7 +113,6 @@
 /ip address add address=160.22.181.177 interface=lo network=160.22.181.177
 /ip address add address=80.249.212.139/21 interface=EU-AMS-IX-vlan3995 network=80.249.208.0
 /ip address add address=103.168.174.182/30 interface=SG-HGC-IPTx-backup-vlan2518 network=103.168.174.180
-/ip address add address=192.168.69.1/16 interface=bridge_local network=192.168.0.0
 /ip arp add address=192.168.69.201 interface=bridge_local mac-address=E4:5F:01:EA:75:3E
 /ip dns set cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,1.1.1.1
 /ip firewall address-list add address=10.0.0.0/8 list=internal-ipv4
@@ -237,7 +236,7 @@
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set www address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16
-/ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,160.22.181.181/32,110.169.129.201/32,172.104.169.64/32,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12,171.101.163.225/32,125.164.0.0/16,95.217.134.129/32
+/ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,160.22.181.181/32,110.169.129.201/32,172.104.169.64/32,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12,171.101.163.225/32,158.140.0.0/16,95.217.134.129/32
 /ip service set www-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16
 /ip service set api address=160.22.181.181/32
 /ip service set winbox address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
@@ -397,7 +396,7 @@
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 130; }"
 /routing filter rule add chain=iBGP-IN rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=iBGP-OUT rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="if (not bgp-network) { reject; }"
@@ -457,11 +456,11 @@
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v4 comment="Accept route" rule="set bgp-local-pref 200; set bgp-large-communities bknix-communities; accept"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
-/routing filter rule add chain=HGC-HK-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="Accept route" rule="set bgp-local-pref 130; set bgp-large-communities hgc-hk-communities; accept"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Accept route" rule="set bgp-local-pref 100; set bgp-large-communities amsix-communities; accept"
 /routing filter rule add chain=BKNIX-IN-v6 comment="Accept route" rule="set bgp-local-pref 200; set bgp-large-communities bknix-communities; accept"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
-/routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route" rule="set bgp-local-pref 130; set bgp-large-communities hgc-hk-communities; accept"
 /routing filter rule add chain=AMSIX-IN-v6 comment="Accept route" rule="set bgp-local-pref 100; set bgp-large-communities amsix-communities; accept"
 /routing ospf interface-template add area=backbone comment=BKK10-lo disabled=no networks=10.155.255.1 passive use-bfd=no
 /routing ospf interface-template add area=backbone comment=BKK20-v4 disabled=no networks=172.16.0.0/30 use-bfd=no
