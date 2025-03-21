@@ -1,4 +1,4 @@
-# 1970-05-25 19:54:47 by RouterOS 7.15.2
+# 2025-03-21 03:19:29 by RouterOS 7.18.2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -6,24 +6,26 @@
 /interface bridge add name=bridge_local
 /interface bonding add lacp-rate=1sec mode=802.3ad name=edge-to-bkk20 slaves=qsfp28-1-1,qsfp28-2-1 transmit-hash-policy=layer-2-and-3
 /port set 0 name=serial0
-/routing bgp template set default address-families=ip as=142108 input.filter=iBGP-IN multihop=yes nexthop-choice=propagate output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko router-id=10.155.255.4 routing-table=main use-bfd=no
 /routing bgp template add address-families=ipv6 as=142108 input.filter=iBGP-IN multihop=yes name=default_v6 nexthop-choice=propagate output.filter-chain=iBGP-OUT .network=ipv6-apnic-rotko .redistribute=connected router-id=10.155.255.4 use-bfd=no
 /routing id add id=10.155.255.4 name=main select-dynamic-id=only-static select-from-vrf=main
-/routing ospf instance add disabled=no name=ospf-instance-v2 originate-default=never router-id=10.155.255.4
-/routing ospf instance add disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.4 version=3
+/routing ospf instance add disabled=no name=ospf-instance-v2 router-id=10.155.255.4
+/routing ospf instance add disabled=no name=ospf-instance-v3 router-id=10.155.255.4
 /routing ospf area add disabled=no instance=ospf-instance-v2 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
+/routing bgp template set default address-families=ip as=142108 input.filter=iBGP-IN multihop=yes nexthop-choice=propagate output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko router-id=10.155.255.4 routing-table=main use-bfd=no
+/interface ovpn-server server add mac-address=FE:7C:66:E3:E3:AC name=ovpn-server1
 /ip address add address=192.168.88.1/24 comment=defconf interface=ether1 network=192.168.88.0
 /ip address add address=172.16.30.1/30 interface=edge-to-bkk20 network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180
 /ip address add address=10.155.255.4 interface=lo network=10.155.255.4
+/ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1
 /ip firewall address-list add address=160.22.180.0/23 list=ipv4-apnic-rotko
-/ip route add distance=220 dst-address=0.0.0.0/0 gateway=edge-to-bkk20
-/ip route add check-gateway=ping dst-address=0.0.0.0/0 gateway=172.16.30.2
+/ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
+/ip route add disabled=no distance=220 dst-address=0.0.0.0/0 gateway=edge-to-bkk20 pref-src=160.22.181.180
 /ip service set telnet address=10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
 /ip service set ftp disabled=yes
 /ip service set www disabled=yes
-/ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23
+/ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16
 /ip service set api disabled=yes
 /ip service set winbox disabled=yes
 /ip service set api-ssl disabled=yes
@@ -50,12 +52,17 @@
 /routing filter community-list add comment=HGC-local-pref-360 communities=9304:381 list=HGC
 /routing filter community-list add comment=HGC-local-pref-380 communities=9304:382 list=HGC
 /routing filter community-list add communities=graceful-shutdown list=shutdown
+/routing filter rule add chain=iBGP-IN rule="set distance 20;"
+/routing filter rule add chain=iBGP-IN comment="this probably something we want deleted" rule="set pref-src 160.22.181.180;"
+/routing filter rule add chain=iBGP-IN rule=accept
 /routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4
 /routing ospf interface-template add area=backbone comment=EDGE-BKK00-BKK20 disabled=no networks=172.16.30.0/30 use-bfd=no
+/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.180/32
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
 /routing rpki add address=2001:deb:0:4070::36 comment="StayRTR IPv6 Secondary" group=rpki.bknix.net port=4323
+/system clock set time-zone-name=America/Chicago
 /system identity set name=bkk00
 /system note set show-at-login=no
 /system routerboard settings set enter-setup-on=delete-key
