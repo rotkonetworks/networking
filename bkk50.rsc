@@ -1,4 +1,4 @@
-# 2025-03-19 17:12:07 by RouterOS 7.17.1
+# 2025-04-10 14:26:25 by RouterOS 7.17.1
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -179,6 +179,13 @@
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
 /ip firewall filter add action=accept chain=input comment="BYPASS RULE - DISABLE WHEN NOT NEEDED" disabled=yes
 /ip firewall filter add action=accept chain=input comment="allow wg_rotko traffic -al" protocol=udp src-address=172.30.50.0/24
+/ip firewall filter add action=accept chain=forward dst-port=2483 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=26683 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=2142 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10142 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=34005 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=2918 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10178 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=3242 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10302 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=31302 protocol=tcp
@@ -845,6 +852,7 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22801 protocol=tcp to-addresses=192.168.69.214 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22803 protocol=tcp to-addresses=192.168.69.212 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22682 protocol=tcp to-addresses=192.168.72.1 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=60601 protocol=tcp to-addresses=192.168.69.2 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22799 protocol=tcp to-addresses=192.168.69.209 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=20801 protocol=tcp to-addresses=192.168.69.101 to-ports=8006
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.174 dst-port=54242 protocol=tcp to-addresses=10.69.169.2 to-ports=443
@@ -1400,6 +1408,11 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=43122 protocol=tcp to-addresses=192.168.69.212 to-ports=43122
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=43111 protocol=tcp to-addresses=192.168.69.212 to-ports=43111
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=43112 protocol=tcp to-addresses=192.168.69.212 to-ports=43112
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2918 protocol=tcp to-addresses=192.168.78.178 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2142 protocol=tcp to-addresses=192.168.242.10 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34005 protocol=tcp to-addresses=192.168.242.10 to-ports=34005
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2483 protocol=tcp to-addresses=192.168.78.83 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=26683 protocol=tcp to-addresses=192.168.78.83 to-ports=26683
 /ip firewall raw add action=notrack chain=prerouting protocol=ospf
 /ip firewall raw add action=notrack chain=output protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko dst-address=172.31.0.0/16
@@ -1466,18 +1479,19 @@
 /ipv6 firewall address-list add address=fec0::/10 comment="Site-Local (deprecated)" list=bogons-v6
 /ipv6 firewall address-list add address=ff00::/8 comment=Multicast list=bogons-v6
 /ipv6 firewall address-list add address=fd00:dead:beef::/48 list=our-networks-v6
-/routing ospf interface-template add area=backbone comment=loopback disabled=no networks=10.155.255.3/32 passive use-bfd=no
-/routing ospf interface-template add area=backbone disabled=no networks=172.16.10.2/30 use-bfd=no
-/routing ospf interface-template add area=backbone disabled=no networks=172.16.20.2/30 use-bfd=no
-/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.176/28 use-bfd=no
-/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.169/29 use-bfd=no
-/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::50/128 passive use-bfd=no
-/routing ospf interface-template add area=backbone-v6 comment="BKK10-LAG ULA" disabled=no networks=fd00:dead:beef:10::2/126 use-bfd=no
-/routing ospf interface-template add area=backbone-v6 comment="BKK20-LAG ULA" disabled=no networks=fd00:dead:beef:20::2/126 use-bfd=no
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Loopback" disabled=no networks=2401:a860:181::1/128 passive use-bfd=no
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Loopback" disabled=no networks=2401:a860:169::1/128 passive use-bfd=no
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Network" disabled=no networks=2401:a860:181::/64 use-bfd=no
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Network" disabled=no networks=2401:a860:169::/64 use-bfd=no
+/routing ospf interface-template add area=backbone comment=loopback disabled=no networks=10.155.255.3/32 passive
+/routing ospf interface-template add area=backbone disabled=no networks=172.16.10.2/30
+/routing ospf interface-template add area=backbone disabled=no networks=172.16.20.2/30
+/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.176/28 passive
+/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.169/29 passive
+/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::50/128 passive
+/routing ospf interface-template add area=backbone-v6 comment="BKK10-LAG ULA" disabled=no networks=fd00:dead:beef:10::2/126
+/routing ospf interface-template add area=backbone-v6 comment="BKK20-LAG ULA" disabled=no networks=fd00:dead:beef:20::2/126
+/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Loopback" disabled=no networks=2401:a860:181::1/128 passive
+/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Loopback" disabled=no networks=2401:a860:169::1/128 passive
+/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Network" disabled=no networks=2401:a860:181::/64 passive
+/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Network" disabled=no networks=2401:a860:169::/64 passive
+/routing ospf interface-template add area=backbone-v6 comment="BKK00-LAG ULA" disabled=no networks=fd00:dead:beef:40::2/126
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk50
 /system logging set 0 prefix=:Info
@@ -1490,8 +1504,9 @@
 /system logging add action=remote prefix=:Wireles topics=wireless
 /system note set show-at-login=no
 /system ntp client set enabled=yes
-/system ntp client servers add address=10.10.0.1
-/system ntp client servers add address=10.20.0.1
+/system ntp client servers add address=0.th.pool.ntp.org
+/system ntp client servers add address=0.asia.pool.ntp.org
+/system ntp client servers add address=1.asia.pool.ntp.org
 /system routerboard settings set enter-setup-on=delete-key
 /tool traffic-generator packet-template add name=blast-template
 /user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
