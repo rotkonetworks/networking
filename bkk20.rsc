@@ -1,4 +1,4 @@
-# 2025-04-10 14:25:35 by RouterOS 7.18.2
+# 2025-04-14 20:15:45 by RouterOS 7.18.2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -54,7 +54,7 @@
 /interface bridge port add bridge=bridge_local interface=sfp28-8
 /interface bridge port add bridge=bridge_local interface=sfp28-6
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
-/ip neighbor discovery-settings set discover-interval=1m
+/ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
 /interface ethernet switch set 0 l3-hw-offloading=yes

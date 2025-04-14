@@ -1,4 +1,4 @@
-# 2025-04-10 14:25:54 by RouterOS 7.18.2
+# 2025-04-14 20:15:38 by RouterOS 7.18.2
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -10,7 +10,7 @@
 /interface ethernet set [ find default-name=sfp-sfpplus3 ] advertise=10G-baseCR comment=bkk20-edge
 /interface ethernet set [ find default-name=sfp-sfpplus4 ] comment=BKNIX-TH-UPLINK
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface bonding add mode=802.3ad name=AMSIX-LAG slaves=sfp-sfpplus2 transmit-hash-policy=layer-3-and-4
+/interface bonding add mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp-sfpplus2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk20-sfp5 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus3 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk50-sfp1 lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add mode=802.3ad name=BKNIX-LAG slaves=sfp-sfpplus4 transmit-hash-policy=layer-3-and-4
@@ -66,7 +66,7 @@
 /interface bridge port add bridge=bridge_local interface=ether13 internal-path-cost=10 path-cost=10
 /interface ethernet switch l3hw-settings set autorestart=yes ipv6-hw=yes
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
-/ip neighbor discovery-settings set discover-interface-list=local discover-interval=1m
+/ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=8192 soft-max-neighbor-entries=8191
 /interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
@@ -224,7 +224,6 @@
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop invalid TCP flags (syn+rst)" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop invalid TCP flags (rst+urg)" protocol=tcp tcp-flags=rst,urg
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop TCP port 0" port=0 protocol=tcp
-/ip hotspot profile set [ find default=yes ] html-directory=hotspot
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.181.0/23
 /ip route add distance=220 gateway=172.16.0.2
@@ -306,6 +305,7 @@
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop Router Advertisements" icmp-options=134:0 in-interface-list=WAN protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop multicast" dst-address=ff00::/8 in-interface-list=WAN
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow remaining IPv6 traffic"
+/ipv6 nd add disabled=yes interface=AMSIX-LAG
 /routing bgp connection add disabled=no input.limit-process-routes-ipv4=200000 local.role=ebgp name=BKNIX-RS0-v4 remote.address=203.159.68.68 .as=63529 templates=BKNIX-v4
 /routing bgp connection add disabled=no input.limit-process-routes-ipv4=200000 local.role=ebgp name=BKNIX-RS1-v4 remote.address=203.159.68.69 .as=63529 templates=BKNIX-v4
 /routing bgp connection add disabled=no input.limit-process-routes-ipv6=100000 local.address=2001:df5:b881::168 .role=ebgp name=BKNIX-RS0-v6 remote.address=2001:df5:b881::68 .as=63529 templates=BKNIX-v6
