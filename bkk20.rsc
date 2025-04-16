@@ -1,4 +1,4 @@
-# 2025-04-14 20:15:45 by RouterOS 7.18.2
+# 2025-04-16 15:26:17 by RouterOS 7.18.2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -285,6 +285,7 @@
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow remaining IPv6 traffic"
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop Router Advertisements on AMSIX" icmp-options=134:0 in-interface=AMSIX-LAG protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop multicast on AMSIX" dst-address=ff00::/8 in-interface=AMSIX-LAG
+/ipv6 nd add disabled=yes interface=AMSIX-LAG
 /routing bgp connection add address-families=ipv6 disabled=no input.limit-process-routes-ipv6=500000 local.role=ebgp name=IPTX-HGC-SG-v6 remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
 /routing bgp connection add address-families=ip as=142108 disabled=no input.limit-process-routes-ipv4=1500000 local.role=ebgp name=IPTX-HGC-SG-v4 remote.address=118.143.234.73 .as=9304 routing-table=main templates=HGC-SG-v4
 /routing bgp connection add disabled=no input.limit-process-routes-ipv4=2000000 local.address=10.155.255.2 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK10-v4 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,bgp remote.address=10.155.255.1 .as=142108 routing-table=main templates=default
