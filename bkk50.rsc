@@ -1,4 +1,4 @@
-# 2025-05-20 19:52:04 by RouterOS 7.17.1
+# 2025-05-21 17:28:23 by RouterOS 7.19rc2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -32,7 +32,8 @@
 /routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.3 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
-/system logging action set 3 bsd-syslog=yes remote=192.168.77.92 syslog-facility=local0
+/system logging action set 3 remote=192.168.77.92 remote-log-format=syslog syslog-facility=local0
+/user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /interface bridge port add bridge=bridge_local interface=ether1
 /interface bridge port add bridge=bridge_local interface=ether2
 /interface bridge port add bridge=bridge_local interface=ether3
@@ -50,7 +51,7 @@
 /interface bridge port add bridge=bridge_local comment=bkk08mgmt interface=ether15
 /interface bridge port add bridge=bridge_local comment=bkk08 interface=ether16
 /ip firewall connection tracking set udp-timeout=10s
-/ipv6 settings set accept-router-advertisements=yes
+/ipv6 settings set accept-router-advertisements=no
 /interface list member add interface=sfp-sfpplus1 list=WAN
 /interface list member add interface=sfp-sfpplus2 list=WAN
 /interface list member add interface=bridge_local list=local
@@ -1465,27 +1466,26 @@
 /ip route add distance=220 gateway=BKK00-LAG
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
 /ip route add blackhole distance=220 dst-address=160.22.181.169/29
-/ipv6 route add blackhole distance=220 dst-address=2401:a860:181::/64
-/ipv6 route add blackhole distance=220 dst-address=2401:a860:169::/64
-/ipv6 route add distance=220 dst-address=::/0 gateway=fe80::d601:c3ff:fef6:9e60%BKK20-LAG
+/ipv6 route add blackhole distance=210 dst-address=2401:a860:181::/64
+/ipv6 route add blackhole disabled=no distance=220 dst-address=2401:a860:169::/64
+/ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=fe80::d601:c3ff:fef6:9e60%BKK20-LAG
 /ipv6 route add distance=220 dst-address=::/0 gateway=fe80::7a9a:18ff:fe80:e2e3%BKK10-LAG
-/ip service set telnet disabled=yes
 /ip service set ftp disabled=yes
-/ip service set www disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32
-/ip service set api address=192.168.0.0/16
+/ip service set telnet disabled=yes
+/ip service set www disabled=yes
 /ip service set winbox address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+/ip service set api address=192.168.0.0/16
 /ip service set api-ssl disabled=yes
 /ip ssh set always-allow-password-login=yes
 /ipv6 address add address=fd00:dead:beef:20::2/126 advertise=no interface=BKK20-LAG
 /ipv6 address add address=fd00:dead:beef:10::2/126 advertise=no interface=BKK00-LAG
 /ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
-/ipv6 address add address=2401:a860:169::1 interface=SAX-BKK-01
 /ipv6 address add address=fd12:3456:abcd:181::1 interface=bridge_local
-/ipv6 address add address=fd12:3456:abcd:169::1 interface=SAX-BKK-01
+/ipv6 address add address=fd12:3456:abcd:169::1 disabled=yes interface=SAX-BKK-01
 /ipv6 address add address=2401:a860:181::1 interface=lo
 /ipv6 address add address=2401:a860:181::50 interface=lo
-/ipv6 dhcp-server add interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169,pool_169_global
+/ipv6 dhcp-server add disabled=yes interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169,pool_169_global
 /ipv6 dhcp-server add interface=bridge_local lease-time=12h name=dhcp6-181 prefix-pool=pool_181_global,pool_181_local
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
@@ -1510,6 +1510,7 @@
 /ipv6 firewall address-list add address=fec0::/10 comment="Site-Local (deprecated)" list=bogons-v6
 /ipv6 firewall address-list add address=ff00::/8 comment=Multicast list=bogons-v6
 /ipv6 firewall address-list add address=fd00:dead:beef::/48 list=our-networks-v6
+/ipv6 nd add interface=bridge_local
 /routing ospf interface-template add area=backbone comment=loopback disabled=no networks=10.155.255.3/32 passive
 /routing ospf interface-template add area=backbone disabled=no networks=172.16.10.2/30
 /routing ospf interface-template add area=backbone disabled=no networks=172.16.20.2/30
@@ -1534,14 +1535,13 @@
 /system logging add action=remote prefix=:Account topics=account
 /system logging add action=remote prefix=:Caps topics=caps
 /system logging add action=remote prefix=:Wireles topics=wireless
-/system note set show-at-login=no
 /system ntp client set enabled=yes
 /system ntp client servers add address=0.th.pool.ntp.org
 /system ntp client servers add address=0.asia.pool.ntp.org
 /system ntp client servers add address=1.asia.pool.ntp.org
+/system package update set channel=development
 /system routerboard settings set enter-setup-on=delete-key
 /tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
 /tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
 /tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk06\"]" host=192.168.76.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk06\"]"
 /tool traffic-generator packet-template add name=blast-template
-/user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api

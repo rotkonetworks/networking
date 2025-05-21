@@ -1,4 +1,4 @@
-# 2025-05-20 19:50:04 by RouterOS 7.19rc2
+# 2025-05-21 17:28:10 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -164,17 +164,17 @@
 /ip firewall address-list add address=10.155.255.0/24 comment="Loopback Network" list=our-networks
 /ip firewall address-list add address=203.159.70.0/23 comment="RPKI Network" list=our-networks
 /ip firewall address-list add address=10.0.0.0/8 list=mgmt-ipv4
-/ip firewall address-list add address=172.16.0.0/12 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=10.0.0.0/8 list=lan_subnets
-/ip firewall address-list add address=192.168.0.0/16 list=lan_subnets
-/ip firewall address-list add address=172.31.0.0/16 list=lan_subnets
-/ip firewall address-list add address=172.16.0.0/16 list=lan_subnets
-/ip firewall address-list add address=10.155.255.2 comment="BKK20 Loopback" list=bgp-loopback-ips
-/ip firewall address-list add address=103.100.140.31 comment="AMSIX BKK Loopback" list=bgp-loopback-ips
-/ip firewall address-list add address=103.247.139.76 comment="AMSIX HK Loopback" list=bgp-loopback-ips
-/ip firewall address-list add address=118.143.234.74 comment="HGC SG Loopback" list=bgp-loopback-ips
-/ip firewall address-list add address=103.168.174.178 comment="HGC HK Backup Loopback" list=bgp-loopback-ips
-/ip firewall address-list add address=160.22.181.178 comment="Public IP Loopback" list=bgp-loopback-ips
+/ip firewall address-list add address=172.16.0.0/12 comment=RFC6890 disabled=yes list=not_in_internet
+/ip firewall address-list add address=10.0.0.0/8 disabled=yes list=lan_subnets
+/ip firewall address-list add address=192.168.0.0/16 disabled=yes list=lan_subnets
+/ip firewall address-list add address=172.31.0.0/16 disabled=yes list=lan_subnets
+/ip firewall address-list add address=172.16.0.0/16 disabled=yes list=lan_subnets
+/ip firewall address-list add address=10.155.255.2 comment="BKK20 Loopback" disabled=yes list=bgp-loopback-ips
+/ip firewall address-list add address=103.100.140.31 comment="AMSIX BKK Loopback" disabled=yes list=bgp-loopback-ips
+/ip firewall address-list add address=103.247.139.76 comment="AMSIX HK Loopback" disabled=yes list=bgp-loopback-ips
+/ip firewall address-list add address=118.143.234.74 comment="HGC SG Loopback" disabled=yes list=bgp-loopback-ips
+/ip firewall address-list add address=103.168.174.178 comment="HGC HK Backup Loopback" disabled=yes list=bgp-loopback-ips
+/ip firewall address-list add address=160.22.181.178 comment="Public IP Loopback" disabled=yes list=bgp-loopback-ips
 /ip firewall address-list add address=118.143.234.72/29 comment="HGC SG Range" list=bgp-peers
 /ip firewall address-list add address=103.100.140.0/24 comment="BKK AMS-IX Range" list=bgp-peers
 /ip firewall address-list add address=103.247.139.0/24 comment="HK AMS-IX Range" list=bgp-peers
@@ -183,7 +183,7 @@
 /ip firewall address-list add address=172.16.10.0/30 comment="BKK10 Link Range" list=bgp-peers
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
-/ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE" disabled=yes
+/ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE"
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI traffic" dst-address=203.159.70.0/23 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="Allow OSPF protocol" protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" src-address=172.16.0.0/16
@@ -207,7 +207,6 @@
 /ip firewall raw add action=accept chain=prerouting comment="Accept from LAN" in-interface-list=local
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP from IX peers" dst-address-list=bgp-loopback-ips dst-port=179 protocol=tcp src-address-list=bgp-peers
 /ip firewall raw add action=accept chain=prerouting comment="BCP194 - Allow established BGP sessions" dst-address-list=bgp-loopback-ips protocol=tcp src-address-list=bgp-peers tcp-flags=ack
-/ip firewall raw add action=drop chain=prerouting comment="Drop all other access to the loopback IPs" dst-address-list=bgp-loopback-ips
 /ip firewall raw add action=accept chain=prerouting comment="Accept from WAN" in-interface-list=WAN
 /ip firewall raw add action=accept chain=icmp comment="Echo reply" icmp-options=0:0 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="Net unreachable" icmp-options=3:0 protocol=icmp
@@ -218,7 +217,7 @@
 /ip firewall raw add action=accept chain=icmp comment="Echo request" icmp-options=8:0 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="Time exceeded" icmp-options=11:0-255 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="Parameter problem" icmp-options=12:0 protocol=icmp
-/ip firewall raw add action=drop chain=icmp comment="Drop other ICMP" protocol=icmp
+/ip firewall raw add action=drop chain=icmp comment="Drop other ICMP" disabled=yes protocol=icmp
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop invalid TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop invalid TCP flags (fin+syn)" protocol=tcp tcp-flags=fin,syn
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop invalid TCP flags (fin+rst)" protocol=tcp tcp-flags=fin,rst
@@ -313,6 +312,7 @@
 /ipv6 firewall address-list add address=2001:7f8:1::/64 comment="AMS-IX Amsterdam Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:df5:b881::/48 comment="BKNIX Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:deb:0:4070::/64 comment="RPKI Service Network" list=critical-services
+/ipv6 firewall raw add action=accept chain=prerouting comment="WArNiNGGGG DANGERZONEEEE - Enable for transparent mode"
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" dst-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" src-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow IPv6 fragments" headers=frag

@@ -1,24 +1,24 @@
-# 2025-05-20 19:50:16 by RouterOS 7.19rc2
+# 2025-05-21 17:28:16 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HGQ09NWHXX7
 /interface bridge add name=mgmt
+/interface ethernet set [ find default-name=qsfp28-1-1 ] comment=bkk00-1
+/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=bkk00-2
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR arp-timeout=4h comment=HGC/core3,4/MMR-3A
-/interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR
+/interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="empty cable atm to mmr-b, not in use / dark"
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3
-/interface ethernet set [ find default-name=sfp28-10 ] advertise=10G-baseT,10G-baseCR
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface bonding add arp-timeout=4h lacp-rate=1sec mode=802.3ad name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
-/interface bonding add lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1,qsfp28-2-1 transmit-hash-policy=layer-2-and-3
-/interface bonding add comment=bkk10-sfp3 disabled=yes lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
-/interface bonding add comment=bkk50-sfp2 lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp28-11 transmit-hash-policy=layer-2-and-3
+/interface bonding add arp-timeout=4h comment=WAN-LAG-sfp2 lacp-rate=1sec mode=802.3ad name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
+/interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1,qsfp28-2-1 transmit-hash-policy=layer-2-and-3
+/interface bonding add comment=bkk10-sfp5-gw disabled=yes lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
+/interface bonding add comment=bkk50-sfp11-gw lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp28-11 transmit-hash-policy=layer-2-and-3
 /interface vlan add interface=AMSIX-LAG name=BKK-AMS-IX-vlan911 vlan-id=911
 /interface vlan add interface=AMSIX-LAG name=HK-AMS-IX-vlan3994 vlan-id=3994
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-backup-vlan2517 vlan-id=2517
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
-/interface bonding add comment="to be removed and just use slave directly without bond" lacp-rate=1sec mode=active-backup name=UPLINK-HGC-IPTX-SG-LAG primary=SG-HGC-IPTx-vlan2520 slaves=SG-HGC-IPTx-vlan2520 transmit-hash-policy=layer-3-and-4
 /interface list add name=local
 /interface list add name=WAN
 /port set 0 name=serial0
@@ -60,7 +60,6 @@
 /interface list member add interface=BKK-AMS-IX-vlan911 list=WAN
 /interface list member add interface=ether1 list=local
 /interface list member add interface=lo list=local
-/interface list member add interface=*17 list=local
 /interface list member add interface=HK-AMS-IX-vlan3994 list=WAN
 /interface list member add interface=qsfp28-1-1 list=local
 /interface list member add interface=qsfp28-1-2 list=local
@@ -86,6 +85,7 @@
 /interface list member add interface=BKK50-LAG list=local
 /interface list member add interface=wg_rotko list=local
 /interface list member add interface=HK-HGC-IPTx-backup-vlan2517 list=WAN
+/interface list member add interface=BKK00-LAG list=local
 /interface ovpn-server server add mac-address=FE:C6:6D:C5:70:CE name=ovpn-server1
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.10/32 interface=wg_rotko name=bkk10 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
@@ -189,7 +189,7 @@
 /ip firewall address-list add address=172.16.10.0/30 comment="BKK10 Link Range" list=bgp-peers
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-BAN - src to dst" disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-HK - src to dst" disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
-/ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode" disabled=yes
+/ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode"
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.co.th IPv4" protocol=tcp src-address=203.159.70.26 src-port=323
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.net IPv4" protocol=tcp src-address=203.159.70.36 src-port=4323
 /ip firewall raw add action=accept chain=prerouting comment="Allow traffic for our networks" dst-address-list=our-networks src-address-list=our-networks
@@ -209,8 +209,8 @@
 /ip firewall raw add action=jump chain=prerouting comment="defconf: jump to TCP chain" jump-target=bad_tcp protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="defconf: accept everything else from LAN" in-interface-list=local
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP from IX peers" dst-address-list=bgp-loopback-ips dst-port=179 protocol=tcp src-address-list=bgp-peers
-/ip firewall raw add action=accept chain=prerouting comment="defconf: accept everything else from WAN" in-interface-list=WAN
 /ip firewall raw add action=accept chain=prerouting comment="BCP194 - Allow established BGP sessions" dst-address-list=bgp-loopback-ips protocol=tcp src-address-list=bgp-peers tcp-flags=ack
+/ip firewall raw add action=accept chain=prerouting comment="defconf: accept everything else from WAN" in-interface-list=WAN
 /ip firewall raw add action=accept chain=icmp comment="defconf: echo reply" icmp-options=0:0 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="defconf: net unreachable" icmp-options=3:0 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="defconf: host unreachable" icmp-options=3:1 protocol=icmp
@@ -225,7 +225,7 @@
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad dst IPs" dst-address-list=bad_ipv4
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad src IPs" src-address-list=bad_src_ipv4
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad dst IPs" dst-address-list=bad_dst_ipv4
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop non global from WAN" in-interface-list=WAN src-address-list=not_in_internet
+/ip firewall raw add action=drop chain=prerouting comment="defconf: drop non global from WAN" disabled=yes in-interface-list=WAN src-address-list=not_in_internet
 /ip firewall raw add action=drop chain=icmp comment="defconf: drop other icmp" protocol=icmp
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=fin,syn
@@ -235,7 +235,7 @@
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=rst,urg
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP port 0 drop" port=0 protocol=tcp
-/ip firewall raw add action=drop chain=prerouting comment="Drop all other access to the loopback IPs" dst-address-list=bgp-loopback-ips
+/ip firewall raw add action=drop chain=prerouting comment="Drop all other access to the loopback IPs" disabled=yes dst-address-list=bgp-loopback-ips
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop the rest" disabled=yes
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.180.0/23
@@ -260,6 +260,7 @@
 /ipv6 address add address=2407:9540:111:7::2/126 advertise=no interface=HK-HGC-IPTx-backup-vlan2517
 /ipv6 address add address=fd00:dead:beef::2/126 advertise=no interface=BKK10-LAG
 /ipv6 address add address=fd00:dead:beef:30::2/126 advertise=no interface=BKK00-LAG
+/ipv6 address add address=fd00:dead:beef:100::2/126 advertise=no interface=BKK00-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons
@@ -338,7 +339,7 @@
 /ipv6 firewall address-list add address=2001:deb:0:4070::/64 comment="RPKI Service Network" list=critical-services
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
-/ipv6 firewall raw add action=accept chain=prerouting comment="WArNiNGGGG DANGERZONEEEE - Enable for transparent mode" disabled=yes
+/ipv6 firewall raw add action=accept chain=prerouting comment="WArNiNGGGG DANGERZONEEEE - Enable for transparent mode"
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.co.th IPv6" protocol=tcp src-address=2001:deb:0:4070::26/128 src-port=323
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.net IPv6" protocol=tcp src-address=2001:deb:0:4070::36/128 src-port=4323
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" src-address=fd00:dead:beef::/48
@@ -359,7 +360,7 @@
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop Router Advertisements" icmp-options=134:0 in-interface-list=WAN protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop multicast" dst-address=ff00::/8 in-interface-list=WAN
 /ipv6 firewall raw add action=drop chain=prerouting comment=NOSPOOFING in-interface-list=WAN src-address-list=ipv6-apnic-rotko
-/ipv6 firewall raw add action=accept chain=prerouting comment="acept rest"
+/ipv6 firewall raw add action=accept chain=prerouting comment="accept rest"
 /ipv6 nd add disabled=yes interface=AMSIX-LAG
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=3000000 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v6 remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
 /routing bgp connection add afi=ip as=142108 disabled=no input.limit-process-routes-ipv4=3000000 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v4 remote.address=118.143.234.73 .as=9304 routing-table=main templates=HGC-SG-v4
@@ -417,7 +418,7 @@
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
 /routing filter rule add chain=iBGP-IN comment="this is new edge router" rule="set bgp-large-communities ibgp-communities; accept;"
-/routing filter rule add chain=iBGP-OUT rule="set pref-src 160.22.181.178;"
+/routing filter rule add chain=iBGP-OUT disabled=yes rule="set pref-src 160.22.181.178;"
 /routing filter rule add chain=iBGP-OUT rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="set bgp-med 50; set bgp-path-prepend 2; set bgp-large-communities location; accept"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="set bgp-med 50; set bgp-path-prepend 2; set bgp-large-communities location; accept"
@@ -485,7 +486,7 @@
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
-/routing filter rule add chain=iBGP-OUT-v6 rule="set pref-src 2401:a860:181::20;"
+/routing filter rule add chain=iBGP-OUT-v6 disabled=yes rule="set pref-src 2401:a860:181::20;"
 /routing filter rule add chain=iBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=too-specific rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=bogons rule="if (dst in ipv4-bogons) { reject; }"
