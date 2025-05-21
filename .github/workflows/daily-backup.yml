@@ -17,8 +17,8 @@ jobs:
         env:
           BKK00_KEY: ${{ secrets.BKK00_SSH_KEY }}
           # BKK10_KEY: ${{ secrets.BKK10_SSH_KEY }}
-          # BKK20_KEY: ${{ secrets.BKK20_SSH_KEY }}
-          # BKK50_KEY: ${{ secrets.BKK50_SSH_KEY }}
+          BKK20_KEY: ${{ secrets.BKK20_SSH_KEY }}
+          BKK50_KEY: ${{ secrets.BKK50_SSH_KEY }}
           # BKK60_KEY: ${{ secrets.BKK60_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
@@ -26,8 +26,8 @@ jobs:
 
           echo "$BKK00_KEY" > ~/.ssh/bkk00
           # echo "$BKK10_KEY" > ~/.ssh/bkk10
-          # echo "$BKK20_KEY" > ~/.ssh/bkk20
-          # echo "$BKK50_KEY" > ~/.ssh/bkk50
+          echo "$BKK20_KEY" > ~/.ssh/bkk20
+          echo "$BKK50_KEY" > ~/.ssh/bkk50
           # echo "$BKK60_KEY" > ~/.ssh/bkk60
 
           chmod 600 ~/.ssh/bkk*
@@ -36,8 +36,8 @@ jobs:
         run: |
           ssh -i ~/.ssh/bkk00 -o StrictHostKeyChecking=no bkk00@status.rotko.net > bkk00.rsc
           # ssh -i ~/.ssh/bkk10 -o StrictHostKeyChecking=no admin@bkk10 '/export terse hide-sensitive' > bkk10.rsc
-          # ssh -i ~/.ssh/bkk20 -o StrictHostKeyChecking=no admin@bkk20 '/export terse hide-sensitive' > bkk20.rsc
-          # ssh -i ~/.ssh/bkk50 -o StrictHostKeyChecking=no admin@bkk50 '/export terse hide-sensitive' > bkk50.rsc
+          ssh -i ~/.ssh/bkk20 -o StrictHostKeyChecking=no bkk20@status.rotko.net > bkk20.rsc
+          ssh -i ~/.ssh/bkk50 -o StrictHostKeyChecking=no bkk50@status.rotko.net > bkk50.rsc
           # ssh -i ~/.ssh/bkk60 -o StrictHostKeyChecking=no admin@bkk60 '/export terse hide-sensitive' > bkk60.rsc
 
       - name: Commit and push
