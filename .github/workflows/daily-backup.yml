@@ -34,7 +34,7 @@ jobs:
 
       - name: Export configs
         run: |
-          ssh -i ~/.ssh/bkk00 -o StrictHostKeyChecking=no gh-mikrotik@160.22.181.180 '/export terse hide-sensitive' > bkk00.rsc
+          ssh -i ~/.ssh/bkk00 -o StrictHostKeyChecking=no bkk00@status.rotko.net '/export terse hide-sensitive' > bkk00.rsc
           # ssh -i ~/.ssh/bkk10 -o StrictHostKeyChecking=no admin@bkk10 '/export terse hide-sensitive' > bkk10.rsc
           # ssh -i ~/.ssh/bkk20 -o StrictHostKeyChecking=no admin@bkk20 '/export terse hide-sensitive' > bkk20.rsc
           # ssh -i ~/.ssh/bkk50 -o StrictHostKeyChecking=no admin@bkk50 '/export terse hide-sensitive' > bkk50.rsc
