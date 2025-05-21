@@ -34,16 +34,21 @@ jobs:
 
       - name: Export configs
         run: |
-          ssh -i ~/.ssh/bkk00 -o StrictHostKeyChecking=no bkk00@status.rotko.net '/export terse hide-sensitive' > bkk00.rsc
+          echo "=== Exporting config from bkk00 ==="
+          ssh -i ~/.ssh/bkk00 -o StrictHostKeyChecking=no bkk00@status.rotko.net | tee bkk00.rsc
+          echo "=== Export completed ==="
+          echo "=== Preview of saved file ==="
+          head -n 20 bkk00.rsc
+          # ssh -i ~/.ssh/bkk00 -o StrictHostKeyChecking=no bkk00@status.rotko.net '/export terse hide-sensitive' > bkk00.rsc
           # ssh -i ~/.ssh/bkk10 -o StrictHostKeyChecking=no admin@bkk10 '/export terse hide-sensitive' > bkk10.rsc
           # ssh -i ~/.ssh/bkk20 -o StrictHostKeyChecking=no admin@bkk20 '/export terse hide-sensitive' > bkk20.rsc
           # ssh -i ~/.ssh/bkk50 -o StrictHostKeyChecking=no admin@bkk50 '/export terse hide-sensitive' > bkk50.rsc
           # ssh -i ~/.ssh/bkk60 -o StrictHostKeyChecking=no admin@bkk60 '/export terse hide-sensitive' > bkk60.rsc
 
-      - name: Commit and push
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add *.rsc
-          git commit -m "Daily config export"
-          git push || echo "Nothing to commit"
+      # - name: Commit and push
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add *.rsc
+      #     git commit -m "Daily config export"
+      #     git push || echo "Nothing to commit"
