@@ -1,4 +1,4 @@
-# 2025-05-22 07:04:31 by RouterOS 7.19rc3
+# 2025-05-22 07:59:44 by RouterOS 7.19rc3
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1488,7 +1488,7 @@
 /ipv6 address add address=2401:a860:169::1 comment="bkk50 ipv6" interface=SAX-BKK-01
 /ipv6 address add address=2401:a860:181::1/128 advertise=no comment="bkk50 ipv6" interface=lo
 /ipv6 dhcp-server add address-pool=pool_181_global,pool_181_local interface=bridge_local lease-time=12h name=dhcp6-181 prefix-pool=pool_181_global,pool_181_local
-/ipv6 dhcp-server add address-pool=pool_169_global,pool_169_local interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169_global,pool_169_local
+/ipv6 dhcp-server add address-pool=pool_169_global,pool_169_local disabled=yes interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169_global,pool_169_local
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko

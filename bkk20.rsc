@@ -1,4 +1,4 @@
-# 2025-05-22 07:04:24 by RouterOS 7.19rc2
+# 2025-05-22 07:59:38 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -236,8 +236,7 @@
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=rst,urg
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP port 0 drop" port=0 protocol=tcp
-/ip firewall raw add action=drop chain=prerouting comment="Drop all other access to the loopback IPs" disabled=yes dst-address-list=bgp-loopback-ips
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop the rest" disabled=yes
+/ip firewall raw add action=accept chain=prerouting
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.180.0/23
 /ip route add distance=220 gateway=172.16.30.1
