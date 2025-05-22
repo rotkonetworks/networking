@@ -1,4 +1,4 @@
-# 2025-05-21 17:28:23 by RouterOS 7.19rc2
+# 2025-05-22 07:04:31 by RouterOS 7.19rc3
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -119,7 +119,7 @@
 /ip dhcp-server lease add address=192.168.69.222 client-id=ff:0:96:39:9c:0:1:0:1:2f:8f:96:fb:52:54:0:96:39:9c comment=val-kusama-bkk13-01 mac-address=52:54:00:96:39:9C server=dhcp1
 /ip dhcp-server network add address=10.69.169.0/24 dns-server=9.9.9.9 gateway=10.69.169.1
 /ip dhcp-server network add address=192.168.69.0/24 dns-server=9.9.9.9 gateway=192.168.69.1
-/ip dns set cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,1.0.0.1,8.8.4.4
+/ip dns set cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4
 /ip firewall address-list add address=100.64.0.0/10 comment="CGNAT subnets" list=cgnat_customers
 /ip firewall address-list add list=ddos-attackers
 /ip firewall address-list add list=ddos-targets
@@ -1464,12 +1464,11 @@
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add distance=220 gateway=BKK20-LAG
 /ip route add distance=220 gateway=BKK00-LAG
-/ip route add blackhole distance=220 dst-address=160.22.181.181/29
 /ip route add blackhole distance=220 dst-address=160.22.181.169/29
-/ipv6 route add blackhole distance=210 dst-address=2401:a860:181::/64
-/ipv6 route add blackhole disabled=no distance=220 dst-address=2401:a860:169::/64
+/ip route add blackhole distance=220 dst-address=160.22.181.181/29
 /ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=fe80::d601:c3ff:fef6:9e60%BKK20-LAG
 /ipv6 route add distance=220 dst-address=::/0 gateway=fe80::7a9a:18ff:fe80:e2e3%BKK10-LAG
+/ipv6 route add distance=240 dst-address=::/0 gateway=bridge_local
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32
 /ip service set telnet disabled=yes
@@ -1483,10 +1482,13 @@
 /ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
 /ipv6 address add address=fd12:3456:abcd:181::1 interface=bridge_local
 /ipv6 address add address=fd12:3456:abcd:169::1 disabled=yes interface=SAX-BKK-01
-/ipv6 address add address=2401:a860:181::1 interface=lo
-/ipv6 address add address=2401:a860:181::50 interface=lo
-/ipv6 dhcp-server add disabled=yes interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169,pool_169_global
-/ipv6 dhcp-server add interface=bridge_local lease-time=12h name=dhcp6-181 prefix-pool=pool_181_global,pool_181_local
+/ipv6 address add address=2401:a860:181::50/128 advertise=no comment="bkk50 GUA Loopback" interface=lo
+/ipv6 address add address=2401:a860:169::1/128 advertise=no comment="SAX GUA loopback" interface=lo
+/ipv6 address add address=2401:a860:181::1 comment="bkk50 ipv6" interface=bridge_local
+/ipv6 address add address=2401:a860:169::1 comment="bkk50 ipv6" interface=SAX-BKK-01
+/ipv6 address add address=2401:a860:181::1/128 advertise=no comment="bkk50 ipv6" interface=lo
+/ipv6 dhcp-server add address-pool=pool_181_global,pool_181_local interface=bridge_local lease-time=12h name=dhcp6-181 prefix-pool=pool_181_global,pool_181_local
+/ipv6 dhcp-server add address-pool=pool_169_global,pool_169_local interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169_global,pool_169_local
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -1510,7 +1512,11 @@
 /ipv6 firewall address-list add address=fec0::/10 comment="Site-Local (deprecated)" list=bogons-v6
 /ipv6 firewall address-list add address=ff00::/8 comment=Multicast list=bogons-v6
 /ipv6 firewall address-list add address=fd00:dead:beef::/48 list=our-networks-v6
-/ipv6 nd add interface=bridge_local
+/ipv6 firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related
+/ipv6 firewall filter add action=accept chain=forward comment="Allow from LAN to WAN" in-interface-list=local out-interface-list=WAN
+/ipv6 nd add hop-limit=64 interface=bridge_local managed-address-configuration=yes other-configuration=yes
+/ipv6 nd add hop-limit=64 interface=SAX-BKK-01 managed-address-configuration=yes other-configuration=yes
+/ipv6 nd add hop-limit=64 interface=SAX-BKK-01-KVM managed-address-configuration=yes other-configuration=yes
 /routing ospf interface-template add area=backbone comment=loopback disabled=no networks=10.155.255.3/32 passive
 /routing ospf interface-template add area=backbone disabled=no networks=172.16.10.2/30
 /routing ospf interface-template add area=backbone disabled=no networks=172.16.20.2/30

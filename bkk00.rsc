@@ -1,4 +1,4 @@
-# 2025-05-21 17:28:10 by RouterOS 7.19rc2
+# 2025-05-22 07:04:11 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -22,6 +22,7 @@
 /interface list add name=local
 /interface list add name=WAN
 /interface list add name=WG
+/interface list add name=EDGE
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
 /ip smb users set [ find default=yes ] disabled=yes
 /port set 0 name=serial0
@@ -66,7 +67,7 @@
 /interface list member add interface=sfp28-2 list=WAN
 /interface list member add interface=sfp28-4 list=WAN
 /interface list member add interface=EU-AMS-IX-vlan3995 list=WAN
-/interface list member add interface=BKK20-LAG list=local
+/interface list member add interface=BKK20-LAG list=EDGE
 /interface list member add interface=SG-HGC-IPTx-backup-vlan2518 list=WAN
 /interface list member add interface=BKK10-LAG list=local
 /interface list member add interface=BKK50-LAG list=local
@@ -226,7 +227,7 @@
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop invalid TCP flags (syn+rst)" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop invalid TCP flags (rst+urg)" protocol=tcp tcp-flags=rst,urg
 /ip firewall raw add action=drop chain=bad_tcp comment="Drop TCP port 0" port=0 protocol=tcp
-/ip firewall raw add action=drop chain=prerouting comment="Drop all other traffic" disabled=yes
+/ip firewall raw add action=accept chain=prerouting
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.181.0/23
 /ip route add distance=220 gateway=172.16.30.2
@@ -312,40 +313,41 @@
 /ipv6 firewall address-list add address=2001:7f8:1::/64 comment="AMS-IX Amsterdam Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:df5:b881::/48 comment="BKNIX Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:deb:0:4070::/64 comment="RPKI Service Network" list=critical-services
-/ipv6 firewall raw add action=accept chain=prerouting comment="WArNiNGGGG DANGERZONEEEE - Enable for transparent mode"
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" dst-address=fd00:dead:beef::/48
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" src-address=fd00:dead:beef::/48
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow IPv6 fragments" headers=frag
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow BGP to peers" dst-address-list=bgp-peers-v6 dst-port=179 protocol=tcp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow BGP from peers" protocol=tcp src-address-list=bgp-peers-v6 src-port=179
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow RPKI validation" dst-port=323,4323 protocol=tcp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow RPKI validators" dst-address-list=rpki-validators
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow RPKI validators" src-address-list=rpki-validators
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow OSPFv3" protocol=ospf
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow BFD" dst-port=3784,4784 protocol=udp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow DNS" dst-port=53 protocol=tcp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow DNS" dst-port=53 protocol=udp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow NTP" dst-port=123 protocol=udp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow SSH" dst-port=22 protocol=tcp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Destination Unreachable" icmp-options=1:0-1 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Packet Too Big" icmp-options=2:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Time Exceeded" icmp-options=3:0-1 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Parameter Problem" icmp-options=4:0-2 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Echo Request" icmp-options=128:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Echo Reply" icmp-options=129:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 MLD Query" icmp-options=130:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 MLD Report" icmp-options=131:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 MLD Done" icmp-options=132:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Neighbor Solicitation" icmp-options=135 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 Neighbor Advertisement" icmp-options=136 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow ICMPv6 MLDv2" icmp-options=143 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Rate limit remaining ICMPv6" limit=10,10:packet protocol=icmpv6
-/ipv6 firewall raw add action=drop chain=prerouting comment="Drop excess ICMPv6" protocol=icmpv6
-/ipv6 firewall raw add action=drop chain=prerouting comment="Drop obvious spoofed traffic" in-interface-list=WAN src-address-list=ipv6-apnic-rotko
-/ipv6 firewall raw add action=drop chain=prerouting comment="Drop Router Advertisements (AMS-IX rule)" icmp-options=134 in-interface-list=WAN protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow all remaining IPv6 traffic"
-/ipv6 nd add disabled=yes interface=AMSIX-LAG
-/ipv6 nd add disabled=yes interface=BKNIX-LAG
+/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
+/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
+/ipv6 firewall raw add action=accept chain=prerouting disabled=yes
+/ipv6 firewall raw add action=drop chain=prerouting in-interface-list=WAN src-address-list=ipv6-apnic-rotko
+/ipv6 firewall raw add action=drop chain=prerouting icmp-options=134 in-interface-list=WAN protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting in-interface-list=local src-address-list=ipv6-apnic-rotko
+/ipv6 firewall raw add action=accept chain=prerouting dst-address=fd00:dead:beef::/48
+/ipv6 firewall raw add action=accept chain=prerouting src-address=fd00:dead:beef::/48
+/ipv6 firewall raw add action=accept chain=prerouting headers=frag
+/ipv6 firewall raw add action=accept chain=prerouting protocol=ospf
+/ipv6 firewall raw add action=accept chain=prerouting comment=allow_bfd dst-port=3784,4784 protocol=udp
+/ipv6 firewall raw add action=accept chain=prerouting dst-address-list=bgp-peers-v6 dst-port=179 protocol=tcp
+/ipv6 firewall raw add action=accept chain=prerouting protocol=tcp src-address-list=bgp-peers-v6 src-port=179
+/ipv6 firewall raw add action=accept chain=prerouting comment=allow_rkpi dst-port=323,4323 protocol=tcp
+/ipv6 firewall raw add action=accept chain=prerouting src-address-list=rpki-validators
+/ipv6 firewall raw add action=accept chain=prerouting dst-address-list=rpki-validators
+/ipv6 firewall raw add action=accept chain=prerouting dst-port=53 protocol=tcp
+/ipv6 firewall raw add action=accept chain=prerouting dst-port=53 protocol=udp
+/ipv6 firewall raw add action=accept chain=prerouting dst-port=123 protocol=udp
+/ipv6 firewall raw add action=accept chain=prerouting dst-port=22 protocol=tcp
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=1:0-1 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=2:0 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=3:0-1 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=4:0-2 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=128:0 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=129:0 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=130:0 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=131:0 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=132:0 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=135 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=136 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting icmp-options=143 protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting limit=10,10:packet protocol=icmpv6
+/ipv6 firewall raw add action=drop chain=prerouting protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting
 /routing bgp connection add input.limit-process-routes-ipv4=2000000 local.address=10.155.255.4 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v4 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,bgp remote.address=10.155.255.2 .as=142108 templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 as=142108 disabled=no input.limit-process-routes-ipv6=2000000 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,bgp remote.address=fd00:dead:beef::20 .as=142108 router-id=10.155.255.4 templates=IBGP-ROTKO-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 keepalive-time=1m local.role=ebgp name=BKNIX-RS0-v4 remote.address=203.159.68.68 .as=63529 templates=BKNIX-v4
