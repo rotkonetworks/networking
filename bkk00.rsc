@@ -1,9 +1,8 @@
-# 2025-05-22 07:59:32 by RouterOS 7.19rc2
+# 2025-05-23 07:59:19 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
-/interface bridge add name=bridge_local vlan-filtering=yes
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR comment="HGC-HK-MMR-A-XXX ORIGINAL-MAC=F4:1E:57:4B:D7:1D" mac-address=78:9A:18:80:E2:E4
 /interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="BKNIX-core7,8-MMRB ORIGINAL-MAC-F4:1E:57:4B:D7:1F" mac-address=78:9A:18:80:E2:E6
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR
@@ -49,15 +48,17 @@
 /interface bridge filter add action=accept chain=forward mac-protocol=vlan out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 mac-protocol=ipv6 out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward dst-mac-address=FF:FF:FF:FF:FF:FF/FF:FF:FF:FF:FF:FF out-interface-list=WAN
+/interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
+/interface bridge filter add action=drop chain=forward comment="RA-Guard & NDP-Guard for WANLAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
+/interface bridge filter add action=drop chain=forward comment="RA-Guard  block external RAs" dst-mac-address=33:33:00:00:00:01/FF:FF:FF:FF:FF:FF in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
-/interface bridge port add bridge=bridge_local disabled=yes interface=ether1 internal-path-cost=10 path-cost=10
 /interface ethernet switch l3hw-settings set autorestart=yes ipv6-hw=yes
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=8192 soft-max-neighbor-entries=8191
 /interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
-/interface list member add interface=bridge_local list=local
+/interface list member add interface=*17 list=local
 /interface list member add interface=ether1 list=local
 /interface list member add interface=qsfp28-1-1 list=local
 /interface list member add interface=qsfp28-2-1 list=local
@@ -242,15 +243,16 @@
 /ip service set api-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
 /ip smb shares set [ find default=yes ] directory=/pub
 /ipv6 address add address=fd00:dead:beef:30::1/126 advertise=no interface=BKK20-LAG
-/ipv6 address add address=2401:a860:181::100 interface=lo
-/ipv6 address add address=fd00:dead:beef::100 interface=lo
-/ipv6 address add address=2401:a860:181:100:: interface=lo
-/ipv6 address add address=2001:df5:b881::168 comment=BKNIX-V6 interface=BKNIX-LAG
-/ipv6 address add address=2403:5000:171:138::2 comment="HK IPv6" interface=HK-HGC-IPTx-vlan2519
+/ipv6 address add address=2401:a860:181::100/128 advertise=no interface=lo
+/ipv6 address add address=fd00:dead:beef::100/128 advertise=no interface=lo
+/ipv6 address add address=2401:a860:181:100::1/128 advertise=no interface=lo
+/ipv6 address add address=2001:df5:b881::168 advertise=no comment=BKNIX-V6 interface=BKNIX-LAG
+/ipv6 address add address=2403:5000:171:138::2 advertise=no comment="HK IPv6" interface=HK-HGC-IPTx-vlan2519
 /ipv6 address add address=2001:7f8:1:0:a500:14:2108:1 advertise=no interface=EU-AMS-IX-vlan3995
 /ipv6 address add address=2407:9540:111:8::2/126 advertise=no interface=SG-HGC-IPTx-backup-vlan2518
 /ipv6 address add address=fd00:dead:beef:10::1/126 advertise=no interface=BKK50-LAG
 /ipv6 address add address=fd00:dead:beef:200::1/126 advertise=no interface=BKK10-LAG
+/ipv6 address add address=fd00:dead:beef:100::1/126 advertise=no interface=BKK20-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -316,9 +318,10 @@
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
 /ipv6 firewall raw add action=accept chain=prerouting disabled=yes
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block link-local src from WAN" in-interface-list=WAN src-address=fe80::/10
+/ipv6 firewall raw add action=drop chain=output comment="block outbound RAs" icmp-options=134:0 out-interface-list=WAN protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting in-interface-list=WAN src-address-list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=drop chain=prerouting icmp-options=134 in-interface-list=WAN protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting in-interface-list=local src-address-list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=accept chain=prerouting dst-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting src-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting headers=frag
@@ -348,6 +351,7 @@
 /ipv6 firewall raw add action=accept chain=prerouting limit=10,10:packet protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting protocol=icmpv6
 /ipv6 firewall raw add action=accept chain=prerouting
+/ipv6 nd set [ find default=yes ] ra-lifetime=none
 /routing bgp connection add input.limit-process-routes-ipv4=2000000 local.address=10.155.255.4 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v4 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,bgp remote.address=10.155.255.2 .as=142108 templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 as=142108 disabled=no input.limit-process-routes-ipv6=2000000 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,bgp remote.address=fd00:dead:beef::20 .as=142108 router-id=10.155.255.4 templates=IBGP-ROTKO-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 keepalive-time=1m local.role=ebgp name=BKNIX-RS0-v4 remote.address=203.159.68.68 .as=63529 templates=BKNIX-v4

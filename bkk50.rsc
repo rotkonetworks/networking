@@ -1,4 +1,4 @@
-# 2025-05-22 07:59:44 by RouterOS 7.19rc3
+# 2025-05-23 07:59:31 by RouterOS 7.19rc3
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1468,7 +1468,6 @@
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
 /ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=fe80::d601:c3ff:fef6:9e60%BKK20-LAG
 /ipv6 route add distance=220 dst-address=::/0 gateway=fe80::7a9a:18ff:fe80:e2e3%BKK10-LAG
-/ipv6 route add distance=240 dst-address=::/0 gateway=bridge_local
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32
 /ip service set telnet disabled=yes
@@ -1481,14 +1480,14 @@
 /ipv6 address add address=fd00:dead:beef:10::2/126 advertise=no interface=BKK00-LAG
 /ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
 /ipv6 address add address=fd12:3456:abcd:181::1 interface=bridge_local
-/ipv6 address add address=fd12:3456:abcd:169::1 disabled=yes interface=SAX-BKK-01
+/ipv6 address add address=fd12:3456:abcd:169::1 interface=SAX-BKK-01
 /ipv6 address add address=2401:a860:181::50/128 advertise=no comment="bkk50 GUA Loopback" interface=lo
 /ipv6 address add address=2401:a860:169::1/128 advertise=no comment="SAX GUA loopback" interface=lo
 /ipv6 address add address=2401:a860:181::1 comment="bkk50 ipv6" interface=bridge_local
 /ipv6 address add address=2401:a860:169::1 comment="bkk50 ipv6" interface=SAX-BKK-01
 /ipv6 address add address=2401:a860:181::1/128 advertise=no comment="bkk50 ipv6" interface=lo
-/ipv6 dhcp-server add address-pool=pool_181_global,pool_181_local interface=bridge_local lease-time=12h name=dhcp6-181 prefix-pool=pool_181_global,pool_181_local
-/ipv6 dhcp-server add address-pool=pool_169_global,pool_169_local disabled=yes interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169_global,pool_169_local
+/ipv6 dhcp-server add address-pool=pool_181_global disabled=yes interface=bridge_local lease-time=12h name=dhcp6-181 prefix-pool=pool_181_global
+/ipv6 dhcp-server add address-pool=pool_169_global disabled=yes interface=SAX-BKK-01 lease-time=12h name=dhcp6-169 prefix-pool=pool_169_global
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -1514,9 +1513,11 @@
 /ipv6 firewall address-list add address=fd00:dead:beef::/48 list=our-networks-v6
 /ipv6 firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related
 /ipv6 firewall filter add action=accept chain=forward comment="Allow from LAN to WAN" in-interface-list=local out-interface-list=WAN
-/ipv6 nd add hop-limit=64 interface=bridge_local managed-address-configuration=yes other-configuration=yes
-/ipv6 nd add hop-limit=64 interface=SAX-BKK-01 managed-address-configuration=yes other-configuration=yes
-/ipv6 nd add hop-limit=64 interface=SAX-BKK-01-KVM managed-address-configuration=yes other-configuration=yes
+/ipv6 firewall raw add action=drop chain=output comment="block outbound RAs" icmp-options=134:0 out-interface-list=WAN protocol=icmpv6
+/ipv6 firewall raw add action=drop chain=prerouting comment="block inbound RAs" icmp-options=134:0 in-interface-list=WAN protocol=icmpv6
+/ipv6 nd add interface=bridge_local ra-lifetime=10m
+/ipv6 nd add interface=SAX-BKK-01 ra-lifetime=10m
+/ipv6 nd add interface=SAX-BKK-01-KVM ra-lifetime=10m
 /routing ospf interface-template add area=backbone comment=loopback disabled=no networks=10.155.255.3/32 passive
 /routing ospf interface-template add area=backbone disabled=no networks=172.16.10.2/30
 /routing ospf interface-template add area=backbone disabled=no networks=172.16.20.2/30
@@ -1529,8 +1530,6 @@
 /routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Loopback" disabled=no networks=2401:a860:169::1/128 passive
 /routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Network" disabled=no networks=2401:a860:181::/64
 /routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Network" disabled=no networks=2401:a860:169::/64
-/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.169/29
-/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.20/24
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk50
 /system logging set 0 prefix=:Info

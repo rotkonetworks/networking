@@ -1,4 +1,4 @@
-# 2025-05-22 07:59:38 by RouterOS 7.19rc2
+# 2025-05-23 07:59:25 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -49,6 +49,7 @@
 /interface bridge filter add action=accept chain=forward mac-protocol=vlan out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 mac-protocol=ipv6 out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward dst-mac-address=FF:FF:FF:FF:FF:FF/FF:FF:FF:FF:FF:FF out-interface-list=WAN
+/interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
 /interface bridge port add bridge=mgmt interface=ether1
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
@@ -340,8 +341,8 @@
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=2001:df0:296::/64 port=179 protocol=tcp src-address=2001:df0:296::/64
 /ipv6 firewall raw add action=accept chain=prerouting comment="WArNiNGGGG DANGERZONEEEE - Enable for transparent mode" disabled=yes
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop obvious spoofed traffic" in-interface-list=WAN src-address-list=ipv6-apnic-rotko
+/ipv6 firewall raw add action=drop chain=output comment="block outbound RAs" icmp-options=134:0 out-interface-list=WAN protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting comment="Drop Router Advertisements from external" icmp-options=134 in-interface-list=WAN protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting in-interface-list=local src-address-list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" dst-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" src-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow IPv6 fragments" headers=frag
@@ -371,6 +372,7 @@
 /ipv6 firewall raw add action=accept chain=prerouting limit=10,10:packet protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting protocol=icmpv6
 /ipv6 firewall raw add action=accept chain=prerouting
+/ipv6 nd set [ find default=yes ] ra-lifetime=none
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=3000000 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v6 remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
 /routing bgp connection add afi=ip as=142108 disabled=no input.limit-process-routes-ipv4=3000000 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v4 remote.address=118.143.234.73 .as=9304 routing-table=main templates=HGC-SG-v4
 /routing bgp connection add afi=ip as=142108 input.limit-process-routes-ipv4=230000 local.address=103.100.140.31 .role=ebgp multihop=yes name=AMSIX-HE-TH-v4 remote.address=103.100.140.44 .as=6939 routing-table=main templates=AMSIX-BAN-v4
