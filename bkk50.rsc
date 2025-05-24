@@ -1,4 +1,4 @@
-# 2025-05-23 07:59:31 by RouterOS 7.19rc3
+# 2025-05-24 07:57:14 by RouterOS 7.19rc3
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -178,6 +178,8 @@
 /ip firewall address-list add address=8.8.8.8 comment="Google DNS" list=dns_servers
 /ip firewall address-list add address=160.22.181.168/29 list=not_in_internet
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
+/ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
+/ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
 /ip firewall filter add action=accept chain=input comment="BYPASS RULE - DISABLE WHEN NOT NEEDED" disabled=yes
 /ip firewall filter add action=accept chain=input comment="allow wg_rotko traffic -al" protocol=udp src-address=172.30.50.0/24
@@ -805,8 +807,6 @@
 /ip firewall filter add action=accept chain=input comment="Allow NTP" dst-port=123 protocol=udp
 /ip firewall filter add action=accept chain=input comment="Allow OSPF" protocol=ospf
 /ip firewall filter add action=drop chain=input comment="Drop all other input"
-/ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
-/ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
 /ip firewall filter add action=accept chain=forward dst-address-list=WAN
 /ip firewall filter add action=accept chain=forward out-interface-list=WAN
 /ip firewall filter add action=accept chain=forward comment="testing routing to haproxy -al" dst-port=30435 protocol=tcp

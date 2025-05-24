@@ -1,4 +1,4 @@
-# 2025-05-23 07:59:25 by RouterOS 7.19rc2
+# 2025-05-24 07:57:08 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -19,7 +19,7 @@
 /interface vlan add interface=AMSIX-LAG name=HK-AMS-IX-vlan3994 vlan-id=3994
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-backup-vlan2517 vlan-id=2517
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
-/interface list add name=local
+/interface list add name=LAN
 /interface list add name=WAN
 /interface list add name=EDGE
 /port set 0 name=serial0
@@ -57,37 +57,21 @@
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
 /interface ethernet switch set 0 l3-hw-offloading=yes
+/interface list member add interface=ether1 list=LAN
+/interface list member add interface=lo list=LAN
+/interface list member add interface=mgmt list=LAN
+/interface list member add interface=wg_rotko list=LAN
+/interface list member add interface=BKK10-LAG list=LAN
+/interface list member add interface=BKK50-LAG list=LAN
 /interface list member add interface=AMSIX-LAG list=WAN
-/interface list member add interface=SG-HGC-IPTx-vlan2520 list=WAN
 /interface list member add interface=BKK-AMS-IX-vlan911 list=WAN
-/interface list member add interface=ether1 list=local
-/interface list member add interface=lo list=local
 /interface list member add interface=HK-AMS-IX-vlan3994 list=WAN
-/interface list member add interface=qsfp28-1-1 list=local
-/interface list member add interface=qsfp28-1-2 list=local
-/interface list member add interface=qsfp28-1-3 list=local
-/interface list member add interface=qsfp28-1-4 list=local
-/interface list member add interface=qsfp28-2-4 list=local
-/interface list member add interface=qsfp28-2-3 list=local
-/interface list member add interface=qsfp28-2-2 list=local
-/interface list member add interface=qsfp28-2-1 list=local
-/interface list member add interface=sfp28-1 list=local
-/interface list member add interface=sfp28-3 list=local
-/interface list member add interface=sfp28-4 list=local
-/interface list member add interface=sfp28-5 list=local
-/interface list member add interface=sfp28-6 list=local
-/interface list member add interface=sfp28-7 list=local
-/interface list member add interface=sfp28-8 list=local
-/interface list member add interface=sfp28-9 list=local
-/interface list member add interface=sfp28-10 list=local
-/interface list member add interface=sfp28-11 list=local
-/interface list member add interface=sfp28-12 list=local
-/interface list member add interface=sfp28-2 list=WAN
-/interface list member add interface=BKK10-LAG list=local
-/interface list member add interface=BKK50-LAG list=local
-/interface list member add interface=wg_rotko list=local
+/interface list member add interface=SG-HGC-IPTx-vlan2520 list=WAN
 /interface list member add interface=HK-HGC-IPTx-backup-vlan2517 list=WAN
+/interface list member add interface=sfp28-2 list=WAN
 /interface list member add interface=BKK00-LAG list=EDGE
+/interface list member add interface=qsfp28-1-1 list=EDGE
+/interface list member add interface=qsfp28-2-1 list=EDGE
 /interface ovpn-server server add mac-address=FE:C6:6D:C5:70:CE name=ovpn-server1
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.10/32 interface=wg_rotko name=bkk10 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
@@ -189,9 +173,14 @@
 /ip firewall address-list add address=172.16.30.0/30 comment="BKK00 Link Range" list=bgp-peers
 /ip firewall address-list add address=172.16.20.0/30 comment="BKK50 Link Range" list=bgp-peers
 /ip firewall address-list add address=172.16.10.0/30 comment="BKK10 Link Range" list=bgp-peers
+/ip firewall address-list add address=10.0.0.0/8 list=dns-clients
+/ip firewall address-list add address=172.16.0.0/12 list=dns-clients
+/ip firewall address-list add address=192.168.0.0/16 list=dns-clients
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-BAN - src to dst" disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-HK - src to dst" disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
 /ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode"
+/ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
+/ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.co.th IPv4" protocol=tcp src-address=203.159.70.26 src-port=323
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.net IPv4" protocol=tcp src-address=203.159.70.36 src-port=4323
 /ip firewall raw add action=accept chain=prerouting comment="Allow traffic for our networks" dst-address-list=our-networks src-address-list=our-networks
@@ -204,12 +193,12 @@
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI traffic" dst-address=203.159.70.0/23 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="Allow OSPF protocol" protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" src-address=172.16.0.0/16
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop local if not from default IP range" in-interface-list=local src-address-list=!lan_subnets
+/ip firewall raw add action=drop chain=prerouting comment="defconf: drop local if not from default IP range" in-interface-list=LAN src-address-list=!lan_subnets
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" dst-address=172.16.0.0/16
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad UDP" port=0 protocol=udp
 /ip firewall raw add action=jump chain=prerouting comment="defconf: jump to ICMP chain" jump-target=icmp protocol=icmp
 /ip firewall raw add action=jump chain=prerouting comment="defconf: jump to TCP chain" jump-target=bad_tcp protocol=tcp
-/ip firewall raw add action=accept chain=prerouting comment="defconf: accept everything else from LAN" in-interface-list=local
+/ip firewall raw add action=accept chain=prerouting comment="defconf: accept everything else from LAN" in-interface-list=LAN
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP from IX peers" dst-address-list=bgp-loopback-ips dst-port=179 protocol=tcp src-address-list=bgp-peers
 /ip firewall raw add action=accept chain=prerouting comment="BCP194 - Allow established BGP sessions" dst-address-list=bgp-loopback-ips protocol=tcp src-address-list=bgp-peers tcp-flags=ack
 /ip firewall raw add action=accept chain=prerouting comment="defconf: accept everything else from WAN" in-interface-list=WAN
@@ -222,7 +211,7 @@
 /ip firewall raw add action=accept chain=icmp comment="defconf: echo request" icmp-options=8:0 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="defconf: time exceeded " icmp-options=11:0-255 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="defconf: allow parameter bad" icmp-options=12:0 protocol=icmp
-/ip firewall raw add action=drop chain=prerouting comment="defconf: Drop DHCP discover on LAN" dst-address=255.255.255.255 dst-port=67 in-interface-list=local protocol=udp src-address=0.0.0.0 src-port=68
+/ip firewall raw add action=drop chain=prerouting comment="defconf: Drop DHCP discover on LAN" dst-address=255.255.255.255 dst-port=67 in-interface-list=LAN protocol=udp src-address=0.0.0.0 src-port=68
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad src IPs" src-address-list=bad_ipv4
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad dst IPs" dst-address-list=bad_ipv4
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad src IPs" src-address-list=bad_src_ipv4
@@ -241,7 +230,21 @@
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.180.0/23
 /ip route add distance=220 gateway=172.16.30.1
-/ip route add comment="Temp route to BKNIX RPKI via bkk00" distance=5 dst-address=203.159.70.0/23 gateway=172.16.30.1 pref-src=160.22.181.178
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=0.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=172.16.0.0/12
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.168.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=10.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=169.254.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=127.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=224.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.18.0.0/15
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.0.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.2.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.51.100.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=203.0.113.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=100.64.0.0/10
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
 /ipv6 route add blackhole distance=240 dst-address=2401:a860::/32
 /ip service set ftp address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,158.140.0.0/16,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32
