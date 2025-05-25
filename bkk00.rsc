@@ -1,4 +1,4 @@
-# 2025-05-24 07:57:01 by RouterOS 7.19rc2
+# 2025-05-25 08:05:00 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -22,6 +22,9 @@
 /interface list add name=WAN
 /interface list add name=WG
 /interface list add name=EDGE
+/interface list add name=IXP
+/interface list add name=IPTX
+/interface list add name=WANEDGE
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
 /ip smb users set [ find default=yes ] disabled=yes
 /port set 0 name=serial0
@@ -72,6 +75,10 @@
 /interface list member add interface=BKK20-LAG list=EDGE
 /interface list member add interface=qsfp28-1-1 list=EDGE
 /interface list member add interface=qsfp28-2-1 list=EDGE
+/interface list member add interface=EU-AMS-IX-vlan3995 list=IXP
+/interface list member add interface=BKNIX-LAG list=IXP
+/interface list member add interface=SG-HGC-IPTx-backup-vlan2518 list=IPTX
+/interface list member add interface=HK-HGC-IPTx-vlan2519 list=IPTX
 /interface ovpn-server server add mac-address=FE:7C:66:E3:E3:AC name=ovpn-server1
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.20/32 interface=wg_rotko name=bkk20 public-key="/09ofEbIM1qjlq7xM/R0KfJMQ8R/UR9aHaph70FTp30="
@@ -153,14 +160,10 @@
 /ip firewall address-list add address=10.155.255.0/24 list=ROTKO-LOCAL-v4
 /ip firewall address-list add address=0.0.0.0/0 list=all-addresses
 /ip firewall address-list add address=160.22.180.0/23 comment="Our IANA block" list=our-networks
-/ip firewall address-list add address=203.159.68.0/23 comment="BKNIX network" list=our-networks
 /ip firewall address-list add address=118.143.211.184/29 comment="HK-HGC IPv4" list=our-networks
 /ip firewall address-list add address=118.143.234.72/29 comment="SG-HGC IPv4" list=our-networks
 /ip firewall address-list add address=103.168.174.176/29 comment="HK Backup Range" list=our-networks
 /ip firewall address-list add address=103.168.174.180/30 comment="SG Backup Range" list=our-networks
-/ip firewall address-list add address=103.100.140.0/24 comment="BKK AMS-IX" list=our-networks
-/ip firewall address-list add address=103.247.139.0/24 comment="HK AMS-IX" list=our-networks
-/ip firewall address-list add address=80.249.208.0/21 comment="EU AMS-IX" list=our-networks
 /ip firewall address-list add address=172.16.0.0/16 comment="Internal Router Links" list=our-networks
 /ip firewall address-list add address=172.31.0.0/16 comment="WG Network" list=our-networks
 /ip firewall address-list add address=10.155.255.0/24 comment="Loopback Network" list=our-networks
@@ -186,9 +189,13 @@
 /ip firewall address-list add address=10.0.0.0/8 list=dns-clients
 /ip firewall address-list add address=172.16.0.0/12 list=dns-clients
 /ip firewall address-list add address=192.168.0.0/16 list=dns-clients
+/ip firewall address-list add address=203.159.68.0/23 comment="BKNIX peering LAN" list=ix-peering-lans
+/ip firewall address-list add address=103.100.140.0/24 comment="BKK AMS-IX peering LAN" list=ix-peering-lans
+/ip firewall address-list add address=103.247.139.0/24 comment="HK AMS-IX peering LAN" list=ix-peering-lans
+/ip firewall address-list add address=80.249.208.0/21 comment="EU AMS-IX peering LAN" list=ix-peering-lans
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
-/ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE"
+/ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE" disabled=yes
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI traffic" dst-address=203.159.70.0/23 protocol=tcp
@@ -205,15 +212,16 @@
 /ip firewall raw add action=drop chain=prerouting comment="Drop bad dst IPs" dst-address-list=bad_ipv4
 /ip firewall raw add action=drop chain=prerouting comment="Drop bad src IPs" src-address-list=bad_src_ipv4
 /ip firewall raw add action=drop chain=prerouting comment="Drop bad dst IPs" dst-address-list=bad_dst_ipv4
-/ip firewall raw add action=drop chain=prerouting comment="Drop non-global from WAN" disabled=yes in-interface-list=WAN src-address-list=not_in_internet
+/ip firewall raw add action=drop chain=prerouting comment="Drop non-global from WAN" in-interface-list=WAN src-address-list=not_in_internet
 /ip firewall raw add action=drop chain=prerouting comment="Drop local if not from LAN" disabled=yes in-interface-list=LAN src-address-list=!lan_subnets
-/ip firewall raw add action=drop chain=prerouting comment="Drop bad UDP" disabled=yes port=0 protocol=udp
-/ip firewall raw add action=drop chain=prerouting comment="Drop DHCP discover on LAN" disabled=yes dst-address=255.255.255.255 dst-port=67 in-interface-list=LAN protocol=udp src-address=0.0.0.0 src-port=68
+/ip firewall raw add action=drop chain=prerouting comment="Drop bad UDP" port=0 protocol=udp
+/ip firewall raw add action=drop chain=prerouting comment="Drop DHCP discover on LAN" dst-address=255.255.255.255 dst-port=67 in-interface-list=LAN protocol=udp src-address=0.0.0.0 src-port=68
 /ip firewall raw add action=accept chain=prerouting comment="Accept from LAN" in-interface-list=LAN
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP from IX peers" dst-address-list=bgp-loopback-ips dst-port=179 protocol=tcp src-address-list=bgp-peers
 /ip firewall raw add action=accept chain=prerouting comment="BCP194 - Allow established BGP sessions" dst-address-list=bgp-loopback-ips protocol=tcp src-address-list=bgp-peers tcp-flags=ack
 /ip firewall raw add action=accept chain=prerouting comment="Accept from WAN" in-interface-list=WAN
 /ip firewall raw add action=accept chain=prerouting
+/ip firewall raw add action=drop chain=prerouting comment="iSAV: Drop our IPv4 prefixes from WAN" in-interface-list=WAN src-address-list=our-networks
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.181.0/23
 /ip route add distance=220 gateway=172.16.30.2
@@ -233,7 +241,10 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=240.0.0.0/4
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
-/ipv6 route add blackhole distance=240 dst-address=2401:a860::/32
+/ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" distance=240 dst-address=2401:a860::/32
+/ipv6 route add blackhole comment="Blackhole for IPv6 ULA (RFC4193)" distance=240 dst-address=fc00::/7
+/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" distance=240 dst-address=fec0::/10
+/ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
@@ -365,25 +376,25 @@
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=237000 keepalive-time=1m local.role=ebgp name=HE-BKNIX-v6 remote.address=2001:df5:b881::135 .as=6939 templates=BKNIX-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=500000 keepalive-time=1m local.address=2403:5000:171:138::2 .role=ebgp name=HGC-HK-PRIMARY-v6 remote.address=2403:5000:171:138::1 .as=9304 templates=IPTX-HGC-HK-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1500000 keepalive-time=1m local.address=118.143.211.186 .role=ebgp name=HGC-HK-PRIMARY-v4 remote.address=118.143.211.185 .as=9304 templates=IPTX-HGC-HK-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1000000 keepalive-time=1m local.role=ebgp name=AMSIX-RS1-v4 remote.address=80.249.208.255 .as=6777 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1000000 keepalive-time=1m local.role=ebgp name=AMSIX-RS2-v4 remote.address=80.249.209.0 .as=6777 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=1000000 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS1-v6 remote.address=2001:7f8:1::a500:6777:1 .as=6777 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=1000000 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS2-v6 remote.address=2001:7f8:1::a500:6777:2 .as=6777 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=10 keepalive-time=1m local.role=ebgp name=AMSIX-MON1-v4 remote.address=80.249.208.1 .as=1200 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=10 keepalive-time=1m local.role=ebgp name=AMSIX-MON2-v4 remote.address=80.249.209.1 .as=1200 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=10 keepalive-time=1m local.address=80.249.212.139 .role=ebgp name=AMSIX-MON3-v4 remote.address=193.105.101.1 .as=1200 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=10 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON1-v6 remote.address=2001:7f8:1::a500:1200:1 .as=1200 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=10 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON2-v6 remote.address=2001:7f8:1::a500:1200:2 .as=1200 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=10 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON3-v6 remote.address=2001:7f8:86:1:0:a500:1200:1 .as=1200 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=3m keepalive-time=1m local.role=ebgp name=AXERA-AMSIX-v4 remote.address=80.249.211.255 .as=34758 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 keepalive-time=30s local.role=ebgp name=AMSIX-RS1-v4 remote.address=80.249.208.255 .as=6777 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 keepalive-time=30s local.role=ebgp name=AMSIX-RS2-v4 remote.address=80.249.209.0 .as=6777 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS1-v6 remote.address=2001:7f8:1::a500:6777:1 .as=6777 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS2-v6 remote.address=2001:7f8:1::a500:6777:2 .as=6777 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=10 keepalive-time=30s local.role=ebgp name=AMSIX-MON1-v4 remote.address=80.249.208.1 .as=1200 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=10 keepalive-time=30s local.role=ebgp name=AMSIX-MON2-v4 remote.address=80.249.209.1 .as=1200 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=10 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-MON3-v4 remote.address=193.105.101.1 .as=1200 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=10 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON1-v6 remote.address=2001:7f8:1::a500:1200:1 .as=1200 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=10 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON2-v6 remote.address=2001:7f8:1::a500:1200:2 .as=1200 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=10 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON3-v6 remote.address=2001:7f8:86:1:0:a500:1200:1 .as=1200 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s keepalive-time=30s local.role=ebgp name=AXERA-AMSIX-v4 remote.address=80.249.211.255 .as=34758 templates=AMSIX-v4
 /routing bgp connection add afi=ipv6 disabled=no hold-time=3m input.limit-process-routes-ipv6=500000 keepalive-time=1m local.address=2407:9540:111:8::2 .role=ebgp name=HGC-SG-BACKUP-v6 remote.address=2407:9540:111:8::1 .as=142435 templates=HGC-TH-SG-v6
 /routing bgp connection add afi=ip disabled=no hold-time=3m input.limit-process-routes-ipv4=1500000 keepalive-time=1m local.role=ebgp name=HGC-SG-BACKUP-v4 remote.address=103.168.174.181 .as=142435 templates=HGC-TH-SG-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1000000 keepalive-time=1m local.role=ebgp name=Cloudflare-AMSIX-v4-1 remote.address=80.249.211.140 .as=13335 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1000000 keepalive-time=1m local.role=ebgp name=Cloudflare-AMSIX-v4-2 remote.address=80.249.210.118 .as=13335 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=1000000 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-1 remote.address=2001:7f8:1::a501:3335:1 .as=13335 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=1000000 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-2 remote.address=2001:7f8:1::a501:3335:2 .as=13335 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=210000 keepalive-time=1m local.address=80.249.212.139 .role=ebgp name=HE-AMSIX-v4 remote.address=80.249.209.150 .as=6939 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=237000 keepalive-time=1m local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 keepalive-time=30s local.role=ebgp name=Cloudflare-AMSIX-v4-1 remote.address=80.249.211.140 .as=13335 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 keepalive-time=30s local.role=ebgp name=Cloudflare-AMSIX-v4-2 remote.address=80.249.210.118 .as=13335 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-1 remote.address=2001:7f8:1::a501:3335:1 .as=13335 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-2 remote.address=2001:7f8:1::a501:3335:2 .as=13335 templates=AMSIX-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=210000 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=HE-AMSIX-v4 remote.address=80.249.209.150 .as=6939 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=237000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
@@ -688,121 +699,21 @@
     \n    \
     \n    :log info \"Normal BGP timers restored for all AMS-IX BGP sessions\"\
     \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_on_hgc owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # HGC IPv4 and IPv6 prefixes\
-    \n    :local hkv4Prefix \"118.143.211.184/29\"\
-    \n    :local sgv4Prefix \"118.143.234.72/29\"\
-    \n    :local hkv6Prefix \"2403:5000:171:138::/64\"\
-    \n    :local sgv6Prefix \"2403:5000:165:15::/64\"\
-    \n    \
-    \n    :log info \"Applying graceful shutdown to all BGP sessions on HGC circuits\"\
-    \n    \
-    \n    # Find all HGC connections and enable graceful shutdown\
-    \n    :foreach conn in=[/routing bgp connection find name~\"HGC\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :local remoteAddress [/routing bgp connection get \$conn remote.address]\
-    \n        :local templateName [/routing bgp connection get \$conn templates]\
-    \n        \
-    \n        :log info \"Setting up graceful shutdown for BGP connection \$connName with remote address \$remoteAddress\"\
-    \n        \
-    \n        # Add graceful-shutdown community to the template's filter chain\
-    \n        :local filterChain \"\"\
-    \n        :if ([/routing bgp template get \$templateName afi] = \"ip\") do={\
-    \n            :if ([/routing bgp connection get \$conn name] ~ \"SG\") do={\
-    \n                :set filterChain \"HGC-SG-OUT-v4\"\
-    \n            } else={\
-    \n                :set filterChain \"HGC-HK-OUT-v4\"\
-    \n            }\
-    \n        } else={\
-    \n            :if ([/routing bgp connection get \$conn name] ~ \"SG\") do={\
-    \n                :set filterChain \"HGC-SG-OUT-v6\"\
-    \n            } else={\
-    \n                :set filterChain \"HGC-HK-OUT-v6\"\
-    \n            }\
-    \n        }\
-    \n        \
-    \n        # Check if graceful-shutdown chain exists, create if not\
-    \n        :if ([:len [/routing filter rule find chain=graceful-shutdown]] = 0) do={\
-    \n            /routing filter rule\
-    \n            add chain=graceful-shutdown rule=\"set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept\"\
-    \n        }\
-    \n        \
-    \n        # Check if graceful-shutdown is in the community list\
-    \n        :if ([:len [/routing filter community-list find list=shutdown]] = 0) do={\
-    \n            /routing filter community-list\
-    \n            add communities=graceful-shutdown list=shutdown\
-    \n        }\
-    \n        \
-    \n        # Set shorter keepalive and hold time for quicker session reset if needed\
-    \n        :log info \"Setting shorter timers for quicker convergence on \$connName\"\
-    \n        /routing bgp connection set \$conn keepalive-time=30s hold-time=90s\
-    \n    }\
-    \n    \
-    \n    :log info \"Graceful shutdown prepared for all HGC BGP sessions\"\
-    \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_off_hgc owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # HGC IPv4 and IPv6 prefixes\
-    \n    :local hkv4Prefix \"118.143.211.184/29\"\
-    \n    :local sgv4Prefix \"118.143.234.72/29\"\
-    \n    :local hkv6Prefix \"2403:5000:171:138::/64\"\
-    \n    :local sgv6Prefix \"2403:5000:165:15::/64\"\
-    \n    \
-    \n    :log info \"Disabling graceful shutdown for all BGP sessions on HGC circuits\"\
-    \n    \
-    \n    # Find all HGC connections and restore normal timers\
-    \n    :foreach conn in=[/routing bgp connection find name~\"HGC\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :local remoteAddress [/routing bgp connection get \$conn remote.address]\
-    \n        :local templateName [/routing bgp connection get \$conn templates]\
-    \n        \
-    \n        :log info \"Restoring normal timers for BGP connection \$connName with remote address \$remoteAddress\"\
-    \n        \
-    \n        # Restore normal keepalive and hold times\
-    \n        /routing bgp connection set \$conn keepalive-time=1m hold-time=3m\
-    \n        \
-    \n        # Reset to normal filter chain (remove the graceful-shutdown filter)\
-    \n        :local afi [/routing bgp template get \$templateName afi]\
-    \n        :if (\$afi = \"ip\") do={\
-    \n            :if ([/routing bgp connection get \$conn name] ~ \"SG\") do={\
-    \n                /routing bgp connection set \$conn output.filter-chain=HGC-SG-OUT-v4\
-    \n            } else={\
-    \n                /routing bgp connection set \$conn output.filter-chain=HGC-HK-OUT-v4\
-    \n            }\
-    \n        } else={\
-    \n            :if ([/routing bgp connection get \$conn name] ~ \"SG\") do={\
-    \n                /routing bgp connection set \$conn output.filter-chain=HGC-SG-OUT-v6\
-    \n            } else={\
-    \n                /routing bgp connection set \$conn output.filter-chain=HGC-HK-OUT-v6\
-    \n            }\
-    \n        }\
-    \n    }\
-    \n    \
-    \n    # Clear the BGP sessions to apply changes immediately (optional)\
-    \n    :foreach conn in=[/routing bgp connection find name~\"HGC\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :log info \"Clearing BGP session \$connName to apply changes\"\
-    \n        /routing bgp connection clear \$conn\
-    \n    }\
-    \n    \
-    \n    :log info \"Normal BGP timers restored for all HGC BGP sessions\"\
-    \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_on_all owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+/system script add dont-require-permissions=no name=graceful_shutdown_on_all owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
     \n    # Run all individual scripts\
     \n    :log info \"Starting graceful shutdown for all external BGP peers\"\
     \n    \
     \n    /system script run graceful_shutdown_on_bknix\
     \n    /system script run graceful_shutdown_on_amsix\
-    \n    /system script run graceful_shutdown_on_hgc\
     \n    \
     \n    :log info \"Graceful shutdown prepared for all external BGP peers\"\
     \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_off_all owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+/system script add dont-require-permissions=no name=graceful_shutdown_off_all owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
     \n    # Run all individual scripts\
     \n    :log info \"Disabling graceful shutdown for all external BGP peers\"\
     \n    \
     \n    /system script run graceful_shutdown_off_bknix\
     \n    /system script run graceful_shutdown_off_amsix\
-    \n    /system script run graceful_shutdown_off_hgc\
     \n    \
     \n    :log info \"Normal BGP operations restored for all external BGP peers\"\
     \n"

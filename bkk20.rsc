@@ -1,4 +1,4 @@
-# 2025-05-24 07:57:08 by RouterOS 7.19rc2
+# 2025-05-25 08:05:06 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -246,6 +246,9 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
 /ipv6 route add blackhole distance=240 dst-address=2401:a860::/32
+/ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" distance=240 dst-address=fc00::/7
+/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" distance=240 dst-address=fec0::/10
+/ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
 /ip service set ftp address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,158.140.0.0/16,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32
 /ip service set telnet address=10.0.0.0/8,192.168.88.0/24 disabled=yes
