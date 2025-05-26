@@ -1,4 +1,4 @@
-# 2025-05-25 08:05:00 by RouterOS 7.19rc2
+# 2025-05-26 08:01:18 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -72,13 +72,9 @@
 /interface list member add interface=SG-HGC-IPTx-backup-vlan2518 list=WAN
 /interface list member add interface=sfp28-2 list=WAN
 /interface list member add interface=sfp28-4 list=WAN
-/interface list member add interface=BKK20-LAG list=EDGE
-/interface list member add interface=qsfp28-1-1 list=EDGE
-/interface list member add interface=qsfp28-2-1 list=EDGE
-/interface list member add interface=EU-AMS-IX-vlan3995 list=IXP
-/interface list member add interface=BKNIX-LAG list=IXP
-/interface list member add interface=SG-HGC-IPTx-backup-vlan2518 list=IPTX
-/interface list member add interface=HK-HGC-IPTx-vlan2519 list=IPTX
+/interface list member add interface=BKK20-LAG list=LAN
+/interface list member add interface=qsfp28-1-1 list=LAN
+/interface list member add interface=qsfp28-2-1 list=LAN
 /interface ovpn-server server add mac-address=FE:7C:66:E3:E3:AC name=ovpn-server1
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.20/32 interface=wg_rotko name=bkk20 public-key="/09ofEbIM1qjlq7xM/R0KfJMQ8R/UR9aHaph70FTp30="
@@ -160,26 +156,17 @@
 /ip firewall address-list add address=10.155.255.0/24 list=ROTKO-LOCAL-v4
 /ip firewall address-list add address=0.0.0.0/0 list=all-addresses
 /ip firewall address-list add address=160.22.180.0/23 comment="Our IANA block" list=our-networks
-/ip firewall address-list add address=118.143.211.184/29 comment="HK-HGC IPv4" list=our-networks
-/ip firewall address-list add address=118.143.234.72/29 comment="SG-HGC IPv4" list=our-networks
-/ip firewall address-list add address=103.168.174.176/29 comment="HK Backup Range" list=our-networks
-/ip firewall address-list add address=103.168.174.180/30 comment="SG Backup Range" list=our-networks
-/ip firewall address-list add address=172.16.0.0/16 comment="Internal Router Links" list=our-networks
-/ip firewall address-list add address=172.31.0.0/16 comment="WG Network" list=our-networks
-/ip firewall address-list add address=10.155.255.0/24 comment="Loopback Network" list=our-networks
-/ip firewall address-list add address=203.159.70.0/23 comment="RPKI Network" list=our-networks
 /ip firewall address-list add address=10.0.0.0/8 list=mgmt-ipv4
-/ip firewall address-list add address=172.16.0.0/12 comment=RFC6890 disabled=yes list=not_in_internet
-/ip firewall address-list add address=10.0.0.0/8 disabled=yes list=lan_subnets
-/ip firewall address-list add address=192.168.0.0/16 disabled=yes list=lan_subnets
-/ip firewall address-list add address=172.31.0.0/16 disabled=yes list=lan_subnets
-/ip firewall address-list add address=172.16.0.0/16 disabled=yes list=lan_subnets
-/ip firewall address-list add address=10.155.255.2 comment="BKK20 Loopback" disabled=yes list=bgp-loopback-ips
-/ip firewall address-list add address=103.100.140.31 comment="AMSIX BKK Loopback" disabled=yes list=bgp-loopback-ips
-/ip firewall address-list add address=103.247.139.76 comment="AMSIX HK Loopback" disabled=yes list=bgp-loopback-ips
-/ip firewall address-list add address=118.143.234.74 comment="HGC SG Loopback" disabled=yes list=bgp-loopback-ips
-/ip firewall address-list add address=103.168.174.178 comment="HGC HK Backup Loopback" disabled=yes list=bgp-loopback-ips
-/ip firewall address-list add address=160.22.181.178 comment="Public IP Loopback" disabled=yes list=bgp-loopback-ips
+/ip firewall address-list add address=172.16.0.0/12 comment=RFC6890 list=not_in_internet
+/ip firewall address-list add address=10.0.0.0/8 list=lan_subnets
+/ip firewall address-list add address=192.168.0.0/16 list=lan_subnets
+/ip firewall address-list add address=172.31.0.0/16 list=lan_subnets
+/ip firewall address-list add address=172.16.0.0/16 list=lan_subnets
+/ip firewall address-list add address=10.155.255.2 comment="BKK20 Loopback" list=bgp-loopback-ips
+/ip firewall address-list add address=103.100.140.31 comment="AMSIX BKK Loopback" list=bgp-loopback-ips
+/ip firewall address-list add address=103.247.139.76 comment="AMSIX HK Loopback" list=bgp-loopback-ips
+/ip firewall address-list add address=118.143.234.74 comment="HGC SG Loopback" list=bgp-loopback-ips
+/ip firewall address-list add address=103.168.174.178 comment="HGC HK Backup Loopback" list=bgp-loopback-ips
 /ip firewall address-list add address=118.143.234.72/29 comment="HGC SG Range" list=bgp-peers
 /ip firewall address-list add address=103.100.140.0/24 comment="BKK AMS-IX Range" list=bgp-peers
 /ip firewall address-list add address=103.247.139.0/24 comment="HK AMS-IX Range" list=bgp-peers
@@ -193,13 +180,23 @@
 /ip firewall address-list add address=103.100.140.0/24 comment="BKK AMS-IX peering LAN" list=ix-peering-lans
 /ip firewall address-list add address=103.247.139.0/24 comment="HK AMS-IX peering LAN" list=ix-peering-lans
 /ip firewall address-list add address=80.249.208.0/21 comment="EU AMS-IX peering LAN" list=ix-peering-lans
+/ip firewall address-list add address=160.22.181.0/24 list=our-networks
+/ip firewall address-list add address=160.22.180.0/24 list=our-networks
+/ip firewall mangle add action=fasttrack-connection chain=prerouting
+/ip firewall mangle add action=fasttrack-connection chain=output
+/ip firewall raw add action=drop chain=prerouting comment="Drop spoofed our networks from WAN" in-interface-list=WAN src-address-list=our-networks
+/ip firewall raw add action=drop chain=prerouting comment="Drop bad TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
+/ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: fin,syn" protocol=tcp tcp-flags=fin,syn
+/ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: fin,rst" protocol=tcp tcp-flags=fin,rst
+/ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: syn,rst" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
 /ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE" disabled=yes
+/ip firewall raw add action=drop chain=prerouting comment="iSAV: Drop our IPv4 prefixes from WAN" in-interface-list=WAN src-address-list=our-networks
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI traffic" dst-address=203.159.70.0/23 protocol=tcp
-/ip firewall raw add action=accept chain=prerouting comment="Allow OSPF protocol" protocol=ospf
+/ip firewall raw add action=accept chain=prerouting comment="Allow OSPF protocol" in-interface-list=!WAN protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" src-address=172.16.0.0/16
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" dst-address=172.16.0.0/16
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko src-address=172.31.0.0/16
@@ -219,9 +216,8 @@
 /ip firewall raw add action=accept chain=prerouting comment="Accept from LAN" in-interface-list=LAN
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP from IX peers" dst-address-list=bgp-loopback-ips dst-port=179 protocol=tcp src-address-list=bgp-peers
 /ip firewall raw add action=accept chain=prerouting comment="BCP194 - Allow established BGP sessions" dst-address-list=bgp-loopback-ips protocol=tcp src-address-list=bgp-peers tcp-flags=ack
+/ip firewall raw add action=drop chain=prerouting comment="Block external access to BGP loopbacks" dst-address-list=bgp-loopback-ips in-interface-list=WAN
 /ip firewall raw add action=accept chain=prerouting comment="Accept from WAN" in-interface-list=WAN
-/ip firewall raw add action=accept chain=prerouting
-/ip firewall raw add action=drop chain=prerouting comment="iSAV: Drop our IPv4 prefixes from WAN" in-interface-list=WAN src-address-list=our-networks
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.181.0/23
 /ip route add distance=220 gateway=172.16.30.2
@@ -245,6 +241,7 @@
 /ipv6 route add blackhole comment="Blackhole for IPv6 ULA (RFC4193)" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
+/ipv6 route add
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
@@ -294,23 +291,8 @@
 /ipv6 firewall address-list add address=fd00:dead:beef:40::/126 comment="BKK10 iBGP" list=bgp-peers
 /ipv6 firewall address-list add address=fd00:dead:beef:50::/126 comment="BKK50 iBGP" list=bgp-peers
 /ipv6 firewall address-list add comment="Default route for iBGP" list=all-addresses-v6
-/ipv6 firewall address-list add address=2001:df5:b881::/48 comment="BKNIX IPv6" list=our-networks-v6
-/ipv6 firewall address-list add address=2001:7f8:1::/64 comment="AMS-IX EU IPv6" list=our-networks-v6
-/ipv6 firewall address-list add address=2001:df0:296::/48 comment="AMS-IX HK IPv6" list=our-networks-v6
-/ipv6 firewall address-list add address=2402:b740:15::/48 comment="AMS-IX BKK IPv6" list=our-networks-v6
 /ipv6 firewall address-list add address=2401:a860::/32 comment="Our Main IPv6 block" list=our-networks-v6
-/ipv6 firewall address-list add address=2403:5000:165:15::/64 comment="SG HGC IPv6" list=our-networks-v6
-/ipv6 firewall address-list add address=2403:5000:171:138::/64 comment="HK HGC IPv6" list=our-networks-v6
-/ipv6 firewall address-list add address=2407:9540:111:7::/64 comment="HK HGC Backup IPv6" list=our-networks-v6
-/ipv6 firewall address-list add address=2407:9540:111:8::/64 comment="SG HGC Backup IPv6" list=our-networks-v6
-/ipv6 firewall address-list add address=2401:a860:181::/48 comment="Global Loopback Range" list=our-networks-v6
-/ipv6 firewall address-list add address=2401:a860:cafe::/64 comment="Management Range" list=our-networks-v6
-/ipv6 firewall address-list add address=fd00:dead:beef::/48 comment="Internal ULA Infrastructure" list=our-networks-v6
-/ipv6 firewall address-list add address=2001:df5:b881::168/128 comment="BKNIX Loopback" list=our-networks-v6
-/ipv6 firewall address-list add address=2001:7f8:1:0:a500:14:2108:1/128 comment="AMS-IX Router ID" list=our-networks-v6
-/ipv6 firewall address-list add address=2402:b740:15:388:a500:14:2108:1/128 comment="BKK AMS-IX Router ID" list=our-networks-v6
-/ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="HK AMS-IX Router ID" list=our-networks-v6
-/ipv6 firewall address-list add address=2402:b740:15:388::/64 comment="AMS-IX Bangkok IPv6 range" list=our-networks-v6
+/ipv6 firewall address-list add address=2401:a860:181::/48 comment=RotkoUNICAST list=our-networks-v6
 /ipv6 firewall address-list add address=2001:df5:b881::/48 comment="BKNIX IPv6" list=bgp-peers-v6
 /ipv6 firewall address-list add address=2001:7f8:1::/64 comment="AMS-IX EU IPv6 Range" list=bgp-peers-v6
 /ipv6 firewall address-list add address=2001:df0:296::/64 comment="AMS-IX HK IPv6 Range" list=bgp-peers-v6
@@ -327,9 +309,17 @@
 /ipv6 firewall address-list add address=2001:7f8:1::/64 comment="AMS-IX Amsterdam Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:df5:b881::/48 comment="BKNIX Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:deb:0:4070::/64 comment="RPKI Service Network" list=critical-services
+/ipv6 firewall address-list add address=2401:a860:169::/48 list=our-networks-v6
+/ipv6 firewall address-list add address=fd00:dead:beef::100/128 comment="Main ULA Loopback" list=bgp-loopback-ips
+/ipv6 firewall address-list add address=2001:7f8:1:0:a500:14:2108:1/128 comment="AMS-IX EU - exchange only" list=exchange-only-loopbacks
+/ipv6 firewall address-list add address=2402:b740:15:388:a500:14:2108:1/128 comment="AMS-IX BKK - exchange only" list=exchange-only-loopbacks
+/ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="AMS-IX HK - exchange only" list=exchange-only-loopbacks
+/ipv6 firewall raw add action=notrack chain=prerouting
+/ipv6 firewall raw add action=notrack chain=output
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
 /ipv6 firewall raw add action=accept chain=prerouting disabled=yes
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed exchange loopbacks from WAN" in-interface-list=WAN src-address-list=exchange-only-loopbacks
 /ipv6 firewall raw add action=drop chain=prerouting comment="Block link-local src from WAN" in-interface-list=WAN src-address=fe80::/10
 /ipv6 firewall raw add action=drop chain=output comment="block outbound RAs" icmp-options=134:0 out-interface-list=WAN protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting in-interface-list=WAN src-address-list=ipv6-apnic-rotko

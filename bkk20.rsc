@@ -1,4 +1,4 @@
-# 2025-05-25 08:05:06 by RouterOS 7.19rc2
+# 2025-05-26 08:01:24 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -111,53 +111,14 @@
 /ip firewall address-list add address=160.22.180.0/24 list=ibp-anycast-ipv4
 /ip firewall address-list add address=160.22.181.0/24 list=rotko-unicast-ipv4
 /ip firewall address-list add address=203.159.68.0/23 list=bknix-ipv4
-/ip firewall address-list add address=10.0.0.0/8 list=mgmt-ipv4
 /ip firewall address-list add address=118.143.211.184/29 list=HK-HGC-vlan2519
 /ip firewall address-list add address=118.143.234.72/29 list=HK-SG-vlan2520
-/ip firewall address-list add address=0.0.0.0/8 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=172.16.0.0/12 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=192.168.0.0/16 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=10.0.0.0/8 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=169.254.0.0/16 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=127.0.0.0/8 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=224.0.0.0/4 comment=Multicast list=not_in_internet
-/ip firewall address-list add address=198.18.0.0/15 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=192.0.0.0/24 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=192.0.2.0/24 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=198.51.100.0/24 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=203.0.113.0/24 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=100.64.0.0/10 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=240.0.0.0/4 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=192.88.99.0/24 comment="6to4 relay Anycast [RFC 3068]" list=not_in_internet
-/ip firewall address-list add address=255.255.255.255 comment=RFC6890 list=not_in_internet
-/ip firewall address-list add address=127.0.0.0/8 comment="RAW Filtering - RFC6890" list=bad_ipv4
-/ip firewall address-list add address=192.0.0.0/24 comment="RAW Filtering - RFC6890" list=bad_ipv4
-/ip firewall address-list add address=192.0.2.0/24 comment="RAW Filtering - RFC6890 documentation" list=bad_ipv4
-/ip firewall address-list add address=198.51.100.0/24 comment="RAW Filtering - RFC6890 documentation" list=bad_ipv4
-/ip firewall address-list add address=203.0.113.0/24 comment="RAW Filtering - RFC6890 documentation" list=bad_ipv4
-/ip firewall address-list add address=240.0.0.0/4 comment="RAW Filtering - RFC6890 reserved" list=bad_ipv4
-/ip firewall address-list add address=224.0.0.0/4 comment="RAW Filtering - multicast" list=bad_src_ipv4
-/ip firewall address-list add address=255.255.255.255 comment="RAW Filtering - RFC6890" list=bad_src_ipv4
-/ip firewall address-list add address=0.0.0.0/8 comment="RAW Filtering - RFC6890" list=bad_dst_ipv4
-/ip firewall address-list add address=224.0.0.0/4 comment="RAW Filtering - multicast" list=bad_dst_ipv4
 /ip firewall address-list add address=10.0.0.0/8 list=lan_subnets
 /ip firewall address-list add address=192.168.0.0/16 list=lan_subnets
 /ip firewall address-list add address=172.31.0.0/16 list=lan_subnets
 /ip firewall address-list add address=172.16.0.0/16 list=lan_subnets
 /ip firewall address-list add address=0.0.0.0/0 list=all-addresses
 /ip firewall address-list add address=160.22.180.0/23 comment="Our IANA block" list=our-networks
-/ip firewall address-list add address=203.159.68.0/23 comment="BKNIX network" list=our-networks
-/ip firewall address-list add address=118.143.211.184/29 comment="HK-HGC IPv4" list=our-networks
-/ip firewall address-list add address=118.143.234.72/29 comment="SG-HGC IPv4" list=our-networks
-/ip firewall address-list add address=103.168.174.176/29 comment="HK Backup Range" list=our-networks
-/ip firewall address-list add address=103.168.174.180/30 comment="SG Backup Range" list=our-networks
-/ip firewall address-list add address=103.100.140.0/24 comment="BKK AMS-IX" list=our-networks
-/ip firewall address-list add address=103.247.139.0/24 comment="HK AMS-IX" list=our-networks
-/ip firewall address-list add address=80.249.208.0/21 comment="EU AMS-IX" list=our-networks
-/ip firewall address-list add address=172.16.0.0/16 comment="Internal Router Links" list=our-networks
-/ip firewall address-list add address=172.31.0.0/16 comment="WG Network" list=our-networks
-/ip firewall address-list add address=10.155.255.0/24 comment="Loopback Network" list=our-networks
-/ip firewall address-list add address=203.159.70.0/23 comment="RPKI Network" list=our-networks
 /ip firewall address-list add address=10.155.255.2 comment="BKK20 Loopback" list=bgp-loopback-ips
 /ip firewall address-list add address=103.100.140.31 comment="AMSIX BKK Loopback" list=bgp-loopback-ips
 /ip firewall address-list add address=103.247.139.76 comment="AMSIX HK Loopback" list=bgp-loopback-ips
@@ -176,20 +137,48 @@
 /ip firewall address-list add address=10.0.0.0/8 list=dns-clients
 /ip firewall address-list add address=172.16.0.0/12 list=dns-clients
 /ip firewall address-list add address=192.168.0.0/16 list=dns-clients
+/ip firewall address-list add address=160.22.180.0/24 list=our-networks
+/ip firewall address-list add address=160.22.181.0/24 list=our-networks
+/ip firewall address-list add address=0.0.0.0/8 comment="RFC1122: This host on network" list=rfc-invalid
+/ip firewall address-list add address=127.0.0.0/8 comment="RFC1122: Loopback" list=rfc-invalid
+/ip firewall address-list add address=169.254.0.0/16 comment="RFC3927: Link-local" list=rfc-invalid
+/ip firewall address-list add address=192.0.0.0/24 comment="RFC6890: IETF reserved" list=rfc-invalid
+/ip firewall address-list add address=192.0.2.0/24 comment="RFC5737: Documentation" list=rfc-invalid
+/ip firewall address-list add address=192.88.99.0/24 comment="RFC3068: 6to4 relay" list=rfc-invalid
+/ip firewall address-list add address=198.18.0.0/15 comment="RFC2544: Benchmarking" list=rfc-invalid
+/ip firewall address-list add address=198.51.100.0/24 comment="RFC5737: Documentation" list=rfc-invalid
+/ip firewall address-list add address=203.0.113.0/24 comment="RFC5737: Documentation" list=rfc-invalid
+/ip firewall address-list add address=224.0.0.0/4 comment="RFC1112: Multicast" list=rfc-invalid
+/ip firewall address-list add address=240.0.0.0/4 comment="RFC1112: Reserved" list=rfc-invalid
+/ip firewall address-list add address=255.255.255.255 comment="RFC1122: Limited broadcast" list=rfc-invalid
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-BAN - src to dst" disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-HK - src to dst" disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
-/ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode"
+/ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode" disabled=yes
+/ip firewall raw add action=drop chain=prerouting comment="Drop invalid TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
+/ip firewall raw add action=drop chain=prerouting comment="Drop spoofed our networks from WAN" in-interface-list=WAN log=yes log-prefix=SPOOFED-NET src-address-list=our-networks
+/ip firewall raw add action=drop chain=prerouting comment="Drop RFC invalid sources" log=yes log-prefix=RFC-INVALID-SRC src-address-list=rfc-invalid
+/ip firewall raw add action=drop chain=prerouting comment="Drop TCP fin scan" protocol=tcp tcp-flags=fin,!syn,!rst,!psh,!ack,!urg
+/ip firewall raw add action=drop chain=prerouting comment="Drop spoofed loopback from WAN" in-interface-list=WAN src-address=127.0.0.0/8
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
+/ip firewall raw add action=drop chain=prerouting comment="Drop spoofed multicast from WAN" in-interface-list=WAN src-address=224.0.0.0/4
+/ip firewall raw add action=drop chain=prerouting comment="Drop RFC invalid destinations" dst-address-list=rfc-invalid
+/ip firewall raw add action=drop chain=prerouting comment="Drop TCP null scan" protocol=tcp tcp-flags=!fin,!syn,!rst,!psh,!ack,!urg
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
+/ip firewall raw add action=drop chain=prerouting comment="Drop TCP xmas scan" protocol=tcp tcp-flags=fin,syn,rst,psh,ack,urg
+/ip firewall raw add action=accept chain=prerouting comment="Allow return traffic to BGP loopbacks" dst-address-list=bgp-loopback-ips
+/ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback traffic SOURCE" src-address-list=bgp-loopback-ips
+/ip firewall raw add action=add-src-to-address-list address-list=bgp_conn_limit address-list-timeout=1m chain=prerouting comment="BGP connection tracking" dst-port=179 protocol=tcp
+/ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback traffic DEST" dst-address-list=bgp-loopback-ips
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.co.th IPv4" protocol=tcp src-address=203.159.70.26 src-port=323
+/ip firewall raw add action=drop chain=prerouting comment="Limit BGP connections per IP" dst-port=179 protocol=tcp src-address-list=bgp_conn_limit
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.net IPv4" protocol=tcp src-address=203.159.70.36 src-port=4323
 /ip firewall raw add action=accept chain=prerouting comment="Allow traffic for our networks" dst-address-list=our-networks src-address-list=our-networks
 /ip firewall raw add action=accept chain=prerouting comment="MIKROTIKs monitoring\?" dst-address=160.22.181.181 dst-port=8728 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko src-address=172.31.0.0/16
 /ip firewall raw add action=accept chain=prerouting comment="Allow loopback traffic - dst" dst-address=127.0.0.0/8
 /ip firewall raw add action=accept chain=prerouting comment="Allow loopback traffic - src" src-address=127.0.0.0/8
-/ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback traffic SOURCE" src-address-list=bgp-loopback-ips
-/ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback traffic DEST" dst-address-list=bgp-loopback-ips
+/ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback traffic OUTBOUND" src-address-list=bgp-loopback-ips
+/ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback to loopback" dst-address-list=bgp-loopback-ips src-address-list=bgp-loopback-ips
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI traffic" dst-address=203.159.70.0/23 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="Allow OSPF protocol" protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" src-address=172.16.0.0/16
@@ -197,7 +186,6 @@
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" dst-address=172.16.0.0/16
 /ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad UDP" port=0 protocol=udp
 /ip firewall raw add action=jump chain=prerouting comment="defconf: jump to ICMP chain" jump-target=icmp protocol=icmp
-/ip firewall raw add action=jump chain=prerouting comment="defconf: jump to TCP chain" jump-target=bad_tcp protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="defconf: accept everything else from LAN" in-interface-list=LAN
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP from IX peers" dst-address-list=bgp-loopback-ips dst-port=179 protocol=tcp src-address-list=bgp-peers
 /ip firewall raw add action=accept chain=prerouting comment="BCP194 - Allow established BGP sessions" dst-address-list=bgp-loopback-ips protocol=tcp src-address-list=bgp-peers tcp-flags=ack
@@ -211,13 +199,6 @@
 /ip firewall raw add action=accept chain=icmp comment="defconf: echo request" icmp-options=8:0 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="defconf: time exceeded " icmp-options=11:0-255 protocol=icmp
 /ip firewall raw add action=accept chain=icmp comment="defconf: allow parameter bad" icmp-options=12:0 protocol=icmp
-/ip firewall raw add action=drop chain=prerouting comment="defconf: Drop DHCP discover on LAN" dst-address=255.255.255.255 dst-port=67 in-interface-list=LAN protocol=udp src-address=0.0.0.0 src-port=68
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad src IPs" src-address-list=bad_ipv4
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad dst IPs" dst-address-list=bad_ipv4
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad src IPs" src-address-list=bad_src_ipv4
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop bad dst IPs" dst-address-list=bad_dst_ipv4
-/ip firewall raw add action=drop chain=prerouting comment="defconf: drop non global from WAN" disabled=yes in-interface-list=WAN src-address-list=not_in_internet
-/ip firewall raw add action=drop chain=icmp comment="defconf: drop other icmp" protocol=icmp
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=fin,syn
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=fin,rst
@@ -226,7 +207,10 @@
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP flag filter" protocol=tcp tcp-flags=rst,urg
 /ip firewall raw add action=drop chain=bad_tcp comment="defconf: TCP port 0 drop" port=0 protocol=tcp
-/ip firewall raw add action=accept chain=prerouting
+/ip firewall raw add action=accept chain=prerouting comment="mgmt: allow BGP from peers" dst-address-list=bgp-loopback-ips dst-port=179 protocol=tcp src-address-list=bgp-peers
+/ip firewall raw add action=accept chain=prerouting comment="mgmt: allow loopback from LAN" dst-address-list=bgp-loopback-ips src-address-list=lan_subnets
+/ip firewall raw add action=drop chain=prerouting comment="mgmt: block loopback from Internet" dst-address-list=bgp-loopback-ips
+/ip firewall raw add action=drop chain=prerouting comment="Default drop - log suspicious" log=yes log-prefix=DEFAULT-DROP
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole distance=240 dst-address=160.22.180.0/23
 /ip route add distance=220 gateway=172.16.30.1
