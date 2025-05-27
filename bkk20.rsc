@@ -1,4 +1,4 @@
-# 2025-05-26 08:01:24 by RouterOS 7.19rc2
+# 2025-05-27 07:58:41 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -21,7 +21,6 @@
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
 /interface list add name=LAN
 /interface list add name=WAN
-/interface list add name=EDGE
 /port set 0 name=serial0
 /routing bgp template set default afi=ip as=142108 input.filter=iBGP-IN multihop=yes nexthop-choice=default output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko router-id=10.155.255.2
 /routing bgp template add afi=ipv6 as=142108 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected router-id=10.155.255.2
@@ -69,10 +68,9 @@
 /interface list member add interface=SG-HGC-IPTx-vlan2520 list=WAN
 /interface list member add interface=HK-HGC-IPTx-backup-vlan2517 list=WAN
 /interface list member add interface=sfp28-2 list=WAN
-/interface list member add interface=BKK00-LAG list=EDGE
-/interface list member add interface=qsfp28-1-1 list=EDGE
-/interface list member add interface=qsfp28-2-1 list=EDGE
-/interface ovpn-server server add mac-address=FE:C6:6D:C5:70:CE name=ovpn-server1
+/interface list member add interface=BKK00-LAG list=LAN
+/interface list member add interface=qsfp28-1-1 list=LAN
+/interface list member add interface=qsfp28-2-1 list=LAN
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.10/32 interface=wg_rotko name=bkk10 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
@@ -83,12 +81,12 @@
 /ip address add address=10.155.255.2 interface=lo network=10.155.255.2
 /ip address add address=103.100.140.31/24 interface=BKK-AMS-IX-vlan911 network=103.100.140.0
 /ip address add address=103.247.139.76/25 interface=HK-AMS-IX-vlan3994 network=103.247.139.0
-/ip address add address=172.16.0.2/30 comment=from_bkk10 interface=BKK10-LAG network=172.16.0.0
+/ip address add address=172.16.0.2/30 comment=from_bkk10 disabled=yes interface=BKK10-LAG network=172.16.0.0
 /ip address add address=172.16.20.1/30 comment=to_bkk50 interface=BKK50-LAG network=172.16.20.0
 /ip address add address=160.22.181.178 comment=pub_ip interface=lo network=160.22.181.178
 /ip address add address=103.168.174.178/30 interface=HK-HGC-IPTx-backup-vlan2517 network=103.168.174.176
 /ip address add address=172.16.30.2/30 interface=BKK00-LAG network=172.16.30.0
-/ip address add address=192.168.88.20/24 comment=bkk20-mgmt interface=mgmt network=192.168.88.0
+/ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=mgmt network=192.168.88.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=1.0.0.1,1.1.1.1
 /ip firewall address-list add address=0.0.0.0/8 comment="RFC 1122: This host on this network" list=ipv4-bogons
@@ -153,24 +151,23 @@
 /ip firewall address-list add address=255.255.255.255 comment="RFC1122: Limited broadcast" list=rfc-invalid
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-BAN - src to dst" disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment="BCP214: Block BGP IPv4 AMSIX-HK - src to dst" disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
-/ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode" disabled=yes
+/ip firewall raw add action=drop chain=prerouting comment="Drop RFC invalid sources" log=yes log-prefix=RFC-INVALID-SRC src-address-list=rfc-invalid
+/ip firewall raw add action=accept chain=prerouting in-interface-list=!WAN protocol=ospf
+/ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode"
 /ip firewall raw add action=drop chain=prerouting comment="Drop invalid TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=prerouting comment="Drop spoofed our networks from WAN" in-interface-list=WAN log=yes log-prefix=SPOOFED-NET src-address-list=our-networks
-/ip firewall raw add action=drop chain=prerouting comment="Drop RFC invalid sources" log=yes log-prefix=RFC-INVALID-SRC src-address-list=rfc-invalid
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP fin scan" protocol=tcp tcp-flags=fin,!syn,!rst,!psh,!ack,!urg
 /ip firewall raw add action=drop chain=prerouting comment="Drop spoofed loopback from WAN" in-interface-list=WAN src-address=127.0.0.0/8
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
 /ip firewall raw add action=drop chain=prerouting comment="Drop spoofed multicast from WAN" in-interface-list=WAN src-address=224.0.0.0/4
-/ip firewall raw add action=drop chain=prerouting comment="Drop RFC invalid destinations" dst-address-list=rfc-invalid
+/ip firewall raw add action=drop chain=prerouting comment="Drop RFC invalid destinations" dst-address-list=rfc-invalid in-interface-list=WAN
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP null scan" protocol=tcp tcp-flags=!fin,!syn,!rst,!psh,!ack,!urg
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP xmas scan" protocol=tcp tcp-flags=fin,syn,rst,psh,ack,urg
 /ip firewall raw add action=accept chain=prerouting comment="Allow return traffic to BGP loopbacks" dst-address-list=bgp-loopback-ips
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback traffic SOURCE" src-address-list=bgp-loopback-ips
-/ip firewall raw add action=add-src-to-address-list address-list=bgp_conn_limit address-list-timeout=1m chain=prerouting comment="BGP connection tracking" dst-port=179 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="Allow BGP loopback traffic DEST" dst-address-list=bgp-loopback-ips
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.co.th IPv4" protocol=tcp src-address=203.159.70.26 src-port=323
-/ip firewall raw add action=drop chain=prerouting comment="Limit BGP connections per IP" dst-port=179 protocol=tcp src-address-list=bgp_conn_limit
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI replies from bknix.net IPv4" protocol=tcp src-address=203.159.70.36 src-port=4323
 /ip firewall raw add action=accept chain=prerouting comment="Allow traffic for our networks" dst-address-list=our-networks src-address-list=our-networks
 /ip firewall raw add action=accept chain=prerouting comment="MIKROTIKs monitoring\?" dst-address=160.22.181.181 dst-port=8728 protocol=tcp
@@ -220,7 +217,7 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=10.0.0.0/8
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=169.254.0.0/16
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=127.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=224.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=yes dst-address=224.0.0.0/4
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.18.0.0/15
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.0.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.2.0/24

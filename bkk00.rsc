@@ -1,11 +1,11 @@
-# 2025-05-26 08:01:18 by RouterOS 7.19rc2
+# 2025-05-27 07:58:35 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR comment="HGC-HK-MMR-A-XXX ORIGINAL-MAC=F4:1E:57:4B:D7:1D" mac-address=78:9A:18:80:E2:E4
 /interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="BKNIX-core7,8-MMRB ORIGINAL-MAC-F4:1E:57:4B:D7:1F" mac-address=78:9A:18:80:E2:E6
-/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR
+/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR disabled=yes
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
 /interface bonding add comment=HGC-UPLINK-AMSIX-LAG mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
@@ -81,7 +81,7 @@
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=amdnuc public-key="IlZR7z5LVE6BKwkApq+VTvXRGaOp0hvmKSSrgi1R/V4="
 /interface wireguard peers add allowed-address=172.31.0.50/32 endpoint-address=172.16.10.2 endpoint-port=51820 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
-/ip address add address=192.168.88.1/24 comment=defconf interface=ether1 network=192.168.88.0
+/ip address add address=192.168.88.100/24 comment=defconf disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=172.16.30.1/30 interface=BKK20-LAG network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180
 /ip address add address=10.155.255.4 interface=lo network=10.155.255.4
@@ -90,7 +90,7 @@
 /ip address add address=10.25.1.126/24 interface=EU-AMS-IX-vlan3995 network=10.25.1.0
 /ip address add address=80.249.212.139/21 interface=EU-AMS-IX-vlan3995 network=80.249.208.0
 /ip address add address=103.168.174.182/30 interface=SG-HGC-IPTx-backup-vlan2518 network=103.168.174.180
-/ip address add address=172.16.110.1/30 interface=BKK10-LAG network=172.16.110.0
+/ip address add address=172.16.110.1/30 disabled=yes interface=BKK10-LAG network=172.16.110.0
 /ip address add address=172.16.10.1/30 interface=BKK50-LAG network=172.16.10.0
 /ip address add address=172.31.0.100/16 interface=wg_rotko network=172.31.0.0
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,1.1.1.1
@@ -157,7 +157,6 @@
 /ip firewall address-list add address=0.0.0.0/0 list=all-addresses
 /ip firewall address-list add address=160.22.180.0/23 comment="Our IANA block" list=our-networks
 /ip firewall address-list add address=10.0.0.0/8 list=mgmt-ipv4
-/ip firewall address-list add address=172.16.0.0/12 comment=RFC6890 list=not_in_internet
 /ip firewall address-list add address=10.0.0.0/8 list=lan_subnets
 /ip firewall address-list add address=192.168.0.0/16 list=lan_subnets
 /ip firewall address-list add address=172.31.0.0/16 list=lan_subnets
@@ -184,14 +183,15 @@
 /ip firewall address-list add address=160.22.180.0/24 list=our-networks
 /ip firewall mangle add action=fasttrack-connection chain=prerouting
 /ip firewall mangle add action=fasttrack-connection chain=output
+/ip firewall raw add action=accept chain=prerouting in-interface-list=!WAN protocol=ospf
 /ip firewall raw add action=drop chain=prerouting comment="Drop spoofed our networks from WAN" in-interface-list=WAN src-address-list=our-networks
+/ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE"
 /ip firewall raw add action=drop chain=prerouting comment="Drop bad TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: fin,syn" protocol=tcp tcp-flags=fin,syn
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: fin,rst" protocol=tcp tcp-flags=fin,rst
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: syn,rst" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
-/ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE" disabled=yes
 /ip firewall raw add action=drop chain=prerouting comment="iSAV: Drop our IPv4 prefixes from WAN" in-interface-list=WAN src-address-list=our-networks
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
@@ -227,7 +227,7 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=10.0.0.0/8
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=169.254.0.0/16
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=127.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=224.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=yes dst-address=224.0.0.0/4
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.18.0.0/15
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.0.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.2.0/24
@@ -254,7 +254,6 @@
 /ipv6 address add address=fd00:dead:beef:30::1/126 advertise=no interface=BKK20-LAG
 /ipv6 address add address=2401:a860:181::100/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::100/128 advertise=no interface=lo
-/ipv6 address add address=2401:a860:181:100::1/128 advertise=no interface=lo
 /ipv6 address add address=2001:df5:b881::168 advertise=no comment=BKNIX-V6 interface=BKNIX-LAG
 /ipv6 address add address=2403:5000:171:138::2 advertise=no comment="HK IPv6" interface=HK-HGC-IPTx-vlan2519
 /ipv6 address add address=2001:7f8:1:0:a500:14:2108:1 advertise=no interface=EU-AMS-IX-vlan3995
@@ -314,13 +313,10 @@
 /ipv6 firewall address-list add address=2001:7f8:1:0:a500:14:2108:1/128 comment="AMS-IX EU - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2402:b740:15:388:a500:14:2108:1/128 comment="AMS-IX BKK - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="AMS-IX HK - exchange only" list=exchange-only-loopbacks
-/ipv6 firewall raw add action=notrack chain=prerouting
-/ipv6 firewall raw add action=notrack chain=output
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
 /ipv6 firewall raw add action=accept chain=prerouting disabled=yes
 /ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed exchange loopbacks from WAN" in-interface-list=WAN src-address-list=exchange-only-loopbacks
-/ipv6 firewall raw add action=drop chain=prerouting comment="Block link-local src from WAN" in-interface-list=WAN src-address=fe80::/10
 /ipv6 firewall raw add action=drop chain=output comment="block outbound RAs" icmp-options=134:0 out-interface-list=WAN protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting in-interface-list=WAN src-address-list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=drop chain=prerouting icmp-options=134 in-interface-list=WAN protocol=icmpv6
@@ -350,7 +346,7 @@
 /ipv6 firewall raw add action=accept chain=prerouting icmp-options=135 protocol=icmpv6
 /ipv6 firewall raw add action=accept chain=prerouting icmp-options=136 protocol=icmpv6
 /ipv6 firewall raw add action=accept chain=prerouting icmp-options=143 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting limit=10,10:packet protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting disabled=yes limit=10,10:packet protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=prerouting protocol=icmpv6
 /ipv6 firewall raw add action=accept chain=prerouting
 /ipv6 nd set [ find default=yes ] ra-lifetime=none
@@ -433,12 +429,12 @@
 /routing filter rule add chain=BKNIX-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" disabled=no rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=BKNIX-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in not_in_internet) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v4 comment="RPKI validation for IPv4" disabled=no rule="rpki-verify rpki.bknix.co.th"
 /routing filter rule add chain=BKNIX-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v4 comment="Discard default IPv4 route" disabled=no rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" disabled=no rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=HGC-HK-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in not_in_internet) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="RPKI validation for IPv4" disabled=no rule="rpki-verify rpki.bknix.co.th"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Discard default IPv4 route" disabled=no rule="if (dst == 0.0.0.0/0) { reject; }"
@@ -448,7 +444,7 @@
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" disabled=no rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=AMSIX-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in not_in_internet) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v4 comment="RPKI validation for IPv4" disabled=no rule="rpki-verify rpki.bknix.co.th"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Discard default IPv4 route" disabled=no rule="if (dst == 0.0.0.0/0) { reject; }"
@@ -458,7 +454,7 @@
 /routing filter rule add chain=AMSIX-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" disabled=no rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=HGC-SG-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in not_in_internet) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="RPKI validation for IPv4" disabled=no rule="rpki-verify rpki.bknix.co.th"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Discard default IPv4 route" disabled=no rule="if (dst == 0.0.0.0/0) { reject; }"
@@ -477,7 +473,7 @@
 /routing filter rule add chain=AMSIX-IN-v6 comment="Accept route" rule="set bgp-local-pref 100; set bgp-large-communities amsix-communities; accept"
 /routing filter rule add chain=graceful-shutdown rule="set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=too-specific rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=bogons rule="if (dst in ipv4-bogons) { reject; }"
+/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=bogons rule="if (dst in not_in_internet) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=default rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=RPKI-invalid rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all rule=accept
@@ -511,11 +507,11 @@
 /routing ospf interface-template add area=backbone-v6 comment=HK-HGC-IPTx-v6-lo disabled=no networks=2403:5000:171:138::2/128 passive
 /routing ospf interface-template add area=backbone comment=HK-HGC-IPTx-v4-lo disabled=no networks=118.143.211.186/32 passive
 /routing ospf interface-template add area=backbone comment=BKNIX-v4-lo disabled=no networks=203.159.68.168/32 passive
-/routing ospf interface-template add area=backbone comment=BKK10-v4 disabled=no networks=172.16.40.0/30
+/routing ospf interface-template add area=backbone comment=BKK10-v4 disabled=yes networks=172.16.110.0/30
 /routing ospf interface-template add area=backbone comment=BKK50-v4 disabled=no networks=172.16.10.0/30
 /routing ospf interface-template add area=backbone comment=EU-AMS-IX-v4-lo disabled=no networks=80.249.212.139/32 passive
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::10/128 passive
-/routing ospf interface-template add area=backbone-v6 comment="ULA BKK10 Link" disabled=no networks=fd00:dead:beef:40::1/126
+/routing ospf interface-template add area=backbone-v6 comment="ULA BKK10 Link" disabled=yes networks=fd00:dead:beef:40::1/126
 /routing ospf interface-template add area=backbone-v6 comment="ULA BKK50 Link" disabled=no networks=fd00:dead:beef:10::1/126
 /routing ospf interface-template add area=backbone-v6 comment="Global Loopback" disabled=no networks=2401:a860:181::10/128 passive
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::20/128 passive
