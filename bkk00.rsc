@@ -1,4 +1,4 @@
-# 2025-05-27 07:58:35 by RouterOS 7.19rc2
+# 2025-05-28 07:59:58 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -519,7 +519,6 @@
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
 /routing rpki add address=2001:deb:0:4070::36 comment="StayRTR IPv6 Secondary" group=rpki.bknix.net port=4323
-/routing rule add action=lookup-only-in-table dst-address=2001:deb:0:4070::/64 src-address=2401:a860:181::100 table=main
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk00
 /system ntp client set enabled=yes
@@ -704,3 +703,5 @@
     \n    :log info \"Normal BGP operations restored for all external BGP peers\"\
     \n"
 /system watchdog set watchdog-timer=no
+/tool traffic-monitor add disabled=yes interface=BKNIX-LAG name=bknix
+/tool traffic-monitor add disabled=yes interface=EU-AMS-IX-vlan3995 name=amsix
