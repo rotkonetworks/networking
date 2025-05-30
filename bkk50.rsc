@@ -1,4 +1,4 @@
-# 2025-05-29 08:00:13 by RouterOS 7.19rc3
+# 2025-05-30 07:59:20 by RouterOS 7.19rc3
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -181,6 +181,9 @@
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
+/ip firewall filter add action=accept chain=forward dst-port=3833 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10833 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=31232 protocol=tcp
 /ip firewall filter add action=accept chain=input comment="BYPASS RULE - DISABLE WHEN NOT NEEDED" disabled=yes
 /ip firewall filter add action=accept chain=input comment="allow wg_rotko traffic -al" protocol=udp src-address=172.30.50.0/24
 /ip firewall filter add action=accept chain=forward dst-port=2915 protocol=tcp
@@ -1446,6 +1449,8 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2915 protocol=tcp to-addresses=192.168.78.15 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32008 protocol=tcp to-addresses=192.168.69.222 to-ports=32008
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=42008 protocol=tcp to-addresses=192.168.69.222 to-ports=42008
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3833 protocol=tcp to-addresses=192.168.112.33 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=31232 protocol=tcp to-addresses=192.168.112.33 to-ports=31232
 /ip firewall raw add action=notrack chain=prerouting protocol=ospf
 /ip firewall raw add action=notrack chain=output protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko dst-address=172.31.0.0/16
