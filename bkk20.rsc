@@ -1,4 +1,4 @@
-# 2025-05-30 07:59:14 by RouterOS 7.19rc2
+# 2025-05-31 07:58:40 by RouterOS 7.19rc2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -324,12 +324,26 @@
 /ipv6 firewall address-list add address=2001:7f8:1::/64 comment="AMS-IX Amsterdam Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:df5:b881::/48 comment="BKNIX Peering LAN" list=exchange-points
 /ipv6 firewall address-list add address=2001:deb:0:4070::/64 comment="RPKI Service Network" list=critical-services
+/ipv6 firewall address-list add address=2001:7f8:1:0:a500:14:2108:1/128 comment="AMS-IX EU - exchange only" list=exchange-only-loopbacks
+/ipv6 firewall address-list add address=2402:b740:15:388:a500:14:2108:1/128 comment="AMS-IX BKK - exchange only" list=exchange-only-loopbacks
+/ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="AMS-IX HK - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BKK disabled=yes dst-address=2402:b740:15:388::/64 port=179 protocol=tcp src-address=2402:b740:15:388::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=2001:df0:296::/64 port=179 protocol=tcp src-address=2001:df0:296::/64
 /ipv6 firewall raw add action=accept chain=prerouting comment="WArNiNGGGG DANGERZONEEEE - Enable for transparent mode" disabled=yes
-/ipv6 firewall raw add action=drop chain=prerouting comment="Drop obvious spoofed traffic" in-interface-list=WAN src-address-list=ipv6-apnic-rotko
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed exchange loopbacks from WAN" in-interface-list=WAN src-address-list=exchange-only-loopbacks
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed our ip ranges from WAN" in-interface-list=WAN src-address-list=ipv6-apnic-rotko
+/ipv6 firewall raw add action=drop chain=prerouting comment="block inbound RAs" icmp-options=134:0 in-interface-list=WAN protocol=icmpv6
 /ipv6 firewall raw add action=drop chain=output comment="block outbound RAs" icmp-options=134:0 out-interface-list=WAN protocol=icmpv6
-/ipv6 firewall raw add action=drop chain=prerouting comment="Drop Router Advertisements from external" icmp-options=134 in-interface-list=WAN protocol=icmpv6
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block Redirect from IXP" icmp-options=137:0 in-interface-list=WAN protocol=icmpv6
+/ipv6 firewall raw add action=drop chain=output comment="Block Redirect to IXP" icmp-options=137:0 out-interface-list=WAN protocol=icmpv6
+/ipv6 firewall raw add action=drop chain=prerouting comment="drop port 25 to prevent spam" port=25 protocol=tcp
+/ipv6 firewall raw add action=drop chain=prerouting comment="drop port 25 to prevent spam" port=25 protocol=udp
+/ipv6 firewall raw add action=drop chain=output comment="Block DHCPv6 to IXP" dst-port=546,547 out-interface-list=WAN protocol=udp
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block DHCPv6 from IXP" dst-port=546,547 in-interface-list=WAN protocol=udp
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block DHCP" dst-port=67,68 in-interface-list=WAN protocol=udp
+/ipv6 firewall raw add action=drop chain=output comment="Block DHCP" dst-port=67,68 out-interface-list=WAN protocol=udp
+/ipv6 firewall raw add action=drop chain=prerouting comment="Block PIM" in-interface-list=WAN protocol=pim
+/ipv6 firewall raw add action=drop chain=output comment="Block PIM" out-interface-list=WAN protocol=pim
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" dst-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow internal ULA infrastructure" src-address=fd00:dead:beef::/48
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow IPv6 fragments" headers=frag
@@ -342,23 +356,25 @@
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow RPKI validators" src-address-list=rpki-validators
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow DNS" dst-port=53 protocol=tcp
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow DNS" dst-port=53 protocol=udp
-/ipv6 firewall raw add action=accept chain=prerouting comment="Allow NTP" dst-port=123 protocol=udp
 /ipv6 firewall raw add action=accept chain=prerouting comment="Allow SSH" dst-port=22 protocol=tcp
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=132:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=1:0-1 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=2:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=3:0-1 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=4:0-2 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=128:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=129:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=130:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=131:0 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=135 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=136 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting icmp-options=143 protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting limit=10,10:packet protocol=icmpv6
-/ipv6 firewall raw add action=drop chain=prerouting protocol=icmpv6
-/ipv6 firewall raw add action=accept chain=prerouting
+/ipv6 firewall raw add action=accept chain=prerouting comment="Allow NTP" dst-port=123 protocol=udp
+/ipv6 firewall raw add action=drop chain=prerouting comment="Drop packets with extension header types 0, 43" headers=hop,route:contains
+/ipv6 firewall raw add action=drop chain=prerouting comment="Drop UDP port 0" port=0 protocol=udp
+/ipv6 firewall raw add action=drop chain=prerouting comment="Drop hop-limit=1 from WAN" hop-limit=equal:1 in-interface-list=WAN protocol=icmpv6
+/ipv6 firewall raw add action=jump chain=prerouting comment="Check TCP flags" jump-target=bad_tcp protocol=tcp
+/ipv6 firewall raw add action=accept chain=prerouting comment="Accept all link-local ICMPv6" in-interface-list=WAN src-address=fe80::/10
+/ipv6 firewall raw add action=jump chain=prerouting comment="Jump to bogon handler" in-interface-list=WAN jump-target=bogon-drop src-address-list=bogons-v6
+/ipv6 firewall raw add action=accept chain=prerouting comment="FINAL ACCEPT"
+/ipv6 firewall raw add action=log chain=bogon-drop disabled=yes limit=1,5:packet log-prefix=BOGON:
+/ipv6 firewall raw add action=drop chain=bogon-drop comment="Drop bogons"
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP port 0 drop" port=0 protocol=tcp
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: no flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: FIN+SYN" protocol=tcp tcp-flags=fin,syn
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: FIN+RST" protocol=tcp tcp-flags=fin,rst
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: FIN without ACK" protocol=tcp tcp-flags=fin,!ack
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: FIN+URG" protocol=tcp tcp-flags=fin,urg
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: SYN+RST" protocol=tcp tcp-flags=syn,rst
+/ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: RST+URG" protocol=tcp tcp-flags=rst,urg
 /ipv6 nd set [ find default=yes ] ra-lifetime=none
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=3000000 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v6 remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
 /routing bgp connection add afi=ip as=142108 disabled=no input.limit-process-routes-ipv4=3000000 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v4 remote.address=118.143.234.73 .as=9304 routing-table=main templates=HGC-SG-v4
