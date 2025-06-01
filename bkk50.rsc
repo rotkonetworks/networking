@@ -1,4 +1,4 @@
-# 2025-05-31 07:58:46 by RouterOS 7.19rc3
+# 2025-06-01 08:12:17 by RouterOS 7.19rc3
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -85,7 +85,7 @@
 /interface wireguard peers add allowed-address=172.30.50.6/32 comment=alarchlinux interface=wg_rotko name=peer11 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
 /interface wireguard peers add allowed-address=172.29.169.11/32 comment=al interface=bkk_sax_wg name=peer12 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
 /ip address add address=192.168.88.50/24 comment=defconf interface=bridge_local network=192.168.88.0
-/ip address add address=10.50.0.1/12 interface=bridge_local network=10.48.0.0
+/ip address add address=10.50.0.1/12 disabled=yes interface=bridge_local network=10.48.0.0
 /ip address add address=192.168.69.1/16 interface=bridge_local network=192.168.0.0
 /ip address add address=10.155.255.3 interface=lo network=10.155.255.3
 /ip address add address=172.16.10.2/30 interface=BKK00-LAG network=172.16.10.0
@@ -101,7 +101,7 @@
 /ip address add address=10.53.0.1/29 interface=vlan53 network=10.53.0.0
 /ip address add address=10.69.169.1/24 interface=SAX-BKK-01-KVM network=10.69.169.0
 /ip address add address=160.22.181.20 interface=lo network=160.22.181.20
-/ip arp add interface=*FFFFFFFF
+/ip address add address=172.16.50.1/31 interface=BKK00-LAG network=172.16.50.0
 /ip dhcp-server lease add address=192.168.69.232 client-id=1:48:da:35:6f:6b:66 comment="bkk09nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:6B:66 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.231 client-id=1:e4:5f:1:de:47:96 comment="blikvm nixos" mac-address=E4:5F:01:DE:47:96 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.230 comment=bkk09 mac-address=58:47:CA:78:CD:48 server=dhcp1

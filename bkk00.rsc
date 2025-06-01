@@ -1,11 +1,13 @@
-# 2025-05-31 07:58:33 by RouterOS 7.19rc2
+# 2025-06-01 08:12:04 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
+/interface ethernet set [ find default-name=qsfp28-1-1 ] comment=BKK00-LAG
+/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=BKK00-LAG
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR comment="HGC-HK-MMR-A-XXX ORIGINAL-MAC=F4:1E:57:4B:D7:1D" mac-address=78:9A:18:80:E2:E4
 /interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="BKNIX-core7,8-MMRB ORIGINAL-MAC-F4:1E:57:4B:D7:1F" mac-address=78:9A:18:80:E2:E6
-/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR disabled=yes
+/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=BKK10-LAG
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
 /interface bonding add comment=HGC-UPLINK-AMSIX-LAG mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
@@ -81,7 +83,7 @@
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=amdnuc public-key="IlZR7z5LVE6BKwkApq+VTvXRGaOp0hvmKSSrgi1R/V4="
 /interface wireguard peers add allowed-address=172.31.0.50/32 endpoint-address=172.16.10.2 endpoint-port=51820 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
-/ip address add address=192.168.88.100/24 comment=defconf disabled=yes interface=ether1 network=192.168.88.0
+/ip address add address=192.168.88.100/24 comment=defconf interface=ether1 network=192.168.88.0
 /ip address add address=172.16.30.1/30 interface=BKK20-LAG network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180
 /ip address add address=10.155.255.4 interface=lo network=10.155.255.4
@@ -90,9 +92,10 @@
 /ip address add address=10.25.1.126/24 interface=EU-AMS-IX-vlan3995 network=10.25.1.0
 /ip address add address=80.249.212.139/21 interface=EU-AMS-IX-vlan3995 network=80.249.208.0
 /ip address add address=103.168.174.182/30 interface=SG-HGC-IPTx-backup-vlan2518 network=103.168.174.180
-/ip address add address=172.16.110.1/30 disabled=yes interface=BKK10-LAG network=172.16.110.0
+/ip address add address=172.16.110.0/31 interface=BKK10-LAG network=172.16.110.0
 /ip address add address=172.16.10.1/30 interface=BKK50-LAG network=172.16.10.0
 /ip address add address=172.31.0.100/16 interface=wg_rotko network=172.31.0.0
+/ip address add address=172.16.50.0/31 interface=BKK50-LAG network=172.16.50.0
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,1.1.1.1
 /ip firewall address-list add address=160.22.180.0/23 list=ipv4-apnic-rotko
 /ip firewall address-list add address=10.0.0.0/8 list=internal-ipv4
@@ -259,8 +262,7 @@
 /ipv6 address add address=2001:7f8:1:0:a500:14:2108:1 advertise=no interface=EU-AMS-IX-vlan3995
 /ipv6 address add address=2407:9540:111:8::2/126 advertise=no interface=SG-HGC-IPTx-backup-vlan2518
 /ipv6 address add address=fd00:dead:beef:10::1/126 advertise=no interface=BKK50-LAG
-/ipv6 address add address=fd00:dead:beef:200::1/126 advertise=no interface=BKK10-LAG
-/ipv6 address add address=fd00:dead:beef:100::1/126 advertise=no interface=BKK20-LAG
+/ipv6 address add address=fd00:dead:beef:10::/127 advertise=no interface=BKK10-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
