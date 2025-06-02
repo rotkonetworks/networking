@@ -1,4 +1,4 @@
-# 2025-06-01 08:12:04 by RouterOS 7.19rc2
+# 2025-06-02 08:02:32 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
