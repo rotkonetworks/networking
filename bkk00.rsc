@@ -1,4 +1,4 @@
-# 2025-06-02 08:02:32 by RouterOS 7.19rc2
+# 2025-06-03 08:01:07 by RouterOS 7.19rc2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -186,15 +186,16 @@
 /ip firewall address-list add address=160.22.180.0/24 list=our-networks
 /ip firewall mangle add action=fasttrack-connection chain=prerouting
 /ip firewall mangle add action=fasttrack-connection chain=output
+/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
+/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
 /ip firewall raw add action=accept chain=prerouting in-interface-list=!WAN protocol=ospf
 /ip firewall raw add action=drop chain=prerouting comment="Drop spoofed our networks from WAN" in-interface-list=WAN src-address-list=our-networks
-/ip firewall raw add action=accept chain=prerouting comment="CAUTION: TRANSPARENT MODE"
+/ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
+/ip firewall raw add action=accept chain=prerouting comment=TRANSPARENT disabled=yes
 /ip firewall raw add action=drop chain=prerouting comment="Drop bad TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: fin,syn" protocol=tcp tcp-flags=fin,syn
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: fin,rst" protocol=tcp tcp-flags=fin,rst
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: syn,rst" protocol=tcp tcp-flags=syn,rst
-/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
-/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
 /ip firewall raw add action=drop chain=prerouting comment="iSAV: Drop our IPv4 prefixes from WAN" in-interface-list=WAN src-address-list=our-networks
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
 /ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
@@ -241,10 +242,10 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" distance=240 dst-address=2401:a860::/32
-/ipv6 route add blackhole comment="Blackhole for IPv6 ULA (RFC4193)" distance=240 dst-address=fc00::/7
-/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" distance=240 dst-address=fec0::/10
+/ipv6 route add blackhole comment="Blackhole for IPv6 ULA (RFC4193)" disabled=yes distance=240 dst-address=fc00::/7
+/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=yes distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
-/ipv6 route add
+/ipv6 route add disabled=yes
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
@@ -317,7 +318,8 @@
 /ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="AMS-IX HK - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
-/ipv6 firewall raw add action=accept chain=prerouting disabled=yes
+/ipv6 firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
+/ipv6 firewall raw add action=accept chain=prerouting comment=TRANSPARENT disabled=yes
 /ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed exchange loopbacks from WAN" in-interface-list=WAN src-address-list=exchange-only-loopbacks
 /ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed our ip ranges from WAN" in-interface-list=WAN src-address-list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=drop chain=prerouting comment="block inbound RAs" icmp-options=134:0 in-interface-list=WAN protocol=icmpv6
@@ -509,30 +511,22 @@
 /routing filter rule add chain=iBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=iBGP-OUT-v6 rule="set pref-src 2401:a860:181::20;"
 /routing filter rule add chain=iBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
-/routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4 passive
-/routing ospf interface-template add area=backbone comment=EDGE-BKK00-BKK20 disabled=no networks=172.16.30.0/30
-/routing ospf interface-template add area=backbone disabled=no networks=160.22.181.180/32 passive
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::100/128 passive
-/routing ospf interface-template add area=backbone comment=ROTKO-UNICAST-v4 disabled=no networks=160.22.181.0/24 passive
-/routing ospf interface-template add area=backbone-v6 comment="Global Loopback" disabled=no networks=2401:a860:181:100::/64 passive
-/routing ospf interface-template add area=backbone-v6 comment=ROTKO-UNICAST-v6 disabled=no networks=2401:a860::/32 passive
+/routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4 passive
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-BKK20 disabled=no networks=fd00:dead:beef:30::1/126
-/routing ospf interface-template add area=backbone-v6 comment=BKNIX-v6 disabled=no networks=2001:df5:b881::168/128 passive
-/routing ospf interface-template add area=backbone-v6 comment=HK-HGC-IPTx-v6-lo disabled=no networks=2403:5000:171:138::2/128 passive
-/routing ospf interface-template add area=backbone comment=HK-HGC-IPTx-v4-lo disabled=no networks=118.143.211.186/32 passive
-/routing ospf interface-template add area=backbone comment=BKNIX-v4-lo disabled=no networks=203.159.68.168/32 passive
+/routing ospf interface-template add area=backbone comment=EDGE-BKK00-BKK20 disabled=no networks=172.16.30.0/30
+/routing ospf interface-template add area=backbone comment=GUA-LO-v4 disabled=no networks=160.22.181.180/32 passive
 /routing ospf interface-template add area=backbone comment=BKK10-v4 disabled=yes networks=172.16.110.0/30
-/routing ospf interface-template add area=backbone comment=BKK50-v4 disabled=no networks=172.16.10.0/30
-/routing ospf interface-template add area=backbone comment=EU-AMS-IX-v4-lo disabled=no networks=80.249.212.139/32 passive
-/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::10/128 passive
-/routing ospf interface-template add area=backbone-v6 comment="ULA BKK10 Link" disabled=yes networks=fd00:dead:beef:40::1/126
-/routing ospf interface-template add area=backbone-v6 comment="ULA BKK50 Link" disabled=no networks=fd00:dead:beef:10::1/126
-/routing ospf interface-template add area=backbone-v6 comment="Global Loopback" disabled=no networks=2401:a860:181::10/128 passive
-/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::20/128 passive
+/routing ospf interface-template add area=backbone-v6 comment="ULA BKK10 IPv6" disabled=yes networks=fd00:dead:beef:110::/127
+/routing ospf interface-template add area=backbone comment=ULA-BKK50-v4 disabled=no networks=172.16.10.0/30
+/routing ospf interface-template add area=backbone-v6 comment="ULA BKK50 IPv6" disabled=no networks=fd00:dead:beef:10::1/126
+/routing ospf interface-template add area=backbone comment=ROTKO-UNICAST-v4 disabled=no networks=160.22.181.0/24
+/routing ospf interface-template add area=backbone-v6 comment=ROTKO-UNICAST-v6 disabled=no networks=2401:a860::/32
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
 /routing rpki add address=2001:deb:0:4070::36 comment="StayRTR IPv6 Secondary" group=rpki.bknix.net port=4323
+/snmp set enabled=yes trap-version=3
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk00
 /system ntp client set enabled=yes
@@ -542,180 +536,6 @@
 /system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
 /system scheduler add name=restore-on-boot on-event="/system script run on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
-/system script add dont-require-permissions=no name=graceful_shutdown_on_bknix owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # BKNIX IPv4 and IPv6 prefixes\
-    \n    :local v4Prefix \"203.159.68.0/23\"\
-    \n    :local v6Prefix \"2001:df5:b881::/64\"\
-    \n    \
-    \n    :log info \"Applying graceful shutdown to all BGP sessions on BKNIX (\$v4Prefix and \$v6Prefix)\"\
-    \n    \
-    \n    # Find all BKNIX connections and enable graceful shutdown\
-    \n    :foreach conn in=[/routing bgp connection find name~\"BKNIX\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :local remoteAddress [/routing bgp connection get \$conn remote.address]\
-    \n        :local templateName [/routing bgp connection get \$conn templates]\
-    \n        \
-    \n        :log info \"Setting up graceful shutdown for BGP connection \$connName with remote address \$remoteAddress\"\
-    \n        \
-    \n        # Add graceful-shutdown community to the template's filter chain\
-    \n        :local filterChain \"\"\
-    \n        :if ([/routing bgp template get \$templateName afi] = \"ip\") do={\
-    \n            :set filterChain \"BKNIX-OUT-v4\"\
-    \n        } else={\
-    \n            :set filterChain \"BKNIX-OUT-v6\"\
-    \n        }\
-    \n        \
-    \n        # Check if graceful-shutdown chain exists, create if not\
-    \n        :if ([:len [/routing filter rule find chain=graceful-shutdown]] = 0) do={\
-    \n            /routing filter rule\
-    \n            add chain=graceful-shutdown rule=\"set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept\"\
-    \n        }\
-    \n        \
-    \n        # Check if graceful-shutdown is in the community list\
-    \n        :if ([:len [/routing filter community-list find list=shutdown]] = 0) do={\
-    \n            /routing filter community-list\
-    \n            add communities=graceful-shutdown list=shutdown\
-    \n        }\
-    \n        \
-    \n        # Set shorter keepalive and hold time for quicker session reset if needed\
-    \n        :log info \"Setting shorter timers for quicker convergence on \$connName\"\
-    \n        /routing bgp connection set \$conn keepalive-time=30s hold-time=90s\
-    \n    }\
-    \n    \
-    \n    :log info \"Graceful shutdown prepared for all BKNIX BGP sessions\"\
-    \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_off_bknix owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # BKNIX IPv4 and IPv6 prefixes\
-    \n    :local v4Prefix \"203.159.68.0/23\"\
-    \n    :local v6Prefix \"2001:df5:b881::/64\"\
-    \n    \
-    \n    :log info \"Disabling graceful shutdown for all BGP sessions on BKNIX (\$v4Prefix and \$v6Prefix)\"\
-    \n    \
-    \n    # Find all BKNIX connections and restore normal timers\
-    \n    :foreach conn in=[/routing bgp connection find name~\"BKNIX\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :local remoteAddress [/routing bgp connection get \$conn remote.address]\
-    \n        :local templateName [/routing bgp connection get \$conn templates]\
-    \n        \
-    \n        :log info \"Restoring normal timers for BGP connection \$connName with remote address \$remoteAddress\"\
-    \n        \
-    \n        # Restore normal keepalive and hold times\
-    \n        /routing bgp connection set \$conn keepalive-time=1m hold-time=3m\
-    \n        \
-    \n        # Reset to normal filter chain (remove the graceful-shutdown filter)\
-    \n        :local afi [/routing bgp template get \$templateName afi]\
-    \n        :if (\$afi = \"ip\") do={\
-    \n            /routing bgp connection set \$conn output.filter-chain=BKNIX-OUT-v4\
-    \n        } else={\
-    \n            /routing bgp connection set \$conn output.filter-chain=BKNIX-OUT-v6\
-    \n        }\
-    \n    }\
-    \n    \
-    \n    # Clear the BGP sessions to apply changes immediately (optional)\
-    \n    :foreach conn in=[/routing bgp connection find name~\"BKNIX\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :log info \"Clearing BGP session \$connName to apply changes\"\
-    \n        /routing bgp connection clear \$conn\
-    \n    }\
-    \n    \
-    \n    :log info \"Normal BGP timers restored for all BKNIX BGP sessions\"\
-    \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_on_amsix owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # AMS-IX IPv4 and IPv6 prefixes\
-    \n    :local v4Prefixes {\"80.249.208.0/21\",\"103.100.140.0/24\",\"103.247.139.0/24\"}\
-    \n    :local v6Prefixes {\"2001:7f8:1::/64\",\"2001:df0:296::/48\",\"2402:b740:15::/48\"}\
-    \n    \
-    \n    :log info \"Applying graceful shutdown to all BGP sessions on AMS-IX\"\
-    \n    \
-    \n    # Find all AMS-IX connections and enable graceful shutdown\
-    \n    :foreach conn in=[/routing bgp connection find name~\"AMS\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :local remoteAddress [/routing bgp connection get \$conn remote.address]\
-    \n        :local templateName [/routing bgp connection get \$conn templates]\
-    \n        \
-    \n        :log info \"Setting up graceful shutdown for BGP connection \$connName with remote address \$remoteAddress\"\
-    \n        \
-    \n        # Add graceful-shutdown community to the template's filter chain\
-    \n        :local filterChain \"\"\
-    \n        :if ([/routing bgp template get \$templateName afi] = \"ip\") do={\
-    \n            :set filterChain \"AMSIX-OUT-v4\"\
-    \n        } else={\
-    \n            :set filterChain \"AMSIX-OUT-v6\"\
-    \n        }\
-    \n        \
-    \n        # Check if graceful-shutdown chain exists, create if not\
-    \n        :if ([:len [/routing filter rule find chain=graceful-shutdown]] = 0) do={\
-    \n            /routing filter rule\
-    \n            add chain=graceful-shutdown rule=\"set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept\"\
-    \n        }\
-    \n        \
-    \n        # Check if graceful-shutdown is in the community list\
-    \n        :if ([:len [/routing filter community-list find list=shutdown]] = 0) do={\
-    \n            /routing filter community-list\
-    \n            add communities=graceful-shutdown list=shutdown\
-    \n        }\
-    \n        \
-    \n        # Set shorter keepalive and hold time for quicker session reset if needed\
-    \n        :log info \"Setting shorter timers for quicker convergence on \$connName\"\
-    \n        /routing bgp connection set \$conn keepalive-time=30s hold-time=90s\
-    \n    }\
-    \n    \
-    \n    :log info \"Graceful shutdown prepared for all AMS-IX BGP sessions\"\
-    \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_off_amsix owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # AMS-IX IPv4 and IPv6 prefixes\
-    \n    :local v4Prefixes {\"80.249.208.0/21\",\"103.100.140.0/24\",\"103.247.139.0/24\"}\
-    \n    :local v6Prefixes {\"2001:7f8:1::/64\",\"2001:df0:296::/48\",\"2402:b740:15::/48\"}\
-    \n    \
-    \n    :log info \"Disabling graceful shutdown for all BGP sessions on AMS-IX\"\
-    \n    \
-    \n    # Find all AMS-IX connections and restore normal timers\
-    \n    :foreach conn in=[/routing bgp connection find name~\"AMS\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :local remoteAddress [/routing bgp connection get \$conn remote.address]\
-    \n        :local templateName [/routing bgp connection get \$conn templates]\
-    \n        \
-    \n        :log info \"Restoring normal timers for BGP connection \$connName with remote address \$remoteAddress\"\
-    \n        \
-    \n        # Restore normal keepalive and hold times\
-    \n        /routing bgp connection set \$conn keepalive-time=1m hold-time=3m\
-    \n        \
-    \n        # Reset to normal filter chain (remove the graceful-shutdown filter)\
-    \n        :local afi [/routing bgp template get \$templateName afi]\
-    \n        :if (\$afi = \"ip\") do={\
-    \n            /routing bgp connection set \$conn output.filter-chain=AMSIX-OUT-v4\
-    \n        } else={\
-    \n            /routing bgp connection set \$conn output.filter-chain=AMSIX-OUT-v6\
-    \n        }\
-    \n    }\
-    \n    \
-    \n    # Clear the BGP sessions to apply changes immediately (optional)\
-    \n    :foreach conn in=[/routing bgp connection find name~\"AMS\"] do={\
-    \n        :local connName [/routing bgp connection get \$conn name]\
-    \n        :log info \"Clearing BGP session \$connName to apply changes\"\
-    \n        /routing bgp connection clear \$conn\
-    \n    }\
-    \n    \
-    \n    :log info \"Normal BGP timers restored for all AMS-IX BGP sessions\"\
-    \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_on_all owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # Run all individual scripts\
-    \n    :log info \"Starting graceful shutdown for all external BGP peers\"\
-    \n    \
-    \n    /system script run graceful_shutdown_on_bknix\
-    \n    /system script run graceful_shutdown_on_amsix\
-    \n    \
-    \n    :log info \"Graceful shutdown prepared for all external BGP peers\"\
-    \n"
-/system script add dont-require-permissions=no name=graceful_shutdown_off_all owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n    # Run all individual scripts\
-    \n    :log info \"Disabling graceful shutdown for all external BGP peers\"\
-    \n    \
-    \n    /system script run graceful_shutdown_off_bknix\
-    \n    /system script run graceful_shutdown_off_amsix\
-    \n    \
-    \n    :log info \"Normal BGP operations restored for all external BGP peers\"\
-    \n"
 /system watchdog set watchdog-timer=no
 /tool traffic-monitor add disabled=yes interface=BKNIX-LAG name=bknix
 /tool traffic-monitor add disabled=yes interface=EU-AMS-IX-vlan3995 name=amsix

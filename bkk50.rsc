@@ -1,4 +1,4 @@
-# 2025-06-02 08:02:46 by RouterOS 7.19rc3
+# 2025-06-03 08:01:57 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -10,7 +10,6 @@
 /interface ethernet set [ find default-name=sfp-sfpplus2 ] advertise=10G-baseCR comment="atm to bkk20 sg" fec-mode=fec91
 /interface wireguard add listen-port=52281 mtu=1420 name=bkk_sax_wg
 /interface wireguard add listen-port=52180 mtu=1420 name=wg_rotko
-/interface vlan add interface=bridge_local name=vlan53 vlan-id=53
 /interface bonding add comment=bkk00-sfp11 lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=BKK20-sfp11 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus2 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=saxemberg-9950X-client name=SAX-BKK-01 slaves=ether9
@@ -22,16 +21,13 @@
 /ip pool add name=saxbkk ranges=10.69.169.2-10.69.169.254
 /ip dhcp-server add address-pool=dhcp69 interface=bridge_local name=dhcp1
 /ip dhcp-server add address-pool=saxbkk interface=SAX-BKK-01-KVM name=saxemberg-kvm
-/ipv6 pool add name=pool_169_local prefix=fd12:3456:abcd:169::/64 prefix-length=64
-/ipv6 pool add name=pool_181_local prefix=fd12:3456:abcd:181::/64 prefix-length=64
-/ipv6 pool add name=pool_169_global prefix=2401:a860:169::/64 prefix-length=64
-/ipv6 pool add name=pool_181_global prefix=2401:a860:181::/64 prefix-length=64
 /port set 0 name=serial0
 /routing id add id=10.155.255.3 name=main select-dynamic-id=only-static select-from-vrf=main
 /routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never router-id=10.155.255.3
 /routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.3 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
+/system logging action set 0 memory-lines=1
 /system logging action set 3 remote=192.168.77.92 remote-log-format=syslog syslog-facility=local0
 /user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /interface bridge port add bridge=bridge_local interface=ether1
@@ -98,7 +94,6 @@
 /ip address add address=160.22.181.181/28 interface=bridge_local network=160.22.181.176
 /ip address add address=160.22.181.169/29 interface=SAX-BKK-01 network=160.22.181.168
 /ip address add address=160.22.181.169 interface=lo network=160.22.181.169
-/ip address add address=10.53.0.1/29 interface=vlan53 network=10.53.0.0
 /ip address add address=10.69.169.1/24 interface=SAX-BKK-01-KVM network=10.69.169.0
 /ip address add address=160.22.181.20 interface=lo network=160.22.181.20
 /ip address add address=172.16.50.1/31 interface=BKK00-LAG network=172.16.50.0
@@ -177,10 +172,14 @@
 /ip firewall address-list add address=1.1.1.1 comment="Cloudflare DNS" list=dns_servers
 /ip firewall address-list add address=8.8.8.8 comment="Google DNS" list=dns_servers
 /ip firewall address-list add address=160.22.181.168/29 list=not_in_internet
+/ip firewall filter add action=drop chain=input dst-port=161 in-interface-list=WAN protocol=udp
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
+/ip firewall filter add action=accept chain=forward dst-port=3142 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10972 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=34072 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=3742 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10821 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=31321 protocol=tcp
@@ -1470,6 +1469,8 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=31322 protocol=tcp to-addresses=192.168.112.42 to-ports=31322
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3742 protocol=tcp to-addresses=192.168.111.42 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=31321 protocol=tcp to-addresses=192.168.111.42 to-ports=31321
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34072 protocol=tcp to-addresses=192.168.142.11 to-ports=34072
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3142 protocol=tcp to-addresses=192.168.142.11 to-ports=22
 /ip firewall raw add action=notrack chain=prerouting protocol=ospf
 /ip firewall raw add action=notrack chain=output protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko dst-address=172.31.0.0/16
@@ -1490,8 +1491,9 @@
 /ip route add distance=220 gateway=BKK00-LAG
 /ip route add blackhole distance=220 dst-address=160.22.181.169/29
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
-/ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=fe80::d601:c3ff:fef6:9e60%BKK20-LAG
-/ipv6 route add distance=220 dst-address=::/0 gateway=fe80::7a9a:18ff:fe80:e2e3%BKK10-LAG
+/ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=BKK00-LAG
+/ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=BKK20-LAG
+/ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32
 /ip service set telnet disabled=yes
@@ -1502,14 +1504,9 @@
 /ip ssh set always-allow-password-login=yes
 /ipv6 address add address=fd00:dead:beef:20::2/126 advertise=no interface=BKK20-LAG
 /ipv6 address add address=fd00:dead:beef:10::2/126 advertise=no interface=BKK00-LAG
-/ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
-/ipv6 address add address=fd12:3456:abcd:181::1 interface=bridge_local
-/ipv6 address add address=fd12:3456:abcd:169::1 interface=SAX-BKK-01
-/ipv6 address add address=2401:a860:181::50/128 advertise=no comment="bkk50 GUA Loopback" interface=lo
-/ipv6 address add address=2401:a860:169::1/128 advertise=no comment="SAX GUA loopback" interface=lo
-/ipv6 address add address=2401:a860:181::1 comment="bkk50 ipv6" interface=bridge_local
-/ipv6 address add address=2401:a860:169::1 comment="bkk50 ipv6" interface=SAX-BKK-01
+/ipv6 address add address=2401:a860:181::1 comment="bkk50 ipv6" disabled=yes interface=bridge_local
 /ipv6 address add address=2401:a860:181::1/128 advertise=no comment="bkk50 ipv6" interface=lo
+/ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -1533,10 +1530,7 @@
 /ipv6 firewall address-list add address=fec0::/10 comment="Site-Local (deprecated)" list=bogons-v6
 /ipv6 firewall address-list add address=ff00::/8 comment=Multicast list=bogons-v6
 /ipv6 firewall address-list add address=fd00:dead:beef::/48 list=our-networks-v6
-/ipv6 firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related
-/ipv6 firewall filter add action=accept chain=forward comment="Allow from LAN to WAN" in-interface-list=local out-interface-list=WAN
-/ipv6 firewall raw add action=drop chain=output comment="block outbound RAs" icmp-options=134:0 out-interface-list=WAN protocol=icmpv6
-/ipv6 firewall raw add action=drop chain=prerouting comment="block inbound RAs" icmp-options=134:0 in-interface-list=WAN protocol=icmpv6
+/ipv6 firewall raw add action=accept chain=prerouting
 /ipv6 nd add interface=bridge_local ra-lifetime=10m
 /ipv6 nd add interface=SAX-BKK-01 ra-lifetime=10m
 /ipv6 nd add interface=SAX-BKK-01-KVM ra-lifetime=10m
@@ -1549,9 +1543,11 @@
 /routing ospf interface-template add area=backbone-v6 comment="BKK00-LAG ULA" disabled=no networks=fd00:dead:beef:10::2/126
 /routing ospf interface-template add area=backbone-v6 comment="BKK20-LAG ULA" disabled=no networks=fd00:dead:beef:20::2/126
 /routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Loopback" disabled=no networks=2401:a860:181::1/128 passive
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Loopback" disabled=no networks=2401:a860:169::1/128 passive
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Network" disabled=no networks=2401:a860:181::/64
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 SAX Network" disabled=no networks=2401:a860:169::/64
+/routing ospf interface-template add area=backbone comment="Global range v4" disabled=no networks=160.22.181.0/24 passive
+/routing ospf interface-template add area=backbone-v6 comment="Global range" disabled=no networks=2401:a860::/48 passive
+/routing ospf interface-template add area=backbone-v6 comment="Global range" disabled=no networks=2401:a860:181::/48 passive
+/routing ospf interface-template add area=backbone-v6 comment="Global range" disabled=no networks=2401:a860:169::/48 passive
+/snmp set enabled=yes trap-version=3
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk50
 /system logging set 0 prefix=:Info
@@ -1566,7 +1562,7 @@
 /system ntp client servers add address=0.th.pool.ntp.org
 /system ntp client servers add address=0.asia.pool.ntp.org
 /system ntp client servers add address=1.asia.pool.ntp.org
-/system package update set channel=development
+/system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
 /tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
 /tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
