@@ -1,4 +1,4 @@
-# 2025-06-03 08:01:57 by RouterOS 7.20beta2
+# 2025-06-04 08:01:08 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -176,6 +176,10 @@
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=3147 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=3341 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10971 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=34071 protocol=tcp
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
 /ip firewall filter add action=accept chain=forward dst-port=3142 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10972 protocol=tcp
@@ -1469,8 +1473,10 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=31322 protocol=tcp to-addresses=192.168.112.42 to-ports=31322
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3742 protocol=tcp to-addresses=192.168.111.42 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=31321 protocol=tcp to-addresses=192.168.111.42 to-ports=31321
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34072 protocol=tcp to-addresses=192.168.142.11 to-ports=34072
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3142 protocol=tcp to-addresses=192.168.142.11 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34072 protocol=tcp to-addresses=192.168.142.17 to-ports=34072
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3142 protocol=tcp to-addresses=192.168.142.17 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3147 protocol=tcp to-addresses=192.168.141.17 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34071 protocol=tcp to-addresses=192.168.141.17 to-ports=34071
 /ip firewall raw add action=notrack chain=prerouting protocol=ospf
 /ip firewall raw add action=notrack chain=output protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko dst-address=172.31.0.0/16
@@ -1504,8 +1510,8 @@
 /ip ssh set always-allow-password-login=yes
 /ipv6 address add address=fd00:dead:beef:20::2/126 advertise=no interface=BKK20-LAG
 /ipv6 address add address=fd00:dead:beef:10::2/126 advertise=no interface=BKK00-LAG
-/ipv6 address add address=2401:a860:181::1 comment="bkk50 ipv6" disabled=yes interface=bridge_local
-/ipv6 address add address=2401:a860:181::1/128 advertise=no comment="bkk50 ipv6" interface=lo
+/ipv6 address add address=2401:a860:181::1 comment="IPV6 to LOCAL NODES DISABLED ATM" disabled=yes interface=bridge_local
+/ipv6 address add address=2401:a860:181::1/128 advertise=no comment="bkk50 ipv6 public address" interface=lo
 /ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address

@@ -1,4 +1,4 @@
-# 2025-06-03 08:01:14 by RouterOS 7.20beta2
+# 2025-06-04 08:01:01 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -137,8 +137,8 @@
 /ip firewall address-list add address=160.22.180.0/24 list=our-networks
 /ip firewall address-list add address=160.22.181.0/24 list=our-networks
 /ip firewall address-list add address=202.28.92.208 comment=0.th.pool.ntp.org list=ntp-clients
-/ip firewall address-list add address=202.12.97.45 comment=0.asia.pool.ntp.org list=ntp-clients
-/ip firewall address-list add address=121.174.142.81 comment=1.asia.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=129.250.35.251 comment=0.asia.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=64.176.168.216 comment=1.asia.pool.ntp.org list=ntp-clients
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BAN disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
@@ -215,7 +215,7 @@
 /ipv6 address add address=2407:9540:111:7::2/126 advertise=no interface=HK-HGC-IPTx-backup-vlan2517
 /ipv6 address add address=fd00:dead:beef:210::/127 advertise=no interface=BKK10-LAG
 /ipv6 address add address=fd00:dead:beef:30::2/126 advertise=no interface=BKK00-LAG
-/ipv6 address add address=2401:a860:181::20 advertise=no comment="Global /128 so RPKI TCP is sourced correctly" interface=BKK00-LAG
+/ipv6 address add address=2401:a860:181::20/128 advertise=no comment="Global /128 so RPKI TCP is sourced correctly" interface=BKK00-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons
