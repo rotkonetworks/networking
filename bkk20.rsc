@@ -1,4 +1,4 @@
-# 2025-06-05 08:00:06 by RouterOS 7.20beta2
+# 2025-06-06 08:00:15 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -136,9 +136,9 @@
 /ip firewall address-list add address=192.168.0.0/16 list=dns-clients
 /ip firewall address-list add address=160.22.180.0/24 list=our-networks
 /ip firewall address-list add address=160.22.181.0/24 list=our-networks
-/ip firewall address-list add address=202.28.92.208 comment=0.th.pool.ntp.org list=ntp-clients
-/ip firewall address-list add address=51.17.20.53 comment=0.asia.pool.ntp.org list=ntp-clients
-/ip firewall address-list add address=46.19.96.19 comment=1.asia.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=202.28.117.7 comment=0.th.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=62.108.37.14 comment=0.asia.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=17.253.116.253 comment=1.asia.pool.ntp.org list=ntp-clients
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BAN disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
