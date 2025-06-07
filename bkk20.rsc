@@ -1,4 +1,4 @@
-# 2025-06-06 08:00:15 by RouterOS 7.20beta2
+# 2025-06-07 07:59:40 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -91,6 +91,8 @@
 /ip address add address=172.16.210.0/31 comment=from_bkk10 interface=BKK10-LAG network=172.16.210.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
+/ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
+/ip dns static add address=159.148.147.251 disabled=yes name=upgrade.mikrotik.com type=A
 /ip firewall address-list add address=0.0.0.0/8 comment="RFC 1122: This host on this network" list=ipv4-bogons
 /ip firewall address-list add address=10.0.0.0/8 comment="RFC 1918: Private network" list=ipv4-bogons
 /ip firewall address-list add address=100.64.0.0/10 comment="RFC 6598: Shared address space" list=ipv4-bogons
@@ -136,12 +138,12 @@
 /ip firewall address-list add address=192.168.0.0/16 list=dns-clients
 /ip firewall address-list add address=160.22.180.0/24 list=our-networks
 /ip firewall address-list add address=160.22.181.0/24 list=our-networks
-/ip firewall address-list add address=202.28.117.7 comment=0.th.pool.ntp.org list=ntp-clients
-/ip firewall address-list add address=62.108.37.14 comment=0.asia.pool.ntp.org list=ntp-clients
-/ip firewall address-list add address=17.253.116.253 comment=1.asia.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=202.28.92.208 comment=0.th.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=185.217.99.236 comment=0.asia.pool.ntp.org list=ntp-clients
+/ip firewall address-list add address=103.186.118.214 comment=1.asia.pool.ntp.org list=ntp-clients
+/ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BAN disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
-/ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="Enable this rule for transparent mode" disabled=yes
 /ip firewall raw add action=drop chain=prerouting comment="drop our-space seen on WAN" in-interface-list=WAN log=yes log-prefix=SPOOFED-NET src-address-list=our-networks
 /ip firewall raw add action=accept chain=prerouting comment="AF8 RPKI RTR" dst-address=203.159.70.0/23 protocol=tcp
@@ -158,8 +160,8 @@
 /ip firewall raw add action=accept chain=prerouting comment="AF9 Tik monitoring" dst-address=160.22.181.181 dst-port=8728 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment="RFC6890 src  WAN" in-interface-list=WAN log=yes log-prefix=RFC-INVALID-SRC src-address-list=ipv4-bogons
 /ip firewall raw add action=drop chain=prerouting comment="RFC6890 dst  WAN" dst-address-list=ipv4-bogons in-interface-list=WAN
-/ip firewall raw add action=drop chain=prerouting comment="lock UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
-/ip firewall raw add action=drop chain=prerouting comment="lock TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
+/ip firewall raw add action=drop chain=prerouting comment="lock UDP 53" dst-port=53 protocol=udp
+/ip firewall raw add action=drop chain=prerouting comment="lock TCP 53" dst-port=53 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment="invalid TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=prerouting comment="TCP Xmas" protocol=tcp tcp-flags=fin,syn,rst,psh,ack,urg
 /ip firewall raw add action=drop chain=prerouting comment="TCP null" protocol=tcp tcp-flags=!fin,!syn,!rst,!psh,!ack,!urg
@@ -295,6 +297,8 @@
 /ipv6 firewall address-list add address=2001:7f8:1:0:a500:14:2108:1/128 comment="AMS-IX EU - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2402:b740:15:388:a500:14:2108:1/128 comment="AMS-IX BKK - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="AMS-IX HK - exchange only" list=exchange-only-loopbacks
+/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BAN disabled=yes dst-address=2402:b740:15::/48 port=179 protocol=tcp src-address=2402:b740:15::/48
+/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=2001:df0:296::/64 port=179 protocol=tcp src-address=2001:df0:296::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BKK disabled=yes dst-address=2402:b740:15:388::/64 port=179 protocol=tcp src-address=2402:b740:15:388::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=2001:df0:296::/64 port=179 protocol=tcp src-address=2001:df0:296::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment="drop SNMP from WAN" dst-port=161,162 in-interface-list=WAN protocol=udp
@@ -383,6 +387,7 @@
 /routing filter community-list add comment=HGC-local-pref-380 communities=9304:382 list=HGC
 /routing filter community-list add communities=graceful-shutdown list=shutdown
 /routing filter community-list add comment="RFC 7999 BLACKHOLE" communities=65535:666 list=blackhole
+/routing filter rule add chain="" comment=BCP214 rule="jump graceful-shutdown"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (not bgp-network) { reject; }"
@@ -404,13 +409,21 @@
 /routing filter rule add chain=iBGP-IN comment="this is new edge router" rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=iBGP-OUT disabled=yes rule="set pref-src 160.22.181.178;"
 /routing filter rule add chain=iBGP-OUT rule="set bgp-large-communities ibgp-communities; accept;"
+/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="set bgp-med 50; set bgp-path-prepend 2; set bgp-large-communities location; accept"
+/routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="set bgp-med 50; set bgp-path-prepend 2; set bgp-large-communities location; accept"
+/routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="set bgp-med 20; set bgp-large-communities location; accept"
+/routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="set bgp-med 20; set bgp-large-communities location; accept"
+/routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="set bgp-med 100; set bgp-path-prepend 2; set bgp-large-communities location; accept"
+/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v6 rule="set bgp-med 100; set bgp-path-prepend 2; set bgp-large-communities location; accept"
+/routing filter rule add chain=AMSIX-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-HK-OUT-v4 rule="set bgp-med 75; set bgp-path-prepend 1; set bgp-large-communities location; accept"
+/routing filter rule add chain=AMSIX-HK-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=AMSIX-HK-OUT-v6 rule="set bgp-med 75; set bgp-path-prepend 1; set bgp-large-communities location; accept"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" disabled=no rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
@@ -460,6 +473,7 @@
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Accept route v6" rule="set bgp-large-communities hgc-sg-communities; set bgp-local-pref 140; accept"
 /routing filter rule add chain=AMSIX-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities amsix-hk-communities; set bgp-local-pref 150; accept"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities hgc-th-hk-communities; set bgp-local-pref 140; accept"
+/routing filter rule add chain="" comment=BCP214 rule="jump graceful-shutdown"
 /routing filter rule add chain=graceful-shutdown rule="set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept"
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
@@ -484,6 +498,7 @@
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=RPKI-invalid rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=accept-all rule="accept;"
 /routing filter rule add chain=ROUTEVIEWS-IN-v6 comment=discard rule="reject;"
+/routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
 /routing ospf interface-template add area=backbone-v6 comment=BKK20-LO-v6 disabled=no networks=fd00:dead:beef::20
 /routing ospf interface-template add area=backbone comment=BKK20-LO-v4 disabled=no networks=10.155.255.2
 /routing ospf interface-template add area=backbone-v6 comment=GW-BKK50-LAG-v6 disabled=no networks=fd00:dead:beef:20::1/126
@@ -516,19 +531,28 @@
 /system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
 /system scheduler add interval=1h name=sync-ntp-list on-event="/system script run \"update-ntp-clients\"" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-06-02 start-time=17:50:20
-/system script add dont-require-permissions=no name=update-ntp-clients owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
-    \n:local names {\"0.th.pool.ntp.org\";\"0.asia.pool.ntp.org\";\"1.asia.pool.ntp.org\"}\
-    \n# remove old entries\
-    \n/ip firewall address-list remove [find list=\"ntp-clients\"]\
-    \n# resolve each name and rebuild list\
-    \n:foreach name in=\$names do={\
-    \n    :local resolved [/resolve \$name]\
-    \n    :if ([:typeof \$resolved] = \"array\") do={\
-    \n        :foreach ip in=\$resolved do={\
-    \n            /ip firewall address-list add list=\"ntp-clients\" address=\$ip comment=\$name\
+/system script add dont-require-permissions=no name=bcp214-start owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
+    \n:foreach ruleId in=[/routing filter rule find] do={\
+    \n    :local chainName [/routing filter rule get \$ruleId chain]\
+    \n    # Check if chain ends with -OUT-v4 or -OUT-v6\
+    \n    :if (\$chainName~\"-OUT-v4\\\$\" or \$chainName~\"-OUT-v6\\\$\") do={\
+    \n        # Check if BCP214 rule doesn't already exist\
+    \n        :if ([:len [/routing filter rule find where chain=\$chainName comment=\"BCP214\"]] = 0) do={\
+    \n            /routing filter rule add chain=\$chainName place-before=0 \\\
+    \n                rule=\"jump graceful-shutdown\" comment=\"BCP214\"\
     \n        }\
-    \n    } else={\
-    \n        /ip firewall address-list add list=\"ntp-clients\" address=\$resolved comment=\$name\
     \n    }\
-    \n}"
+    \n}\
+    \n:log warning \"BCP214: T-5min - Graceful shutdown started\""
+/system script add dont-require-permissions=no name=bcp214-block owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+    \n    /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
+    \n    /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
+    \n    :log warning \"BCP214: T-0 - BGP blocked\"\
+    \n"
+/system script add dont-require-permissions=no name=bcp214-restore owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+    \n    /routing filter rule remove [find comment=\"BCP214\"]\
+    \n    /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n    /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n    :log warning \"BCP214: Service restored\"\
+    \n"
 /system watchdog set watchdog-timer=no
