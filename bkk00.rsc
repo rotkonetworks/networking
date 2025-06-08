@@ -1,4 +1,4 @@
-# 2025-06-07 07:59:33 by RouterOS 7.20beta2
+# 2025-06-08 08:06:19 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -30,24 +30,23 @@
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
 /ip smb users set [ find default=yes ] disabled=yes
 /port set 0 name=serial0
-/routing bgp instance add as=142108 name=bgp-instance-1 vrf=main
-/routing bgp instance add as=142108 name=bgp-instance-2 router-id=10.155.255.4
-/routing bgp template add afi=ipv6 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko
+/routing bgp instance add as=142108 name=bgp-instance-1 router-id=10.155.255.4 vrf=main
 /routing id add id=10.155.255.4 name=main select-dynamic-id=only-static select-from-vrf=main
 /routing ospf instance add disabled=no name=ospf-instance-v2 originate-default=always router-id=10.155.255.4
 /routing ospf instance add disabled=no name=ospf-instance-v3 originate-default=always router-id=10.155.255.4 version=3
 /routing ospf area add disabled=no instance=ospf-instance-v2 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
 /routing table add fib name=rt_latency
-/routing bgp template set default afi=ip input.filter=iBGP-IN multihop=yes nexthop-choice=default output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko routing-table=main
+/routing bgp template set default afi=ip input.filter=iBGP-IN multihop=yes nexthop-choice=default output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
+/routing bgp template add afi=ipv6 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=BKNIX-IN-v4 name=BKNIX-v4 output.as-override=no .filter-chain=BKNIX-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ipv6 disabled=no input.filter=BKNIX-IN-v6 name=BKNIX-v6 output.as-override=no .filter-chain=BKNIX-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=HGC-HK-IN-v4 multihop=yes name=IPTX-HGC-HK-v4 output.as-override=no .filter-chain=HGC-HK-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ipv6 disabled=no input.filter=HGC-HK-IN-v6 multihop=yes name=IPTX-HGC-HK-v6 output.as-override=no .filter-chain=HGC-HK-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=AMSIX-IN-v4 name=AMSIX-v4 output.as-override=no .filter-chain=AMSIX-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ipv6 disabled=no input.filter=AMSIX-IN-v6 name=AMSIX-v6 output.as-override=no .filter-chain=AMSIX-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
-/routing bgp template add afi=ipv6 disabled=no input.filter=HGC-SG-IN-v6 name=HGC-TH-SG-v6 output.as-override=no .filter-chain=HGC-SG-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
-/routing bgp template add afi=ip disabled=no input.filter=HGC-SG-IN-v4 name=HGC-TH-SG-v4 output.as-override=no .filter-chain=HGC-SG-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
+/routing bgp template add afi=ipv6 disabled=no input.filter=HGC-SG-IN-v6 multihop=yes name=HGC-TH-SG-v6 output.as-override=no .filter-chain=HGC-SG-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
+/routing bgp template add afi=ip disabled=no input.filter=HGC-SG-IN-v4 multihop=yes name=HGC-TH-SG-v4 output.as-override=no .filter-chain=HGC-SG-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
 /user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
@@ -248,11 +247,14 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=240.0.0.0/4
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
+/ip route add distance=220 dst-address=160.22.181.0/24
+/ip route add distance=220 dst-address=160.22.180.0/24
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" distance=240 dst-address=2401:a860::/32
-/ipv6 route add blackhole comment="Blackhole for IPv6 ULA (RFC4193)" disabled=yes distance=240 dst-address=fc00::/7
-/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=yes distance=240 dst-address=fec0::/10
+/ipv6 route add blackhole comment="Blackhole for IPv6 ULA (RFC4193)" disabled=no distance=240 dst-address=fc00::/7
+/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
-/ipv6 route add disabled=yes
+/ipv6 route add disabled=no distance=250 dst-address=2401:a860::/36
+/ipv6 route add disabled=no distance=250 dst-address=2401:a860:1000::/36
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
@@ -271,6 +273,9 @@
 /ipv6 address add address=2407:9540:111:8::2/126 advertise=no interface=SG-HGC-IPTx-backup-vlan2518
 /ipv6 address add address=fd00:dead:beef:10::1/126 advertise=no interface=BKK50-LAG
 /ipv6 address add address=fd00:dead:beef:10::/127 advertise=no interface=BKK10-LAG
+/ipv6 address add address=2401:a860:1181::/128 advertise=no interface=lo
+/ipv6 address add address=fd00:dead:beef::/128 advertise=no interface=lo
+/ipv6 address add address=fd00:dead:beef::/127 advertise=no interface=BKK20-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -373,8 +378,8 @@
 /ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: SYN+RST" protocol=tcp tcp-flags=syn,rst
 /ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: RST+URG" protocol=tcp tcp-flags=rst,urg
 /ipv6 nd set [ find default=yes ] ra-lifetime=none
-/routing bgp connection add input.limit-process-routes-ipv4=2000000 instance=bgp-instance-1 local.address=10.155.255.4 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v4 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,bgp remote.address=10.155.255.2 .as=142108 templates=default
-/routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=2000000 instance=bgp-instance-2 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,bgp remote.address=fd00:dead:beef::20 .as=142108 templates=IBGP-ROTKO-v6
+/routing bgp connection add input.limit-process-routes-ipv4=2000000 instance=bgp-instance-1 local.address=10.155.255.4 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v4 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=10.155.255.2 .as=142108 templates=default
+/routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::20 .as=142108 templates=IBGP-ROTKO-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=BKNIX-RS0-v4 remote.address=203.159.68.68 .as=63529 templates=BKNIX-v4
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=BKNIX-RS1-v4 remote.address=203.159.68.69 .as=63529 templates=BKNIX-v4
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=100000 instance=bgp-instance-1 keepalive-time=1m local.address=2001:df5:b881::168 .role=ebgp name=BKNIX-RS0-v6 remote.address=2001:df5:b881::68 .as=63529 templates=BKNIX-v6
@@ -429,13 +434,17 @@
 /routing filter rule add chain=AMSIX-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=BKNIX-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=BKNIX-OUT-v4 disabled=no rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (not bgp-network) { reject; }"
+/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=HGC-HK-OUT-v6 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (not bgp-network) { reject; }"
+/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (not bgp-network) { reject; }"
+/routing filter rule add chain=AMSIX-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=AMSIX-OUT-v6 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
@@ -524,7 +533,6 @@
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
-/routing filter rule add chain=iBGP-OUT-v6 rule="set pref-src 2401:a860:181::20;"
 /routing filter rule add chain=iBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::100/128 passive
@@ -536,8 +544,8 @@
 /routing ospf interface-template add area=backbone-v6 comment="ULA BKK10 IPv6" disabled=yes networks=fd00:dead:beef:110::/127
 /routing ospf interface-template add area=backbone comment=ULA-BKK50-v4 disabled=no networks=172.16.10.0/30
 /routing ospf interface-template add area=backbone-v6 comment="ULA BKK50 IPv6" disabled=no networks=fd00:dead:beef:10::1/126
-/routing ospf interface-template add area=backbone comment=ROTKO-UNICAST-v4 disabled=no networks=160.22.181.0/24
-/routing ospf interface-template add area=backbone-v6 comment=ROTKO-UNICAST-v6 disabled=no networks=2401:a860::/32
+/routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK20-v6 disabled=no networks=fd00:dead:beef::/127
+/routing ospf interface-template add area=backbone-v6 comment="ULA BKK50 IPv6" disabled=no networks=fd00:dead:beef:50::/127
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
