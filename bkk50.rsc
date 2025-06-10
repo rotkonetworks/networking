@@ -1,4 +1,4 @@
-# 2025-06-09 08:04:11 by RouterOS 7.20beta2
+# 2025-06-10 08:01:42 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -81,7 +81,6 @@
 /interface wireguard peers add allowed-address=172.30.50.6/32 comment=alarchlinux interface=wg_rotko name=peer11 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
 /interface wireguard peers add allowed-address=172.29.169.11/32 comment=al interface=bkk_sax_wg name=peer12 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
 /ip address add address=192.168.88.50/24 comment=defconf interface=bridge_local network=192.168.88.0
-/ip address add address=10.50.0.1/12 disabled=yes interface=bridge_local network=10.48.0.0
 /ip address add address=192.168.69.1/16 interface=bridge_local network=192.168.0.0
 /ip address add address=10.155.255.3 interface=lo network=10.155.255.3
 /ip address add address=172.16.10.2/30 interface=BKK00-LAG network=172.16.10.0

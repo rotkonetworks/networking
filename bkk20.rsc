@@ -1,4 +1,4 @@
-# 2025-06-09 08:04:05 by RouterOS 7.20beta2
+# 2025-06-10 08:01:35 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -370,7 +370,7 @@
 /routing bgp connection add afi=ip input.limit-process-routes-ipv4=250000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=yes name=AMSIX-RS2-HK-v4 remote.address=103.247.139.126 .as=58560 routing-table=main templates=AMSIX-HK-v4
 /routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-RS1-HK-v6 remote.address=2001:df0:296::a505:8560:1 .as=58560 routing-table=main templates=AMSIX-HK-v6
 /routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-RS2-HK-v6 remote.address=2001:df0:296::a505:8560:2 .as=58560 routing-table=main templates=AMSIX-HK-v6
-/routing bgp connection add disabled=no input.limit-process-routes-ipv4=250000 instance=bgp-instance-1 local.role=ebgp multihop=yes name=AMSIX-CLOUDFLARE-HK-v4 remote.address=103.247.139.50 .as=13335 routing-table=main templates=AMSIX-HK-v4
+/routing bgp connection add disabled=no input.limit-process-routes-ipv4=250000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=yes name=AMSIX-CLOUDFLARE-HK-v4 remote.address=103.247.139.50 .as=13335 routing-table=main templates=AMSIX-HK-v4
 /routing bgp connection add disabled=no input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-CLOUDFLARE-HK-v6 remote.address=2001:df0:296::a501:3335:2 .as=13335 routing-table=main templates=AMSIX-HK-v6
 /routing bgp connection add input.limit-process-routes-ipv4=2000000 instance=bgp-instance-1 local.address=10.155.255.2 .role=ibgp name=IBGP-ROTKO-BKK00-v4 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=10.155.255.4 .as=142108 routing-table=main templates=default
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::20 .role=ibgp name=IBGP-ROTKO-BKK00-v6 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::100 .as=142108 routing-table=main templates=IBGP-ROTKO-v6
