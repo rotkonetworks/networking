@@ -1,4 +1,4 @@
-# 2025-06-10 08:01:28 by RouterOS 7.20beta2
+# 2025-06-11 08:01:06 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -271,11 +271,14 @@
 /ipv6 address add address=2403:5000:171:138::2 advertise=no comment="HK IPv6" interface=HK-HGC-IPTx-vlan2519
 /ipv6 address add address=2001:7f8:1:0:a500:14:2108:1 advertise=no interface=EU-AMS-IX-vlan3995
 /ipv6 address add address=2407:9540:111:8::2/126 advertise=no interface=SG-HGC-IPTx-backup-vlan2518
-/ipv6 address add address=fd00:dead:beef:10::1/126 advertise=no interface=BKK50-LAG
-/ipv6 address add address=fd00:dead:beef:10::/127 advertise=no interface=BKK10-LAG
 /ipv6 address add address=2401:a860:1181::/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/127 advertise=no interface=BKK20-LAG
+/ipv6 address add address=fd00:dead:beef:10::/127 advertise=no comment="ULA P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=fd00:dead:beef:50::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
+/ipv6 address add address=2401:a860:1181:2050::1/127 advertise=no comment="Global P2P to BKK20" interface=BKK20-LAG
+/ipv6 address add address=2401:a860:1181:10::/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=2401:a860:1181:50::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -535,17 +538,23 @@
 /routing filter rule add chain=iBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=iBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
-/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::100/128 passive
+/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::/128 passive
 /routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4 passive
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-BKK20 disabled=no networks=fd00:dead:beef:30::1/126
 /routing ospf interface-template add area=backbone comment=EDGE-BKK00-BKK20 disabled=no networks=172.16.30.0/30
 /routing ospf interface-template add area=backbone comment=GUA-LO-v4 disabled=no networks=160.22.181.180/32 passive
 /routing ospf interface-template add area=backbone comment=BKK10-v4 disabled=yes networks=172.16.110.0/30
-/routing ospf interface-template add area=backbone-v6 comment="ULA BKK10 IPv6" disabled=yes networks=fd00:dead:beef:110::/127
 /routing ospf interface-template add area=backbone comment=ULA-BKK50-v4 disabled=no networks=172.16.10.0/30
-/routing ospf interface-template add area=backbone-v6 comment="ULA BKK50 IPv6" disabled=no networks=fd00:dead:beef:10::1/126
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK20-v6 disabled=no networks=fd00:dead:beef::/127
-/routing ospf interface-template add area=backbone-v6 comment="ULA BKK50 IPv6" disabled=no networks=fd00:dead:beef:50::/127
+/routing ospf interface-template add area=backbone-v6 comment="ULA P2P BKK50" disabled=no networks=fd00:dead:beef:50::1/127
+/routing ospf interface-template add area=backbone-v6 comment="ULA P2P BKK10" disabled=no networks=fd00:dead:beef:10::/127
+/routing ospf interface-template add area=backbone-v6 comment="ULA P2P BKK50" disabled=no networks=fd00:dead:beef:50::/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:10::/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:50::/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK00" disabled=no networks=2401:a860:1181:50::1/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK20" disabled=no networks=2401:a860:1181:2050::1/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:10::/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:50::/127
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323

@@ -1,4 +1,4 @@
-# 2025-06-10 08:01:42 by RouterOS 7.20beta2
+# 2025-06-11 08:01:19 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1496,9 +1496,9 @@
 /ip route add distance=220 gateway=BKK00-LAG
 /ip route add blackhole distance=220 dst-address=160.22.181.169/29
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
-/ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=BKK00-LAG
-/ipv6 route add disabled=no distance=220 dst-address=::/0 gateway=BKK20-LAG
 /ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
+/ipv6 route add distance=220 dst-address=::/0 gateway=2401:a860:1181::200
+/ipv6 route add distance=220 dst-address=::/0 gateway=2401:a860:1181::250
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32
 /ip service set telnet disabled=yes
@@ -1507,12 +1507,14 @@
 /ip service set api address=192.168.0.0/16
 /ip service set api-ssl disabled=yes
 /ip ssh set always-allow-password-login=yes
-/ipv6 address add address=fd00:dead:beef:20::2/126 advertise=no interface=BKK20-LAG
-/ipv6 address add address=fd00:dead:beef:10::2/126 advertise=no interface=BKK00-LAG
-/ipv6 address add address=2401:a860:181::50 comment=ROTKO-GW interface=bridge_local
-/ipv6 address add address=2401:a860:181::/128 advertise=no comment="bkk50 ipv6 public address" interface=lo
 /ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
 /ipv6 address add address=2401:a860:169::50 comment=SAXv6 interface=SAX-BKK-01
+/ipv6 address add address=2401:a860:1181::/128 advertise=no comment="bkk50 ipv6 public address" interface=lo
+/ipv6 address add address=2401:a860:1181::50 comment=ROTKO-GW interface=bridge_local
+/ipv6 address add address=fd00:dead:beef:50::1/127 advertise=no comment="ULA P2P to BKK00" interface=BKK00-LAG
+/ipv6 address add address=fd00:dead:beef:2050::1/127 advertise=no comment="ULA P2P to BKK20" interface=BKK20-LAG
+/ipv6 address add address=2401:a860:1181:50::1/127 advertise=no comment="Global P2P to BKK00" interface=BKK00-LAG
+/ipv6 address add address=2401:a860:1181:2050::1/127 advertise=no comment="Global P2P to BKK20" interface=BKK20-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -1543,8 +1545,8 @@
 /routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Loopback" disabled=no networks=2401:a860:181::/128 passive
 /routing ospf interface-template add area=backbone comment=loopback disabled=no networks=10.155.255.3/32 passive
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::50/128 passive
-/routing ospf interface-template add area=backbone-v6 comment="BKK00-LAG ULA" disabled=no networks=fd00:dead:beef:10::2/126
-/routing ospf interface-template add area=backbone-v6 comment="BKK20-LAG ULA" disabled=no networks=fd00:dead:beef:20::2/126
+/routing ospf interface-template add area=backbone-v6 comment="BKK00-LAG ULA" disabled=no networks=fd00:dead:beef:50::1/127
+/routing ospf interface-template add area=backbone-v6 comment="BKK20-LAG ULA" disabled=no networks=fd00:dead:beef:2050::1/127
 /routing ospf interface-template add area=backbone comment=BK00-P2P disabled=no networks=172.16.10.2/30
 /routing ospf interface-template add area=backbone comment=BK20-P2P disabled=no networks=172.16.20.2/30
 /routing ospf interface-template add area=backbone comment=IBPv4 disabled=no networks=160.22.181.176/28 passive
@@ -1554,6 +1556,8 @@
 /routing ospf interface-template add area=backbone comment=ROTKO-INFRA disabled=no networks=160.22.181.0/26 passive
 /routing ospf interface-template add area=backbone-v6 comment=ANYCAST disabled=no networks=2401:a860::/48 passive
 /routing ospf interface-template add area=backbone-v6 comment=IBP disabled=no networks=2401:a860:1181::/48 passive
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK00" disabled=no networks=2401:a860:1181:50::1/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK20" disabled=no networks=2401:a860:1181:2050::1/127
 /snmp set enabled=yes trap-version=3
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk50

@@ -1,4 +1,4 @@
-# 2025-06-10 08:01:35 by RouterOS 7.20beta2
+# 2025-06-11 08:01:12 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -211,17 +211,18 @@
 /ip service set winbox address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set api address=160.22.181.181/32
 /ip service set api-ssl address=10.0.0.0/8,192.168.88.0/24 disabled=yes
-/ipv6 address add address=2401:a860:181::20/128 advertise=no comment=bkk20-singapore interface=lo
 /ipv6 address add address=2403:5000:165:15::2 advertise=no interface=SG-HGC-IPTx-vlan2520
 /ipv6 address add address=2402:b740:15:388:a500:14:2108:1 advertise=no interface=BKK-AMS-IX-vlan911
 /ipv6 address add address=2001:df0:296:0:a500:14:2108:1 advertise=no interface=HK-AMS-IX-vlan3994
 /ipv6 address add address=fd00:dead:beef::20/128 advertise=no interface=lo
-/ipv6 address add address=fd00:dead:beef:20::1/126 advertise=no interface=BKK50-LAG
 /ipv6 address add address=2407:9540:111:7::2/126 advertise=no interface=HK-HGC-IPTx-backup-vlan2517
-/ipv6 address add address=fd00:dead:beef:210::/127 advertise=no interface=BKK10-LAG
 /ipv6 address add address=fd00:dead:beef:30::2/126 advertise=no interface=BKK00-LAG
 /ipv6 address add address=2401:a860:1181::20/128 advertise=no comment=BKK20-GUA-SG-OUT interface=lo
 /ipv6 address add address=fd00:dead:beef::1/127 advertise=no comment=EDGE-BKK00-LUA interface=BKK00-LAG
+/ipv6 address add address=fd00:dead:beef:1020::1/127 advertise=no comment="ULA P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=fd00:dead:beef:2050::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
+/ipv6 address add address=2401:a860:1181:1020::1/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons
@@ -505,13 +506,17 @@
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
 /routing ospf interface-template add area=backbone-v6 comment=BKK20-LO-v6 disabled=no networks=fd00:dead:beef::20
 /routing ospf interface-template add area=backbone comment=BKK20-LO-v4 disabled=no networks=10.155.255.2
-/routing ospf interface-template add area=backbone-v6 comment=GW-BKK50-LAG-v6 disabled=no networks=fd00:dead:beef:20::1/126
+/routing ospf interface-template add area=backbone-v6 comment=GW-BKK50-LAG-v6 disabled=no networks=fd00:dead:beef:2050::/127
 /routing ospf interface-template add area=backbone comment=GW-BKK50-LAG-v4 disabled=no networks=172.16.20.0/30
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-LAG-v6 disabled=no networks=fd00:dead:beef:30::2/126
 /routing ospf interface-template add area=backbone comment=EDGE-BKK00-LAG-v4 disabled=no networks=172.16.30.0/30
-/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no networks=fd00:dead:beef:210::/127
+/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no networks=fd00:dead:beef:1020::1/127
 /routing ospf interface-template add area=backbone comment=GW-BKK10-LAG-v4 disabled=no networks=172.16.210.0/31
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-v6 disabled=no networks=fd00:dead:beef::/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
+/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
