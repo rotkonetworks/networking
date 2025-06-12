@@ -1,4 +1,4 @@
-# 2025-06-11 08:01:19 by RouterOS 7.20beta2
+# 2025-06-12 08:00:36 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -834,7 +834,7 @@
 /ip firewall filter add action=accept chain=forward dst-port=30433 protocol=tcp
 /ip firewall filter add action=drop chain=forward comment="Drop all other forward"
 /ip firewall nat add action=masquerade chain=srcnat out-interface-list=WAN src-address=172.31.0.0/24
-/ip firewall nat add action=src-nat chain=srcnat out-interface-list=WAN to-addresses=160.22.181.181
+/ip firewall nat add action=src-nat chain=srcnat out-interface-list=WAN src-address=192.168.0.0/16 to-addresses=160.22.181.181
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.69.103 to-ports=80
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.69.103 to-ports=443
 /ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.77.91 to-ports=80
@@ -1476,6 +1476,7 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3142 protocol=tcp to-addresses=192.168.142.17 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3147 protocol=tcp to-addresses=192.168.141.17 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34071 protocol=tcp to-addresses=192.168.141.17 to-ports=34071
+/ip firewall nat add action=masquerade chain=srcnat comment="Hairpin NAT - masquerade internal traffic accessing public services to enable loopback" out-interface=bridge_local src-address=192.168.0.0/16
 /ip firewall raw add action=notrack chain=prerouting protocol=ospf
 /ip firewall raw add action=notrack chain=output protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko dst-address=172.31.0.0/16
