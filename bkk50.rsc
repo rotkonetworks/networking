@@ -1,4 +1,4 @@
-# 2025-06-16 08:03:26 by RouterOS 7.20beta2
+# 2025-06-17 08:01:17 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1477,6 +1477,10 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3147 protocol=tcp to-addresses=192.168.141.17 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34071 protocol=tcp to-addresses=192.168.141.17 to-ports=34071
 /ip firewall nat add action=masquerade chain=srcnat comment="Hairpin NAT - masquerade internal traffic accessing public services to enable loopback" out-interface=bridge_local src-address=192.168.0.0/16
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=tcp src-port=53
 /ip firewall raw add action=notrack chain=prerouting protocol=ospf
 /ip firewall raw add action=notrack chain=output protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment=wg_rotko dst-address=172.31.0.0/16
@@ -1488,10 +1492,10 @@
 /ip firewall raw add action=accept chain=prerouting comment="Allow DNS queries from LAN to router (TCP)" dst-port=53 protocol=tcp src-address-list=not_in_internet
 /ip firewall raw add action=accept chain=prerouting comment="Allow DNS queries from LAN to external DNS (UDP)" dst-port=53 protocol=udp src-address-list=not_in_internet
 /ip firewall raw add action=accept chain=prerouting comment="Allow DNS queries from LAN to external DNS (TCP)" dst-port=53 protocol=tcp src-address-list=not_in_internet
-/ip firewall raw add action=drop chain=prerouting comment="Drop external DNS queries to router (UDP)" dst-port=53 protocol=udp src-address-list=!not_in_internet
-/ip firewall raw add action=drop chain=prerouting comment="Drop external DNS queries to router (TCP)" dst-port=53 protocol=tcp src-address-list=!not_in_internet
-/ip firewall raw add action=accept chain=prerouting comment="Rate limit DNS queries from LAN (UDP)" dst-port=53 limit=20,10:packet protocol=udp
-/ip firewall raw add action=accept chain=prerouting comment="Rate limit DNS queries from LAN (TCP)" dst-port=53 limit=20,10:packet protocol=tcp
+/ip firewall raw add action=accept chain=prerouting comment="Rate limit DNS queries from LAN (UDP)" disabled=yes dst-port=53 limit=20,10:packet protocol=udp
+/ip firewall raw add action=accept chain=prerouting comment="Rate limit DNS queries from LAN (TCP)" disabled=yes dst-port=53 limit=20,10:packet protocol=tcp
+/ip firewall raw add action=drop chain=prerouting comment="Drop external DNS queries to router (UDP)" disabled=yes dst-port=53 protocol=udp src-address-list=!not_in_internet
+/ip firewall raw add action=drop chain=prerouting comment="Drop external DNS queries to router (TCP)" disabled=yes dst-port=53 protocol=tcp src-address-list=!not_in_internet
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add distance=220 gateway=BKK20-LAG
 /ip route add distance=220 gateway=BKK00-LAG

@@ -1,4 +1,4 @@
-# 2025-06-16 08:03:18 by RouterOS 7.20beta2
+# 2025-06-17 08:01:10 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -140,6 +140,8 @@
 /ip firewall address-list add address=202.28.92.208 comment=0.th.pool.ntp.org list=ntp-clients
 /ip firewall address-list add address=185.217.99.236 comment=0.asia.pool.ntp.org list=ntp-clients
 /ip firewall address-list add address=103.186.118.214 comment=1.asia.pool.ntp.org list=ntp-clients
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BAN disabled=yes dst-address=103.100.140.0/24 port=179 protocol=tcp src-address=103.100.140.0/24
 /ip firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=103.247.139.0/25 port=179 protocol=tcp src-address=103.247.139.0/25
@@ -159,8 +161,8 @@
 /ip firewall raw add action=accept chain=prerouting comment="AF9 Tik monitoring" dst-address=160.22.181.181 dst-port=8728 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment="RFC6890 src  WAN" in-interface-list=WAN log=yes log-prefix=RFC-INVALID-SRC src-address-list=ipv4-bogons
 /ip firewall raw add action=drop chain=prerouting comment="RFC6890 dst  WAN" dst-address-list=ipv4-bogons in-interface-list=WAN
-/ip firewall raw add action=drop chain=prerouting comment="lock UDP 53" dst-port=53 protocol=udp
-/ip firewall raw add action=drop chain=prerouting comment="lock TCP 53" dst-port=53 protocol=tcp
+/ip firewall raw add action=drop chain=prerouting comment="lock UDP 53" disabled=yes dst-port=53 protocol=udp
+/ip firewall raw add action=drop chain=prerouting comment="lock TCP 53" disabled=yes dst-port=53 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment="invalid TCP flags" protocol=tcp tcp-flags=!fin,!syn,!rst,!ack
 /ip firewall raw add action=drop chain=prerouting comment="TCP Xmas" protocol=tcp tcp-flags=fin,syn,rst,psh,ack,urg
 /ip firewall raw add action=drop chain=prerouting comment="TCP null" protocol=tcp tcp-flags=!fin,!syn,!rst,!psh,!ack,!urg

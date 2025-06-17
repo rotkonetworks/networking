@@ -1,4 +1,4 @@
-# 2025-06-16 08:03:12 by RouterOS 7.20beta2
+# 2025-06-17 08:01:02 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -193,6 +193,8 @@
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
+/ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
 /ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
 /ip firewall raw add action=accept chain=prerouting in-interface-list=!WAN protocol=ospf
@@ -203,8 +205,8 @@
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: fin,rst" protocol=tcp tcp-flags=fin,rst
 /ip firewall raw add action=drop chain=prerouting comment="Drop TCP flag combinations: syn,rst" protocol=tcp tcp-flags=syn,rst
 /ip firewall raw add action=drop chain=prerouting comment="iSAV: Drop our IPv4 prefixes from WAN" in-interface-list=WAN src-address-list=our-networks
-/ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
-/ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
+/ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  UDP 53" disabled=yes dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=udp src-address-list=!dns-clients
+/ip firewall raw add action=drop chain=prerouting comment="lock down open resolver  TCP 53" disabled=yes dst-address-list=rotko-unicast-ipv4 dst-port=53 protocol=tcp src-address-list=!dns-clients
 /ip firewall raw add action=accept chain=prerouting comment="Allow RPKI traffic" dst-address=203.159.70.0/23 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="Allow OSPF protocol" in-interface-list=!WAN protocol=ospf
 /ip firewall raw add action=accept chain=prerouting comment="Allow internal router links" src-address=172.16.0.0/16
