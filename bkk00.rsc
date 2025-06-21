@@ -1,4 +1,4 @@
-# 2025-06-20 08:00:49 by RouterOS 7.20beta2
+# 2025-06-21 08:00:02 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -11,7 +11,7 @@
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
 /interface bonding add comment=HGC-UPLINK-AMSIX-LAG mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
-/interface bonding add comment=bkk10-sfp28-1 disabled=yes lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
+/interface bonding add comment=bkk10-sfp28-1 lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=200G-edge-to-bkk20 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=qsfp28-1-1,qsfp28-2-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk50-sfp28-11 lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp28-11 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=STT-UPLINK-BKNIX-LAG mode=802.3ad mtu=1514 name=BKNIX-LAG slaves=sfp28-4 transmit-hash-policy=layer-3-and-4
