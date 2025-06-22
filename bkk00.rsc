@@ -1,32 +1,26 @@
-# 2025-06-21 08:00:02 by RouterOS 7.20beta2
+# 2025-06-22 08:06:55 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
-/interface ethernet set [ find default-name=qsfp28-1-1 ] comment=BKK00-LAG
-/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=BKK00-LAG
+/interface ethernet set [ find default-name=ether1 ] comment=mgmt
+/interface ethernet set [ find default-name=qsfp28-1-1 ] comment=EDGE-BKK20-LAG
+/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=EDGE-BKK20-LAG
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR comment="HGC-HK-MMR-A-XXX ORIGINAL-MAC=F4:1E:57:4B:D7:1D" mac-address=78:9A:18:80:E2:E4
 /interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="BKNIX-core7,8-MMRB ORIGINAL-MAC-F4:1E:57:4B:D7:1F" mac-address=78:9A:18:80:E2:E6
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=BKK10-LAG
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface bonding add comment=HGC-UPLINK-AMSIX-LAG mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
+/interface bonding add comment=WAN mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk10-sfp28-1 lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=200G-edge-to-bkk20 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=qsfp28-1-1,qsfp28-2-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk50-sfp28-11 lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp28-11 transmit-hash-policy=layer-2-and-3
-/interface bonding add comment=STT-UPLINK-BKNIX-LAG mode=802.3ad mtu=1514 name=BKNIX-LAG slaves=sfp28-4 transmit-hash-policy=layer-3-and-4
+/interface bonding add comment=WAN mode=802.3ad mtu=1514 name=BKNIX-LAG slaves=sfp28-4 transmit-hash-policy=layer-3-and-4
 /interface vlan add interface=AMSIX-LAG name=EU-AMS-IX-vlan3995 vlan-id=3995
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-vlan2519 vlan-id=2519
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-backup-vlan2518 vlan-id=2518
-/interface ethernet switch port set 9 limit-unknown-multicasts=yes limit-unknown-unicasts=yes
-/interface ethernet switch port set 11 limit-unknown-multicasts=yes limit-unknown-unicasts=yes
 /interface list add name=LAN
 /interface list add name=WAN
-/interface list add name=WG
-/interface list add name=EDGE
-/interface list add name=IXP
-/interface list add name=IPTX
-/interface list add name=WANEDGE
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
 /ip smb users set [ find default=yes ] disabled=yes
 /port set 0 name=serial0
@@ -58,6 +52,16 @@
 /interface bridge filter add action=drop chain=forward comment="RA-Guard & NDP-Guard for WANLAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward comment="RA-Guard  block external RAs" dst-mac-address=33:33:00:00:00:01/FF:FF:FF:FF:FF:FF in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
+/interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
+/interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
+/interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
+/interface bridge filter add action=accept chain=forward mac-protocol=vlan out-interface-list=WAN
+/interface bridge filter add action=accept chain=forward dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 mac-protocol=ipv6 out-interface-list=WAN
+/interface bridge filter add action=accept chain=forward dst-mac-address=FF:FF:FF:FF:FF:FF/FF:FF:FF:FF:FF:FF out-interface-list=WAN
+/interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
+/interface bridge filter add action=drop chain=forward comment="RA-Guard & NDP-Guard for WANLAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
+/interface bridge filter add action=drop chain=forward comment="RA-Guard  block external RAs" dst-mac-address=33:33:00:00:00:01/FF:FF:FF:FF:FF:FF in-interface-list=WAN mac-protocol=ipv6
+/interface bridge filter add action=drop chain=forward out-interface-list=WAN
 /interface ethernet switch l3hw-settings set autorestart=yes ipv6-hw=yes
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
@@ -78,7 +82,6 @@
 /interface list member add interface=BKK20-LAG list=LAN
 /interface list member add interface=qsfp28-1-1 list=LAN
 /interface list member add interface=qsfp28-2-1 list=LAN
-/interface ovpn-server server add mac-address=FE:7C:66:E3:E3:AC name=ovpn-server1
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.20/32 interface=wg_rotko name=bkk20 public-key="/09ofEbIM1qjlq7xM/R0KfJMQ8R/UR9aHaph70FTp30="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
@@ -399,12 +402,12 @@
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AMSIX-RS2-v4 remote.address=80.249.209.0 .as=6777 templates=AMSIX-v4
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS1-v6 remote.address=2001:7f8:1::a500:6777:1 .as=6777 templates=AMSIX-v6
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS2-v6 remote.address=2001:7f8:1::a500:6777:2 .as=6777 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=10 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AMSIX-MON1-v4 remote.address=80.249.208.1 .as=1200 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=10 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AMSIX-MON2-v4 remote.address=80.249.209.1 .as=1200 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=10 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-MON3-v4 remote.address=193.105.101.1 .as=1200 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON1-v6 remote.address=2001:7f8:1::a500:1200:1 .as=1200 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON2-v6 remote.address=2001:7f8:1::a500:1200:2 .as=1200 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON3-v6 remote.address=2001:7f8:86:1:0:a500:1200:1 .as=1200 templates=AMSIX-v6
+/routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv4=10 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AMSIX-MON1-v4 remote.address=80.249.208.1 .as=1200 templates=AMSIX-v4
+/routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv4=10 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AMSIX-MON2-v4 remote.address=80.249.209.1 .as=1200 templates=AMSIX-v4
+/routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv4=10 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-MON3-v4 remote.address=193.105.101.1 .as=1200 templates=AMSIX-v4
+/routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON1-v6 remote.address=2001:7f8:1::a500:1200:1 .as=1200 templates=AMSIX-v6
+/routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON2-v6 remote.address=2001:7f8:1::a500:1200:2 .as=1200 templates=AMSIX-v6
+/routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-MON3-v6 remote.address=2001:7f8:86:1:0:a500:1200:1 .as=1200 templates=AMSIX-v6
 /routing bgp connection add disabled=no hold-time=1m30s instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AXERA-AMSIX-v4 remote.address=80.249.211.255 .as=34758 templates=AMSIX-v4
 /routing bgp connection add afi=ipv6 disabled=no hold-time=3m input.limit-process-routes-ipv6=500000 instance=bgp-instance-1 keepalive-time=1m local.address=2407:9540:111:8::2 .role=ebgp name=HGC-SG-BACKUP-v6 remote.address=2407:9540:111:8::1 .as=142435 templates=HGC-TH-SG-v6
 /routing bgp connection add afi=ip disabled=no hold-time=3m input.limit-process-routes-ipv4=1500000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=HGC-SG-BACKUP-v4 remote.address=103.168.174.181 .as=142435 templates=HGC-TH-SG-v4
@@ -545,7 +548,7 @@
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-BKK20 disabled=no networks=fd00:dead:beef:30::1/126
 /routing ospf interface-template add area=backbone comment=EDGE-BKK00-BKK20 disabled=no networks=172.16.30.0/30
 /routing ospf interface-template add area=backbone comment=GUA-LO-v4 disabled=no networks=160.22.181.180/32 passive
-/routing ospf interface-template add area=backbone comment=BKK10-v4 disabled=yes networks=172.16.110.0/30
+/routing ospf interface-template add area=backbone comment=BKK10-v4 disabled=no networks=172.16.110.0/31
 /routing ospf interface-template add area=backbone comment=ULA-BKK50-v4 disabled=no networks=172.16.10.0/30
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK20-v6 disabled=no networks=fd00:dead:beef::/127
 /routing ospf interface-template add area=backbone-v6 comment="ULA P2P BKK50" disabled=no networks=fd00:dead:beef:50::1/127

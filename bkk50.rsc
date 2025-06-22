@@ -1,4 +1,4 @@
-# 2025-06-20 16:56:15 by RouterOS 7.20beta2
+# 2025-06-21 17:03:07 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1545,22 +1545,19 @@
 /ipv6 nd add interface=bridge_local ra-lifetime=10m
 /ipv6 nd add interface=SAX-BKK-01 ra-lifetime=10m
 /ipv6 nd add interface=SAX-BKK-01-KVM ra-lifetime=10m
-/routing ospf interface-template add area=backbone-v6 comment="Global IPv6 ROTKO Loopback" disabled=no networks=2401:a860:181::/128 passive
-/routing ospf interface-template add area=backbone comment=loopback disabled=no networks=10.155.255.3/32 passive
-/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::50/128 passive
-/routing ospf interface-template add area=backbone-v6 comment="BKK00-LAG ULA" disabled=no networks=fd00:dead:beef:50::1/127
-/routing ospf interface-template add area=backbone-v6 comment="BKK20-LAG ULA" disabled=no networks=fd00:dead:beef:2050::1/127
-/routing ospf interface-template add area=backbone comment=BK00-P2P disabled=no networks=172.16.10.2/30
-/routing ospf interface-template add area=backbone comment=BK20-P2P disabled=no networks=172.16.20.2/30
-/routing ospf interface-template add area=backbone comment=IBPv4 disabled=no networks=160.22.181.176/28 passive
-/routing ospf interface-template add area=backbone comment=SAXv4 disabled=no networks=160.22.181.169/29 passive
-/routing ospf interface-template add area=backbone-v6 comment=IBPv6 disabled=no networks=2401:a860:181::/48 passive
-/routing ospf interface-template add area=backbone-v6 comment=SAXv6 disabled=no networks=2401:a860:169::/48 passive
-/routing ospf interface-template add area=backbone comment=ROTKO-INFRA disabled=no networks=160.22.181.0/26 passive
-/routing ospf interface-template add area=backbone-v6 comment=ANYCAST disabled=no networks=2401:a860::/48 passive
-/routing ospf interface-template add area=backbone-v6 comment=IBP disabled=no networks=2401:a860:1181::/48 passive
-/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK00" disabled=no networks=2401:a860:1181:50::1/127
-/routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK20" disabled=no networks=2401:a860:1181:2050::1/127
+/routing ospf interface-template add area=backbone comment=loopback-v4 disabled=no networks=10.155.255.3/32 passive
+/routing ospf interface-template add area=backbone-v6 comment=loopback-v6 disabled=no networks=fd00:dead:beef::50/128 passive
+/routing ospf interface-template add area=backbone-v6 comment=p2p-bkk00-v6-ula disabled=no networks=fd00:dead:beef:50::1/127
+/routing ospf interface-template add area=backbone-v6 comment=p2p-bkk20-v6-ula disabled=no networks=fd00:dead:beef:2050::1/127
+/routing ospf interface-template add area=backbone comment=p2p-bkk00-v4 disabled=no networks=172.16.10.2/30
+/routing ospf interface-template add area=backbone comment=p2p-bkk20-v4 disabled=no networks=172.16.20.2/30
+/routing ospf interface-template add area=backbone comment=ibp-v4 disabled=no networks=160.22.181.176/28 passive
+/routing ospf interface-template add area=backbone comment=sax-v4 disabled=no networks=160.22.181.169/29 passive
+/routing ospf interface-template add area=backbone comment=rotko-infra-v4 disabled=no networks=160.22.181.0/26 passive
+/routing ospf interface-template add area=backbone-v6 comment=anycast-v6 disabled=no networks=2401:a860::/48 passive
+/routing ospf interface-template add area=backbone-v6 comment=ibp-unicast-v6 disabled=no networks=2401:a860:1181::/48 passive
+/routing ospf interface-template add area=backbone-v6 comment=p2p-bkk00-v6-gua disabled=no networks=2401:a860:1181:50::1/127
+/routing ospf interface-template add area=backbone-v6 comment=p2p-bkk20-v6-gua disabled=no networks=2401:a860:1181:2050::1/127
 /snmp set enabled=yes trap-version=3
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk50
