@@ -1,9 +1,10 @@
-# 2025-03-19 06:00:47 by RouterOS 7.15.2
+# 2025-06-25 06:16:45 by RouterOS 7.15.2
 # software id = VILU-XVN6
 #
 # model = CRS354-48G-4S+2Q+
 # serial number = HGZ0A43405J
-/interface bridge add admin-mac=F4:1E:57:33:4C:7E auto-mac=no comment=defconf name=bridge
+/interface bridge add admin-mac=F4:1E:57:33:4C:7E auto-mac=no comment=defconf name=bridge protocol-mode=none
+/interface bridge add name=bridge-bkk50 protocol-mode=none
 /port set 0 name=serial0
 /interface bridge port add bridge=bridge comment=defconf interface=ether1
 /interface bridge port add bridge=bridge comment=defconf interface=ether2
@@ -68,15 +69,20 @@
 /interface bridge port add bridge=bridge comment=defconf interface=sfp-sfpplus4
 /ip address add address=192.168.88.1/24 comment=defconf interface=bridge network=192.168.88.0
 /ip address add address=160.22.181.186 interface=lo network=160.22.181.186
-/ip address add address=192.168.69.2/16 interface=ether2 network=192.168.0.0
+/ip address add address=192.168.69.2/16 interface=bridge network=192.168.0.0
+/ip address add address=160.22.181.186 interface=bridge network=160.22.181.186
+/ip dhcp-relay add dhcp-server=192.168.69.1 interface=bridge local-address=192.168.69.2 name=relay-bkk50
 /ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1
 /ip route add dst-address=0.0.0.0/0 gateway=192.168.69.1
 /ip service set telnet disabled=yes
 /ip service set ftp disabled=yes
 /ip service set www disabled=yes
 /ip service set ssh address=172.104.169.64/32,158.140.0.0/16
+/ip service set api disabled=yes
+/ip service set winbox disabled=yes
 /ip service set api-ssl disabled=yes
 /system clock set time-zone-name=America/Chicago
 /system identity set name=bkk60
 /system note set show-at-login=no
 /system routerboard settings set boot-os=router-os enter-setup-on=delete-key
+/tool sniffer set filter-direction=rx filter-interface=ether23
