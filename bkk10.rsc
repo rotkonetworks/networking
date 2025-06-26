@@ -1,4 +1,4 @@
-# 2025-05-03 09:14:49 by RouterOS 7.19beta8
+# 2025-06-26 14:01:48 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -17,6 +17,7 @@
 /interface list add name=LAN
 /interface wireless security-profiles set [ find default=yes ] supplicant-identity=MikroTik
 /port set 0 name=serial0
+/routing bgp template set default as=65530
 /routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never router-id=10.155.255.10
 /routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.10 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
@@ -31,6 +32,8 @@
 /ip address add address=10.155.255.1 interface=lo network=10.155.255.1
 /ip address add address=160.22.181.179 interface=lo network=160.22.181.179
 /ip address add address=160.22.181.181 disabled=yes interface=vrrp network=160.22.181.181
+/ip dns set servers=9.9.9.9,1.0.0.1,8.8.4.4
+/ip firewall nat add action=src-nat chain=srcnat out-interface-list=!LAN src-address=172.16.0.0/16 to-addresses=160.22.181.179
 /ip route add distance=220 gateway=172.16.210.0
 /ip route add distance=220 gateway=172.16.110.0
 /ip route add blackhole distance=240 dst-address=160.22.181.179
@@ -52,7 +55,7 @@
 /ipv6 address add address=2401:a860:1181:2010::1/127 advertise=no interface=BKK20-LAG
 /routing ospf interface-template add area=backbone comment=loopback-v4 disabled=no networks=10.155.255.10/32 passive
 /routing ospf interface-template add area=backbone-v6 comment=loopback-v6 disabled=no networks=fd00:dead:beef::10/128 passive
-/routing ospf interface-template add area=backbone comment=p2p-bkk00-v4 disabled=no networks=172.16.110.2/30
+/routing ospf interface-template add area=backbone comment=p2p-bkk00-v4 disabled=no networks=172.16.110.0/31
 /routing ospf interface-template add area=backbone comment=p2p-bkk20-v4 disabled=no networks=172.16.210.1/31
 /routing ospf interface-template add area=backbone-v6 comment=p2p-bkk00-v6-lua disabled=no networks=2401:a860:1181:10::1/127
 /routing ospf interface-template add area=backbone-v6 comment=p2p-bkk00-v6-gua disabled=no networks=fd00:dead:beef:10::1/127
@@ -65,5 +68,7 @@
 /routing ospf interface-template add area=backbone-v6 comment=ibp-unicast-v6 disabled=no networks=2401:a860:1181::/48 passive
 /routing ospf interface-template add area=backbone comment=rotko-unicast-v4 disabled=no networks=160.22.181.0/24 passive
 /routing ospf interface-template add area=backbone comment=rotko-anycast-v4 disabled=no networks=160.22.180.0/24 passive
+/system clock set time-zone-name=Asia/Bangkok
 /system identity set name=bkk10
+/system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
