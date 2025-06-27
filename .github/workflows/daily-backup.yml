@@ -1,9 +1,12 @@
-name: Daily Mikrotik Config Export
+name: Daily Networking Config Export
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs daily at 12 AM UTC
+    - cron: "0 8 * * *"
   workflow_dispatch:
+
+env:
+  HOST: pj.rotko.net
 
 jobs:
   export-all:
@@ -13,37 +16,48 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up SSH
+      - name: Set up SSH keys
         env:
           BKK00_KEY: ${{ secrets.BKK00_SSH_KEY }}
           BKK10_KEY: ${{ secrets.BKK10_SSH_KEY }}
           BKK20_KEY: ${{ secrets.BKK20_SSH_KEY }}
+          BKK30_KEY: ${{ secrets.BKK30_SSH_KEY }}
+          BKK40_KEY: ${{ secrets.BKK40_SSH_KEY }}
           BKK50_KEY: ${{ secrets.BKK50_SSH_KEY }}
           BKK60_KEY: ${{ secrets.BKK60_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
+          
+          for i in 00 10 20 30 40 50 60; do
+            key_var="BKK${i}_KEY"
+            echo "${!key_var}" > ~/.ssh/bkk${i}
+            chmod 600 ~/.ssh/bkk${i}
+          done
 
-          echo "$BKK00_KEY" > ~/.ssh/bkk00
-          echo "$BKK10_KEY" > ~/.ssh/bkk10
-          echo "$BKK20_KEY" > ~/.ssh/bkk20
-          echo "$BKK50_KEY" > ~/.ssh/bkk50
-          echo "$BKK60_KEY" > ~/.ssh/bkk60
-
-          chmod 600 ~/.ssh/bkk*
-
-      - name: Export configs
+      - name: Export router configs
         run: |
-          ssh -i ~/.ssh/bkk00 -o StrictHostKeyChecking=no bkk00@status.rotko.net > bkk00.rsc
-          ssh -i ~/.ssh/bkk10 -o StrictHostKeyChecking=no bkk10@status.rotko.net > bkk10.rsc
-          ssh -i ~/.ssh/bkk20 -o StrictHostKeyChecking=no bkk20@status.rotko.net > bkk20.rsc
-          ssh -i ~/.ssh/bkk50 -o StrictHostKeyChecking=no bkk50@status.rotko.net > bkk50.rsc
-          ssh -i ~/.ssh/bkk60 -o StrictHostKeyChecking=no bkk60@status.rotko.net > bkk60.rsc
+          for i in 00 10 20 30 40 50 60; do
+            ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no bkk${i}@$HOST > bkk${i}.rsc || echo "Failed: bkk${i}"
+          done
+
+      - name: Export interface configs
+        env:
+          INTERFACE_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
+        run: |
+          echo "$INTERFACE_KEY" > ~/.ssh/interface_key
+          chmod 600 ~/.ssh/interface_key
+          
+          mkdir -p interfaces
+          
+          for node in bkk01 bkk02 bkk03 bkk04 bkk06 bkk07 bkk08 bkk09 bkk11 bkk12 bkk13 atm; do
+            ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@${node}.$HOST cat /etc/network/interfaces > interfaces/${node} || echo "Failed: ${node}"
+          done
 
       - name: Commit and push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add *.rsc
-          git commit -m "Daily config export"
-          git push || echo "Nothing to commit"
+          git add *.rsc interfaces/
+          git commit -m "Daily config export" || exit 0
+          git push
