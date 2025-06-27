@@ -1,4 +1,4 @@
-name: Daily Networking Config Export
+name: Network Config Export
 on:
   schedule:
     - cron: "0 7 * * *"
@@ -6,11 +6,10 @@ on:
 env:
   HOST: pj.rotko.net
 jobs:
-  export-all:
+  export:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Set up SSH keys
         env:
           BKK00_KEY: ${{ secrets.BKK00_SSH_KEY }}
@@ -41,6 +40,9 @@ jobs:
           echo "$INTERFACE_KEY" > ~/.ssh/interface_key
           chmod 600 ~/.ssh/interface_key
           
+          scp -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@172.104.169.64:~/.ssh/config ~/.ssh/config
+          chmod 600 ~/.ssh/config
+          
           mkdir -p interfaces
           
           for node in bkk01 bkk02 bkk03 bkk04 bkk06 bkk07 bkk08 bkk09 bkk11 bkk13; do
@@ -48,8 +50,8 @@ jobs:
           done
       - name: Commit and push
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add *.rsc interfaces/
-          git commit -m "Daily config export $(date -u +%Y-%m-%d)" || exit 0
+          git diff --cached --quiet || git commit -m "Config export $(date -u +%Y-%m-%d)"
           git push
