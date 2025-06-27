@@ -1,4 +1,4 @@
-# 2025-06-25 22:58:00 by RouterOS 7.20beta2
+# 2025-06-26 16:58:15 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1512,7 +1512,7 @@
 /ip ssh set always-allow-password-login=yes
 /ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
 /ipv6 address add address=2401:a860:169::50 comment=SAXv6 interface=SAX-BKK-01
-/ipv6 address add address=2401:a860:1181::/128 advertise=no comment="bkk50 ipv6 public address" interface=lo
+/ipv6 address add address=2401:a860:1181::/128 advertise=no comment="bkk50 ipv6 public address" disabled=yes interface=lo
 /ipv6 address add address=2401:a860:1181::50 comment=ROTKO-GW interface=bridge_local
 /ipv6 address add address=fd00:dead:beef:50::1/127 advertise=no comment="ULA P2P to BKK00" interface=BKK00-LAG
 /ipv6 address add address=fd00:dead:beef:2050::1/127 advertise=no comment="ULA P2P to BKK20" interface=BKK20-LAG

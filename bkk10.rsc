@@ -1,4 +1,4 @@
-# 2025-06-26 14:01:48 by RouterOS 7.20beta4
+# 2025-06-27 01:02:06 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -68,7 +68,6 @@
 /routing ospf interface-template add area=backbone-v6 comment=ibp-unicast-v6 disabled=no networks=2401:a860:1181::/48 passive
 /routing ospf interface-template add area=backbone comment=rotko-unicast-v4 disabled=no networks=160.22.181.0/24 passive
 /routing ospf interface-template add area=backbone comment=rotko-anycast-v4 disabled=no networks=160.22.180.0/24 passive
-/system clock set time-zone-name=Asia/Bangkok
 /system identity set name=bkk10
 /system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key

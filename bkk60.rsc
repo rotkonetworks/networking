@@ -1,4 +1,4 @@
-# 2025-06-26 02:02:09 by RouterOS 7.20beta4
+# 2025-06-26 20:02:25 by RouterOS 7.20beta4
 # software id = VILU-XVN6
 #
 # model = CRS354-48G-4S+2Q+
@@ -109,6 +109,7 @@
 /ip hotspot profile set [ find default=yes ] html-directory=hotspot
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add dst-address=0.0.0.0/0 gateway=192.168.69.1
+/ipv6 route add check-gateway=ping distance=1 dst-address=::/0 gateway=fe80::4aa9:8aff:fec0:8252%bridge
 /ip service set ftp disabled=yes
 /ip service set ssh address=172.104.169.64/32,158.140.0.0/16
 /ip service set telnet disabled=yes
@@ -116,6 +117,8 @@
 /ip service set winbox disabled=yes
 /ip service set api disabled=yes
 /ip service set api-ssl disabled=yes
+/ipv6 address add address=2401:a860:1181::60 disabled=yes interface=lo
+/ipv6 address add address=2401:a860:1181::60 interface=bridge
 /system clock set time-zone-name=America/Chicago
 /system identity set name=bkk60
 /system package update set channel=development
