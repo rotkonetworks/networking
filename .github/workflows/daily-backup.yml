@@ -1,16 +1,18 @@
 name: Network Config Export
+
 on:
   schedule:
     - cron: "0 7 * * *"
   workflow_dispatch:
-env:
-  HOST: pj.rotko.net
+
 jobs:
   export:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v3
-      - name: Set up SSH keys
+      
+      - name: Export router configs
         env:
           BKK00_KEY: ${{ secrets.BKK00_SSH_KEY }}
           BKK10_KEY: ${{ secrets.BKK10_SSH_KEY }}
@@ -23,16 +25,18 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           
+          # Write SSH keys
           for i in 00 10 20 30 40 50 60; do
             key_var="BKK${i}_KEY"
             echo "${!key_var}" > ~/.ssh/bkk${i}
             chmod 600 ~/.ssh/bkk${i}
           done
-      - name: Export router configs
-        run: |
+          
+          # Export configs
           for i in 00 10 20 30 40 50 60; do
-            ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no bkk${i}@$HOST "/export" > bkk${i}.rsc || echo "Failed: bkk${i}"
+            ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no bkk${i}@pj.rotko.net '/export' > bkk${i}.rsc || echo "Failed: bkk${i}"
           done
+      
       - name: Export interface configs
         env:
           INTERFACE_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
@@ -40,14 +44,17 @@ jobs:
           echo "$INTERFACE_KEY" > ~/.ssh/interface_key
           chmod 600 ~/.ssh/interface_key
           
-          scp -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@172.104.169.64:~/.ssh/config ~/.ssh/config
+          # Fetch SSH config from pj server
+          ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@pj.rotko.net 'cat ~/.ssh/config' > ~/.ssh/config
           chmod 600 ~/.ssh/config
           
           mkdir -p interfaces
           
+          # Now we can use the SSH config entries directly
           for node in bkk01 bkk02 bkk03 bkk04 bkk06 bkk07 bkk08 bkk09 bkk11 bkk13; do
-            ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@${node} "cat /etc/network/interfaces" > interfaces/${node}.conf || echo "Failed: ${node}"
+            ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@${node} 'cat /etc/network/interfaces' > interfaces/${node}.conf || echo "Failed: ${node}"
           done
+      
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
