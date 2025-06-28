@@ -32,7 +32,6 @@ jobs:
             chmod 600 ~/.ssh/bkk${i}
           done
           
-          # Export configs
           for i in 00 10 20 30 40 50 60; do
             ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no bkk${i}@pj.rotko.net '/export' > bkk${i}.rsc || echo "Failed: bkk${i}"
           done
@@ -44,17 +43,12 @@ jobs:
           echo "$INTERFACE_KEY" > ~/.ssh/interface_key
           chmod 600 ~/.ssh/interface_key
           
-          # Fetch SSH config from pj server
-          ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@pj.rotko.net 'cat ~/.ssh/config' > ~/.ssh/config
-          chmod 600 ~/.ssh/config
-          
           mkdir -p interfaces
           
-          # Now we can use the SSH config entries directly
           for node in bkk01 bkk02 bkk03 bkk04 bkk06 bkk07 bkk08 bkk09 bkk11 bkk13; do
-            ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no root@${node} 'cat /etc/network/interfaces' > interfaces/${node}.conf || echo "Failed: ${node}"
+            ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -J root@pj.rotko.net root@${node} 'cat /etc/network/interfaces' > interfaces/${node}.conf || echo "Failed: ${node}"
           done
-      
+
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
