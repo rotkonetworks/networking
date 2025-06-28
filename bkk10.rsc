@@ -1,4 +1,4 @@
-# 2025-06-27 19:16:17 by RouterOS 7.20beta4
+# 2025-06-28 11:34:55 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
