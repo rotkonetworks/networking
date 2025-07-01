@@ -1,4 +1,4 @@
-# 2025-06-30 03:09:58 by RouterOS 7.20beta4
+# 2025-07-01 02:13:00 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -10,6 +10,7 @@
 /interface ethernet set [ find default-name=ether8 ] disabled=yes
 /interface ethernet set [ find default-name=ether11 ] disabled=yes
 /interface vrrp add disabled=yes interface=vrrp name=ibp priority=200 vrid=10
+/interface vlan add interface=bridge_local name=vlan400-bgp vlan-id=400
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus3 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK60-LAG slaves=sfp-sfpplus2,sfp-sfpplus4 transmit-hash-policy=layer-2-and-3
