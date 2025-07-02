@@ -1,4 +1,4 @@
-# 2025-06-26 18:26:46 by RouterOS 7.20beta4
+# 2025-06-27 18:25:34 by RouterOS 7.20beta4
 # software id = S02Y-Y1T7
 #
 # model = CRS504-4XQ
@@ -26,7 +26,7 @@
 /interface bridge vlan add bridge=ceph comment=public tagged=qsfp28-1-1,qsfp28-1-2,qsfp28-1-3,qsfp28-1-4,qsfp28-2-1,qsfp28-3-1,qsfp28-4-1 vlan-ids=100
 /interface bridge vlan add bridge=ceph comment=private tagged=qsfp28-1-1,qsfp28-1-2,qsfp28-1-3,qsfp28-1-4,qsfp28-2-1,qsfp28-3-1,qsfp28-4-1 vlan-ids=200
 /interface bridge vlan add bridge=ceph comment=untagged untagged=qsfp28-1-1,qsfp28-1-2,qsfp28-1-3,qsfp28-1-4,qsfp28-3-1,qsfp28-4-1,qsfp28-2-1 vlan-ids=1
-/interface bridge vlan add bridge=bridge tagged=bridge,qsfp28-1-1,qsfp28-4-1,qsfp28-2-1 vlan-ids=400
+/interface bridge vlan add bridge=bridge tagged=bridge,qsfp28-1-1,qsfp28-2-1,qsfp28-3-1,qsfp28-4-1 vlan-ids=400
 /interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
 /interface ovpn-server server add mac-address=FE:F4:B8:5E:41:C0 name=ovpn-server1
 /ip address add address=192.168.88.40/24 interface=ether1 network=192.168.88.0

@@ -1,4 +1,4 @@
-# 2025-07-01 07:13:16 by RouterOS 7.20beta4
+# 2025-07-02 07:12:04 by RouterOS 7.20beta4
 # software id = VMHP-N1T8
 #
 # model = CRS504-4XQ

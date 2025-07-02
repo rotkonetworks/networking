@@ -1,8 +1,11 @@
-# 2025-07-01 14:13:00 by RouterOS 7.20beta2
+# 2025-07-02 14:12:03 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HGQ09NWHXX7
+/interface bridge
+# MTU > L2MTU
+add mtu=9000 name=bridge_vlan vlan-filtering=yes
 /interface ethernet set [ find default-name=qsfp28-1-1 ] comment=bkk00-1
 /interface ethernet set [ find default-name=qsfp28-2-1 ] comment=bkk00-2
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR arp-timeout=4h comment=HGC/core3,4/MMR-3A
@@ -10,6 +13,7 @@
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
+/interface vlan add interface=bridge_vlan name=vlan400-bgp vlan-id=400
 /interface bonding add arp-timeout=4h comment=WAN-LAG-sfp2 lacp-rate=1sec mode=802.3ad name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk10-sfp5-gw lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
@@ -19,7 +23,6 @@
 /interface vlan add interface=AMSIX-LAG name=HK-AMS-IX-vlan3994 vlan-id=3994
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-backup-vlan2517 vlan-id=2517
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
-/interface vlan add interface=BKK40-LAG name=vlan400-bgp vlan-id=400
 /interface list add name=LAN
 /interface list add name=WAN
 /port set 0 name=serial0
@@ -53,10 +56,13 @@
 /interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
 /interface bridge port add bridge=*64 interface=ether1
+/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK10-LAG
+/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK40-LAG
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK40-LAG,BKK10-LAG vlan-ids=400
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
@@ -182,7 +188,26 @@
 /ip firewall raw add action=drop chain=prerouting comment="everything else dies" disabled=yes log=yes log-prefix=DEFAULT-DROP
 /ip firewall raw add action=drop chain=prerouting comment="drop rest of junk" disabled=yes
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
-#error exporting "/ip/route" (timeout)
+/ip route add blackhole distance=240 dst-address=160.22.180.0/23
+/ip route add distance=220 gateway=172.16.30.1 pref-src=160.22.181.178
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=0.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=172.16.0.0/12
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.168.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=10.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=169.254.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=127.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=224.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.18.0.0/15
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.0.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.2.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.51.100.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=203.0.113.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=100.64.0.0/10
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
+/ip route add comment="Force src-IP for BKNIX RPKI v4" dst-address=203.159.70.26/32 gateway=172.16.30.1 pref-src=160.22.181.178
+/ip route add distance=220 dst-address=160.22.181.0/24
+/ip route add distance=220 dst-address=160.22.180.0/24
 /ipv6 route add blackhole comment=IPV6RANGE distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10

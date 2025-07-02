@@ -1,8 +1,11 @@
-# 2025-07-01 14:12:48 by RouterOS 7.20beta2
+# 2025-07-02 14:11:48 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
+/interface bridge
+# MTU > L2MTU
+add mtu=9000 name=bridge_vlan vlan-filtering=yes
 /interface ethernet set [ find default-name=ether1 ] comment=mgmt
 /interface ethernet set [ find default-name=qsfp28-1-1 ] comment=EDGE-BKK20-LAG
 /interface ethernet set [ find default-name=qsfp28-2-1 ] comment=EDGE-BKK20-LAG
@@ -11,6 +14,8 @@
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=BKK10-LAG
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
+/interface vlan add interface=bridge_vlan name=vlan300 vlan-id=300
+/interface vlan add interface=bridge_vlan name=vlan400-bgp vlan-id=400
 /interface bonding add comment=WAN mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk10-sfp28-5 lacp-rate=1sec mode=active-backup name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=100G-EDGE-TO-BKK20 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
@@ -20,7 +25,6 @@
 /interface vlan add interface=AMSIX-LAG name=EU-AMS-IX-vlan3995 vlan-id=3995
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-vlan2519 vlan-id=2519
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-backup-vlan2518 vlan-id=2518
-/interface vlan add interface=BKK30-LAG name=vlan400-bgp vlan-id=400
 /interface list add name=LAN
 /interface list add name=WAN
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
@@ -66,11 +70,15 @@
 /interface bridge filter add action=drop chain=forward comment="RA-Guard & NDP-Guard for WANLAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward comment="RA-Guard  block external RAs" dst-mac-address=33:33:00:00:00:01/FF:FF:FF:FF:FF:FF in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
+/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK10-LAG
+/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK30-LAG
 /interface ethernet switch l3hw-settings set autorestart=yes ipv6-hw=yes
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=8192 soft-max-neighbor-entries=8191
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK30-LAG,BKK10-LAG vlan-ids=400
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG vlan-ids=300
 /interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=BKK10-LAG list=LAN
@@ -100,13 +108,14 @@
 /ip address add address=10.25.1.126/24 interface=EU-AMS-IX-vlan3995 network=10.25.1.0
 /ip address add address=80.249.212.139/21 interface=EU-AMS-IX-vlan3995 network=80.249.208.0
 /ip address add address=103.168.174.182/30 interface=SG-HGC-IPTx-backup-vlan2518 network=103.168.174.180
-/ip address add address=172.16.110.0/31 interface=BKK10-LAG network=172.16.110.0
+/ip address add address=172.16.110.0/31 disabled=yes interface=BKK10-LAG network=172.16.110.0
 /ip address add address=172.16.10.1/30 interface=BKK50-LAG network=172.16.10.0
 /ip address add address=172.31.0.100/16 interface=wg_rotko network=172.31.0.0
 /ip address add address=172.16.50.0/31 interface=BKK50-LAG network=172.16.50.0
 /ip address add address=10.155.254.100/24 comment="BGP RR VLAN" interface=vlan400-bgp network=10.155.254.0
 /ip address add address=10.155.254.100 interface=lo network=10.155.254.100
 /ip address add address=10.155.254.1/24 interface=vlan400-bgp network=10.155.254.0
+/ip address add address=172.16.110.0/31 interface=vlan300 network=172.16.110.0
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=8.8.8.8,9.9.9.9,1.1.1.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
 /ip dns static add address=159.148.147.251 disabled=yes name=upgrade.mikrotik.com type=A
@@ -202,7 +211,7 @@
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
-/ip firewall raw add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=BKK10-LAG
+/ip firewall raw add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=bridge_vlan
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
@@ -293,10 +302,10 @@
 /ipv6 address add address=2401:a860:1181::/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/127 advertise=no interface=BKK20-LAG
-/ipv6 address add address=fd00:dead:beef:10::/127 advertise=no comment="ULA P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=fd00:dead:beef:10::/127 advertise=no comment="ULA P2P to BKK10" interface=vlan300
 /ipv6 address add address=fd00:dead:beef:50::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=2401:a860:1181:2050::1/127 advertise=no comment="Global P2P to BKK20" interface=BKK20-LAG
-/ipv6 address add address=2401:a860:1181:10::/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=2401:a860:1181:10::/127 advertise=no comment="Global P2P to BKK10" interface=vlan300
 /ipv6 address add address=2401:a860:1181:50::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=fd00:155:254::100 advertise=no comment="BGP RR VLAN IPv6" interface=vlan400-bgp
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
@@ -351,7 +360,9 @@
 /ipv6 firewall address-list add address=2001:7f8:1:0:a500:14:2108:1/128 comment="AMS-IX EU - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2402:b740:15:388:a500:14:2108:1/128 comment="AMS-IX BKK - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="AMS-IX HK - exchange only" list=exchange-only-loopbacks
-/ipv6 firewall raw add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=BKK10-LAG
+/ipv6 firewall raw
+# in/out-interface matcher not possible when interface (BKK10-LAG) is slave - use master instead (bridge_vlan)
+add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=BKK10-LAG
 /ipv6 firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64

@@ -1,16 +1,16 @@
-# 2025-07-01 02:13:00 by RouterOS 7.20beta4
+# 2025-07-02 02:12:04 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
 # serial number = HF609CW8B20
+/interface bridge add name=bridge-vlan vlan-filtering=yes
 /interface bridge add name=bridge_local vlan-filtering=yes
 /interface bridge add name=vrrp
-/interface ethernet set [ find default-name=ether6 ] disabled=yes
-/interface ethernet set [ find default-name=ether7 ] disabled=yes
-/interface ethernet set [ find default-name=ether8 ] disabled=yes
+/interface ethernet set [ find default-name=ether8 ] comment=BKK08-ENO1
 /interface ethernet set [ find default-name=ether11 ] disabled=yes
 /interface vrrp add disabled=yes interface=vrrp name=ibp priority=200 vrid=10
-/interface vlan add interface=bridge_local name=vlan400-bgp vlan-id=400
+/interface vlan add interface=bridge-vlan name=vlan300 vlan-id=300
+/interface vlan add interface=bridge-vlan name=vlan400-bgp vlan-id=400
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus3 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK60-LAG slaves=sfp-sfpplus2,sfp-sfpplus4 transmit-hash-policy=layer-2-and-3
@@ -23,16 +23,26 @@
 /routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.10 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
+/interface bridge port add bridge=bridge-vlan frame-types=admit-only-vlan-tagged interface=ether6
+/interface bridge port add bridge=bridge-vlan frame-types=admit-only-vlan-tagged interface=ether7
+/interface bridge port add bridge=bridge-vlan frame-types=admit-only-vlan-tagged interface=BKK00-LAG
+/interface bridge port add bridge=bridge-vlan frame-types=admit-only-vlan-tagged interface=BKK20-LAG
+/interface bridge port add bridge=bridge-vlan frame-types=admit-only-vlan-tagged interface=BKK60-LAG
+/interface bridge port add bridge=bridge-vlan frame-types=admit-only-vlan-tagged interface=ether8
 /ipv6 settings set accept-router-advertisements=no
+/interface bridge vlan add bridge=bridge-vlan tagged=BKK00-LAG,BKK20-LAG,BKK60-LAG,ether6,ether7,ether8,bridge-vlan vlan-ids=400
+/interface bridge vlan add bridge=bridge-vlan tagged=BKK20-LAG,BKK00-LAG vlan-ids=300
 /interface list member add interface=bridge_local list=LAN
 /interface list member add interface=BKK00-LAG list=WAN
 /interface list member add interface=BKK20-LAG list=WAN
 /ip address add address=192.168.88.10/24 comment=defconf disabled=yes interface=ether13 network=192.168.88.0
-/ip address add address=172.16.210.1/31 interface=BKK20-LAG network=172.16.210.0
-/ip address add address=172.16.110.1/31 interface=BKK00-LAG network=172.16.110.0
+/ip address add address=172.16.210.1/31 disabled=yes interface=BKK20-LAG network=172.16.210.0
+/ip address add address=172.16.110.1/31 disabled=yes interface=BKK00-LAG network=172.16.110.0
 /ip address add address=10.155.255.1 interface=lo network=10.155.255.1
 /ip address add address=160.22.181.179 interface=lo network=160.22.181.179
 /ip address add address=160.22.181.181 disabled=yes interface=vrrp network=160.22.181.181
+/ip address add address=10.155.254.10/24 comment="BGP RR VLAN" interface=vlan400-bgp network=10.155.254.0
+/ip address add address=172.16.110.1/31 interface=vlan300 network=172.16.110.0
 /ip dns set servers=9.9.9.9,1.0.0.1,8.8.4.4
 /ip firewall nat add action=src-nat chain=srcnat out-interface-list=!LAN src-address=172.16.0.0/16 to-addresses=160.22.181.179
 /ip route add distance=220 gateway=172.16.210.0
@@ -49,11 +59,12 @@
 /ip service set winbox address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 /ip service set api address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 disabled=yes
 /ip service set api-ssl address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 disabled=yes
-/ipv6 address add address=fd00:dead:beef:10::1/127 advertise=no interface=BKK00-LAG
+/ipv6 address add address=fd00:dead:beef:10::1/127 advertise=no interface=vlan300
 /ipv6 address add address=fd00:dead:beef::10/128 advertise=no interface=lo
-/ipv6 address add address=2401:a860:1181:10::1/127 advertise=no interface=BKK00-LAG
-/ipv6 address add address=fd00:dead:beef:2010::1/127 advertise=no interface=BKK20-LAG
-/ipv6 address add address=2401:a860:1181:2010::1/127 advertise=no interface=BKK20-LAG
+/ipv6 address add address=2401:a860:1181:10::1/127 advertise=no interface=vlan300
+/ipv6 address add address=fd00:dead:beef:2010::1/127 advertise=no disabled=yes interface=BKK20-LAG
+/ipv6 address add address=2401:a860:1181:2010::1/127 advertise=no disabled=yes interface=BKK20-LAG
+/ipv6 address add address=fd00:155:254::10 interface=vlan400-bgp
 /routing ospf interface-template add area=backbone comment=loopback-v4 disabled=no networks=10.155.255.10/32 passive
 /routing ospf interface-template add area=backbone-v6 comment=loopback-v6 disabled=no networks=fd00:dead:beef::10/128 passive
 /routing ospf interface-template add area=backbone comment=p2p-bkk00-v4 disabled=no networks=172.16.110.0/31
