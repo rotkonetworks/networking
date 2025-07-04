@@ -1,11 +1,9 @@
-# 2025-07-03 14:12:15 by RouterOS 7.20beta2
+# 2025-07-04 14:12:11 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
-/interface bridge
-# MTU > L2MTU
-add mtu=9000 name=bridge_vlan vlan-filtering=yes
+/interface bridge add name=bridge_vlan vlan-filtering=yes
 /interface ethernet set [ find default-name=ether1 ] comment=mgmt
 /interface ethernet set [ find default-name=qsfp28-1-1 ] comment=EDGE-BKK20-LAG
 /interface ethernet set [ find default-name=qsfp28-2-1 ] comment=EDGE-BKK20-LAG
@@ -78,7 +76,7 @@ add mtu=9000 name=bridge_vlan vlan-filtering=yes
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=8192 soft-max-neighbor-entries=8191
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK30-LAG,BKK10-LAG vlan-ids=400
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG vlan-ids=300
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG untagged=bridge_vlan vlan-ids=300
 /interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=BKK10-LAG list=LAN
@@ -114,7 +112,7 @@ add mtu=9000 name=bridge_vlan vlan-filtering=yes
 /ip address add address=172.16.50.0/31 interface=BKK50-LAG network=172.16.50.0
 /ip address add address=10.155.254.100/24 comment="BGP RR VLAN" interface=vlan400-bgp network=10.155.254.0
 /ip address add address=10.155.254.100 interface=lo network=10.155.254.100
-/ip address add address=10.155.254.1/24 interface=vlan400-bgp network=10.155.254.0
+/ip address add address=10.155.254.1/24 disabled=yes interface=vlan400-bgp network=10.155.254.0
 /ip address add address=172.16.110.0/31 interface=vlan300 network=172.16.110.0
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=8.8.8.8,9.9.9.9,1.1.1.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
