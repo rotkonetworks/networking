@@ -1,4 +1,4 @@
-# 2025-07-03 06:27:15 by RouterOS 7.20beta4
+# 2025-07-04 06:25:59 by RouterOS 7.20beta4
 # software id = S02Y-Y1T7
 #
 # model = CRS504-4XQ
@@ -14,11 +14,9 @@
 /interface vlan add disabled=yes interface=ceph name=ceph_private vlan-id=200
 /interface vlan add disabled=yes interface=ceph name=ceph_public vlan-id=100
 /interface vlan add disabled=yes interface=ceph name=ceph_untagged vlan-id=1
-/interface vlan add interface=bridge name=inner-108-qnq vlan-id=108
-/interface vlan add interface=bridge name=inner-208-qnq vlan-id=208
-/interface vlan add interface=inner-108-qnq name=qnq-108-400 vlan-id=400
-/interface vlan add interface=inner-208-qnq name=qnq-208-400 vlan-id=400
-/interface vlan add disabled=yes interface=bridge name=vlan400-bgp vlan-id=400
+/interface vlan add interface=bridge name=vlan400-bgp vlan-id=400
+/interface vlan add interface=vlan400-bgp name=qnq-108-400 vlan-id=108
+/interface vlan add interface=vlan400-bgp name=qnq-208-400 vlan-id=208
 /port set 0 name=serial0
 /routing bgp template set default as=65530
 /interface bridge port add bridge=bridge interface=qsfp28-1-1

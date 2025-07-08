@@ -1,4 +1,4 @@
-# 2025-07-07 02:13:39 by RouterOS 7.20beta4
+# 2025-07-08 02:12:21 by RouterOS 7.20beta4
 # software id = VMHP-N1T8
 #
 # model = CRS504-4XQ
@@ -13,11 +13,9 @@
 /interface vlan add disabled=yes interface=ceph name=ceph_private vlan-id=200
 /interface vlan add disabled=yes interface=ceph name=ceph_public vlan-id=100
 /interface vlan add disabled=yes interface=ceph name=ceph_untagged vlan-id=1
-/interface vlan add interface=bridge name=inner-108-qnq vlan-id=108
-/interface vlan add interface=bridge name=inner-208-qnq vlan-id=208
-/interface vlan add interface=inner-108-qnq name=qnq-108-400 vlan-id=400
-/interface vlan add interface=inner-208-qnq name=qnq-208-400 vlan-id=400
-/interface vlan add disabled=yes interface=bridge name=vlan400-bgp vlan-id=400
+/interface vlan add interface=bridge name=vlan400-bgp vlan-id=400
+/interface vlan add interface=vlan400-bgp name=qnq-108-400 vlan-id=108
+/interface vlan add interface=vlan400-bgp name=qnq-208-400 vlan-id=208
 /port set 0 name=serial0
 /routing bgp template set default as=65530
 /interface bridge port add bridge=bridge ingress-filtering=no interface=qsfp28-1-1
@@ -29,8 +27,8 @@
 /interface bridge vlan add bridge=ceph comment=private tagged=qsfp28-1-1,qsfp28-2-1,qsfp28-3-1,qsfp28-4-1,ceph vlan-ids=200
 /interface bridge vlan add bridge=ceph comment=untagged untagged=ceph,qsfp28-1-1,qsfp28-2-1,qsfp28-3-1,qsfp28-4-1 vlan-ids=1
 /interface bridge vlan add bridge=bridge tagged=qsfp28-2-1,qsfp28-3-1,qsfp28-4-1,qsfp28-1-1 vlan-ids=400
-/interface bridge vlan add bridge=bridge tagged=qsfp28-1-1,qsfp28-3-1,qsfp28-4-1 vlan-ids=108
-/interface bridge vlan add bridge=bridge tagged=qsfp28-2-1,qsfp28-3-1,qsfp28-4-1 vlan-ids=208
+/interface bridge vlan add bridge=bridge tagged=qsfp28-1-1,qsfp28-3-1,qsfp28-4-1,qsfp28-2-1 vlan-ids=108
+/interface bridge vlan add bridge=bridge tagged=qsfp28-2-1,qsfp28-3-1,qsfp28-4-1,qsfp28-1-1 vlan-ids=208
 /interface ovpn-server server add mac-address=FE:52:AD:0F:B5:98 name=ovpn-server1
 /ip address add address=192.168.88.30/24 comment=defconf interface=ether1 network=192.168.88.0
 /ip address add address=10.255.30.1 interface=lo network=10.255.40.1
@@ -41,7 +39,7 @@
 /ip address add address=10.155.254.30/24 disabled=yes interface=vlan400-bgp network=10.155.254.0
 /ip address add address=10.155.108.30/24 interface=qnq-108-400 network=10.155.108.0
 /ip address add address=10.155.208.30/24 interface=qnq-208-400 network=10.155.208.0
-/ip dns set servers=2620:fe::fe
+/ip dns set servers=2620:fe::fe,9.9.9.9,1.1.1.1
 /ip route add dst-address=0.0.0.0/0 gateway=192.168.88.1
 /ipv6 route add dst-address=::/0 gateway=fe80::f61e:57ff:fe33:4c7e%ether1
 /ip service set ftp disabled=yes
