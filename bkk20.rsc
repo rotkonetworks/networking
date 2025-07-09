@@ -1,4 +1,4 @@
-# 2025-07-08 14:12:25 by RouterOS 7.20beta2
+# 2025-07-09 14:11:43 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -21,6 +21,9 @@
 /interface vlan add interface=AMSIX-LAG name=HK-AMS-IX-vlan3994 vlan-id=3994
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-backup-vlan2517 vlan-id=2517
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
+/interface vlan add interface=vlan400-bgp name=qnq-206-400 vlan-id=206
+/interface vlan add interface=vlan400-bgp name=qnq-207-400 vlan-id=207
+/interface vlan add interface=vlan400-bgp name=qnq-208-400 vlan-id=208
 /interface list add name=LAN
 /interface list add name=WAN
 /port set 0 name=serial0
@@ -95,6 +98,9 @@
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
 /ip address add address=172.16.210.0/31 comment=from_bkk10 interface=BKK10-LAG network=172.16.210.0
 /ip address add address=10.155.254.200/24 interface=vlan400-bgp network=10.155.254.0
+/ip address add address=10.155.208.0/31 interface=qnq-208-400 network=10.155.208.0
+/ip address add address=10.155.206.0/31 interface=qnq-206-400 network=10.155.206.0
+/ip address add address=10.155.207.0/31 interface=qnq-207-400 network=10.155.207.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
@@ -232,6 +238,9 @@
 /ipv6 address add address=fd00:dead:beef:2050::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=2401:a860:1181:1020::1/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
 /ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
+/ipv6 address add address=fd00:155:206::/127 advertise=no interface=qnq-206-400
+/ipv6 address add address=fd00:155:207::/127 advertise=no interface=qnq-207-400
+/ipv6 address add address=fd00:155:208::/127 advertise=no interface=qnq-208-400
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons

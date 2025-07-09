@@ -1,4 +1,4 @@
-# 2025-07-08 02:12:58 by RouterOS 7.20beta4
+# 2025-07-09 02:12:14 by RouterOS 7.20beta4
 # software id = VILU-XVN6
 #
 # model = CRS354-48G-4S+2Q+
@@ -32,6 +32,7 @@
 /interface ethernet set [ find default-name=ether26 ] comment=bkk13
 /interface ethernet set [ find default-name=ether39 ] comment=bkk30
 /interface ethernet set [ find default-name=ether40 ] comment=bkk40
+/interface vlan add interface=bridge name=vlan400-bgp vlan-id=400
 /interface bonding add mode=802.3ad name=BKK10-SFP24-LAG slaves=qsfpplus2-1,qsfpplus2-2
 /interface bonding add mode=802.3ad name=BKK40-QSFP3-LAG slaves=qsfpplus1-1,qsfpplus1-2,qsfpplus1-3,qsfpplus1-4
 /port set 0 name=serial0
@@ -99,6 +100,7 @@
 /interface bridge port add bridge=bridge comment=defconf interface=sfp-sfpplus4
 /interface bridge port add bridge=bridge interface=BKK10-SFP24-LAG
 /interface bridge port add bridge=bridge interface=BKK40-QSFP3-LAG
+/interface bridge vlan add bridge=bridge tagged=BKK10-SFP24-LAG vlan-ids=400
 /interface ovpn-server server add mac-address=FE:71:39:D1:05:64 name=ovpn-server1
 /ip address add address=192.168.88.1/24 comment=defconf interface=bridge network=192.168.88.0
 /ip address add address=160.22.181.186 interface=lo network=160.22.181.186
