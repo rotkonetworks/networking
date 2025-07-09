@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       server:
-        description: 'Target server'
+        description: "Target server"
         required: true
         type: choice
         options:
@@ -11,7 +11,7 @@ on:
           - bkk07
           - bkk08
       install_bird:
-        description: 'Install BIRD3'
+        description: "Install BIRD3"
         required: false
         type: boolean
         default: false
@@ -21,16 +21,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup SSH
         env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          
+
       - name: Deploy BIRD
         run: |
           # nc: port mapping for ssh access
@@ -38,33 +38,33 @@ jobs:
           ports[bkk06]=22786
           ports[bkk07]=22787
           ports[bkk08]=22788
-          
+
           SERVER="${{ github.event.inputs.server }}"
           PORT=${ports[$SERVER]}
-          
+
           # nc: install bird if requested
           if [[ "${{ github.event.inputs.install_bird }}" == "true" ]]; then
             echo "Installing BIRD3 on $SERVER"
             scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
-              scripts/install-bird3.sh root@160.22.181.181:/tmp/
+              ./deploy/bird/install-bird3.sh root@160.22.181.181:/tmp/
             ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
               root@160.22.181.181 'bash /tmp/install-bird3.sh && rm /tmp/install-bird3.sh'
           fi
-          
+
           # nc: generate and deploy config
           echo "Generating BIRD config for $SERVER"
-          ./scripts/gen-bird-config.sh $SERVER > /tmp/bird.conf
-          
+          ./deploy/bird/gencfg.sh $SERVER > /tmp/bird.conf
+
           # nc: backup existing config
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
             root@160.22.181.181 'cp /etc/bird/bird.conf /etc/bird/bird.conf.bak' || true
-          
+
           # nc: deploy new config
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
             /tmp/bird.conf root@160.22.181.181:/etc/bird/bird.conf
-          
+
           # nc: validate and reload
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
             root@160.22.181.181 'birdc configure check && birdc configure'
-          
+
           rm -f /tmp/bird.conf
