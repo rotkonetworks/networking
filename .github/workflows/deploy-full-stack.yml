@@ -1,0 +1,135 @@
+name: Deploy Full Network Stack
+on:
+  workflow_dispatch:
+    inputs:
+      server:
+        description: 'Target server'
+        required: true
+        type: choice
+        options:
+          - bkk06
+          - bkk07
+          - bkk08
+      components:
+        description: 'Components to deploy'
+        required: true
+        type: choice
+        options:
+          - bird
+          - nftables
+          - both
+      install_bird:
+        description: 'Install BIRD3 first'
+        required: false
+        type: boolean
+        default: false
+      validate_only:
+        description: 'Validate configs only'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          
+      - name: Deploy components
+        run: |
+          set -euo pipefail
+          
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+          
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
+          COMPONENTS="${{ github.event.inputs.components }}"
+          VALIDATE_ONLY="${{ github.event.inputs.validate_only }}"
+          
+          # nc: helper function for ssh commands
+          remote_exec() {
+            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+              root@160.22.181.181 "$@"
+          }
+          
+          # nc: helper for scp
+          remote_copy() {
+            scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT "$@"
+          }
+          
+          # nc: install bird if requested
+          if [[ "${{ github.event.inputs.install_bird }}" == "true" ]] && \
+             [[ "$COMPONENTS" == "bird" || "$COMPONENTS" == "both" ]]; then
+            echo "Installing BIRD3"
+            remote_copy scripts/install-bird3.sh root@160.22.181.181:/tmp/
+            remote_exec 'bash /tmp/install-bird3.sh && rm /tmp/install-bird3.sh'
+          fi
+          
+          # nc: deploy bird config
+          if [[ "$COMPONENTS" == "bird" || "$COMPONENTS" == "both" ]]; then
+            echo "Processing BIRD config"
+            ./scripts/gen-bird-config.sh $SERVER > /tmp/bird.conf
+            
+            remote_copy /tmp/bird.conf root@160.22.181.181:/tmp/
+            
+            if remote_exec 'birdc configure check /tmp/bird.conf'; then
+              echo "BIRD config validation passed"
+              
+              if [[ "$VALIDATE_ONLY" == "false" ]]; then
+                remote_exec 'cp /etc/bird/bird.conf /etc/bird/bird.conf.bak || true'
+                remote_exec 'cp /tmp/bird.conf /etc/bird/bird.conf'
+                remote_exec 'birdc configure'
+                echo "BIRD config deployed"
+              fi
+            else
+              echo "error: BIRD validation failed" >&2
+              exit 1
+            fi
+            
+            rm -f /tmp/bird.conf
+          fi
+          
+          # nc: deploy nftables config
+          if [[ "$COMPONENTS" == "nftables" || "$COMPONENTS" == "both" ]]; then
+            echo "Processing nftables config"
+            ./scripts/gen-nftables-config.sh $SERVER > /tmp/nftables.conf
+            
+            remote_copy /tmp/nftables.conf root@160.22.181.181:/tmp/
+            
+            if remote_exec 'nft -c -f /tmp/nftables.conf'; then
+              echo "nftables config validation passed"
+              
+              if [[ "$VALIDATE_ONLY" == "false" ]]; then
+                remote_exec 'nft list ruleset > /etc/nftables.conf.bak'
+                remote_exec 'nft -f /tmp/nftables.conf'
+                remote_exec 'cp /tmp/nftables.conf /etc/nftables.conf'
+                echo "nftables config deployed"
+              fi
+            else
+              echo "error: nftables validation failed" >&2
+              exit 1
+            fi
+            
+            rm -f /tmp/nftables.conf
+          fi
+          
+          # nc: cleanup remote temp files
+          remote_exec 'rm -f /tmp/bird.conf /tmp/nftables.conf'
+          
+          if [[ "$VALIDATE_ONLY" == "true" ]]; then
+            echo "Validation completed successfully"
+          else
+            echo "Deployment completed on $SERVER"
+          fi

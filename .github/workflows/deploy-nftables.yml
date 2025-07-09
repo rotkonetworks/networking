@@ -1,0 +1,77 @@
+name: Deploy nftables Config
+on:
+  workflow_dispatch:
+    inputs:
+      server:
+        description: 'Target server'
+        required: true
+        type: choice
+        options:
+          - bkk06
+          - bkk07
+          - bkk08
+      dry_run:
+        description: 'Dry run (validate only)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          
+      - name: Deploy nftables
+        run: |
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+          
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
+          
+          # nc: generate config
+          echo "Generating nftables config for $SERVER"
+          ./scripts/gen-nftables-config.sh $SERVER > /tmp/nftables.conf
+          
+          # nc: deploy to temp location for validation
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
+            /tmp/nftables.conf root@160.22.181.181:/tmp/
+          
+          # nc: validate config
+          echo "Validating nftables config"
+          if ! ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'nft -c -f /tmp/nftables.conf'; then
+            echo "error: nftables validation failed" >&2
+            exit 1
+          fi
+          
+          if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
+            # nc: backup existing rules
+            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+              root@160.22.181.181 'nft list ruleset > /etc/nftables.conf.bak'
+            
+            # nc: apply new rules
+            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+              root@160.22.181.181 'nft -f /tmp/nftables.conf && cp /tmp/nftables.conf /etc/nftables.conf'
+            
+            echo "nftables config applied on $SERVER"
+          else
+            echo "Dry run completed successfully"
+          fi
+          
+          # nc: cleanup
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'rm -f /tmp/nftables.conf'
+          rm -f /tmp/nftables.conf
