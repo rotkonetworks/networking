@@ -1,9 +1,7 @@
 #!/bin/bash
 set -euo pipefail
-
 # cz.nic labs bird3 installation script
 # minimal, secure, follows dmicay style
-
 readonly GPG_URL="https://pkg.labs.nic.cz/gpg"
 readonly GPG_PATH="/usr/share/keyrings/cznic-labs-pkg.gpg"
 readonly GPG_FINGERPRINT="9C71D59CD4CE8BD2966A7A3EAB6A303124019B64"
@@ -13,7 +11,6 @@ if [ ! -f /etc/os-release ]; then
     echo "error: /etc/os-release not found" >&2
     exit 1
 fi
-
 . /etc/os-release
 
 case "$ID" in
@@ -56,15 +53,25 @@ apt-get -y install apt-transport-https ca-certificates wget
 # fetch and verify gpg key
 wget -qO "$GPG_PATH.tmp" "$GPG_URL"
 
-# verify fingerprint  
-# nc: proper gpg verification without keyring pollution
-if ! gpg --batch --dry-run --import "$GPG_PATH.tmp" 2>&1 | grep -q "$GPG_FINGERPRINT"; then
+# import to temporary keyring and get the actual fingerprint
+ACTUAL_FP=$(gpg --with-colons --import-options show-only --import --dry-run "$GPG_PATH.tmp" 2>/dev/null | \
+    awk -F: '$1=="fpr" {print $10; exit}')
+
+# compare fingerprints (remove any spaces for comparison)
+EXPECTED_FP="${GPG_FINGERPRINT// /}"
+ACTUAL_FP="${ACTUAL_FP// /}"
+
+if [ "$ACTUAL_FP" != "$EXPECTED_FP" ]; then
     echo "error: gpg key fingerprint mismatch" >&2
+    echo "  expected: $EXPECTED_FP" >&2
+    echo "  actual:   $ACTUAL_FP" >&2
     rm -f "$GPG_PATH.tmp"
     exit 1
 fi
 
-mv "$GPG_PATH.tmp" "$GPG_PATH"
+# convert to binary format for apt
+gpg --dearmor < "$GPG_PATH.tmp" > "$GPG_PATH"
+rm -f "$GPG_PATH.tmp"
 
 # add repository
 cat > /etc/apt/sources.list.d/cznic-labs-bird3.list <<EOF
@@ -73,6 +80,6 @@ EOF
 
 # install bird3
 apt-get update
-apt-get install bird3
+apt-get install -y bird3
 
 echo "bird3 installation complete"
