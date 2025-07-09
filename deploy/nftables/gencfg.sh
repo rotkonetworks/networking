@@ -68,6 +68,7 @@ VARS
 # generate filter table
 generate_filter_table() {
     cat << 'FILTER'
+
 # Main filter table - IPv6 and IPv4 combined
 table inet filter {
 FILTER
@@ -234,6 +235,7 @@ generate_nat_table() {
     local public_iface=$(jq -r '.interfaces.public' "$CONFIG_FILE")
     
     cat << NAT
+
 # NAT table - IPv4 only (IPv6 doesn't need NAT)
 table ip nat {
     chain prerouting {
@@ -271,9 +273,8 @@ generate_service_mappings() {
     # ssh containers
     echo "        "
     echo "        # SSH to specific containers"
-    jq -r '.services.ssh_containers | to_entries | .[]' "$CONFIG_FILE" | while read -r entry; do
-        port=$(echo "$entry" | jq -r '.key')
-        target=$(echo "$entry" | jq -r '.value')
+    jq -r '.services.ssh_containers | keys[]' "$CONFIG_FILE" | while read -r port; do
+        target=$(jq -r ".services.ssh_containers.\"$port\"" "$CONFIG_FILE")
         echo "        tcp dport $port dnat to $target"
     done
 }

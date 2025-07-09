@@ -256,16 +256,16 @@ generate_bgp_sessions() {
     echo "#"
     
     # generate sessions for each RR
-    jq -r '.route_reflectors | to_entries | .[]' "$CONFIG_FILE" | while read -r rr_entry; do
-        rr_key=$(echo "$rr_entry" | jq -r '.key | ascii_upcase')
-        rr_name=$(echo "$rr_entry" | jq -r '.value.name')
+    jq -r '.route_reflectors | keys[]' "$CONFIG_FILE" | while read -r rr_key; do
+        rr_name=$(jq -r ".route_reflectors.$rr_key.name" "$CONFIG_FILE")
+        rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
         
         # IPv6 session
         cat << BGP_V6
 
-protocol bgp ${rr_key}_v6 from BGP_COMMON {
+protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
     description "Route Reflector - ${rr_name} IPv6";
-    neighbor ${rr_key}_IP6 as LOCAL_AS;
+    neighbor ${rr_key_upper}_IP6 as LOCAL_AS;
     source address LOCAL_IP6;
 
     ipv6 {
@@ -297,9 +297,9 @@ BGP_V6
         # IPv4 session
         cat << BGP_V4
 
-protocol bgp ${rr_key}_v4 from BGP_COMMON {
+protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
     description "Route Reflector - ${rr_name} IPv4";
-    neighbor ${rr_key}_IP4 as LOCAL_AS;
+    neighbor ${rr_key_upper}_IP4 as LOCAL_AS;
     source address LOCAL_IP4;
 
     ipv4 {
