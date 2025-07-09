@@ -1,0 +1,71 @@
+{
+  "as_number": 142108,
+  "sites": {
+    "bkk06": {
+      "router_id": "10.155.255.6",
+      "bgp_local_v4": "10.155.106.0",
+      "bgp_local_v6": "fd00:155:106::0",
+      "public_v4": "160.22.181.6",
+      "public_v6": "2401:a860:181::6",
+      "internal_v6": "2401:a860:6::/48",
+      "internal_v4": "10.6.0.0/16",
+      "management": "192.168.69.216/16"
+    },
+    "bkk07": {
+      "router_id": "10.155.255.7",
+      "bgp_local_v4": "10.155.107.0",
+      "bgp_local_v6": "fd00:155:107::0",
+      "public_v4": "160.22.181.7",
+      "public_v6": "2401:a860:181::7",
+      "internal_v6": "2401:a860:7::/48",
+      "internal_v4": "10.7.0.0/16",
+      "management": "192.168.69.217/16"
+    },
+    "bkk08": {
+      "router_id": "10.155.255.8",
+      "bgp_local_v4": "10.155.108.0",
+      "bgp_local_v6": "fd00:155:108::0",
+      "public_v4": "160.22.181.8",
+      "public_v6": "2401:a860:181::8",
+      "internal_v6": "2401:a860:8::/48",
+      "internal_v4": "10.8.0.0/16",
+      "management": "192.168.69.218/16"
+    }
+  },
+  "route_reflectors": {
+    "rr1": {
+      "name": "BKK00",
+      "v4": "10.155.108.1",
+      "v6": "fd00:155:108::1"
+    },
+    "rr2": {
+      "name": "BKK10",
+      "v4": "10.155.208.1",
+      "v6": "fd00:155:208::1"
+    }
+  },
+  "networks": {
+    "management": "192.168.0.0/16",
+    "private_v4": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16"],
+    "private_v6": ["fd00::/8", "fe80::/10", "2401:a860::/32"]
+  },
+  "services": {
+    "web": {
+      "ports": [80, 443, 8080],
+      "target": "10.8.10.80"
+    },
+    "ssh_containers": {
+      "2201": "10.8.10.1:22",
+      "2202": "10.8.10.2:22",
+      "2203": "10.8.10.3:22"
+    }
+  },
+  "interfaces": {
+    "management": "vmbr0",
+    "internal": "vmbr1",
+    "public": "vmbr2",
+    "bgp_vlan": "vlan208",
+    "storage_public": "vpublic",
+    "storage_private": "vprivate"
+  }
+}

@@ -1,38 +1,76 @@
 #!/usr/bin/env bash
-# bird config generator with strict error handling
+# bird config generator using central config
 set -euo pipefail
 
-# site-specific configuration
-declare -A SITES=(
-    [bkk06]="10.155.255.6|10.155.106.0|fd00:155:106::0|160.22.181.6|2401:a860:181::6|2401:a860:6::/48|10.6.0.0/16"
-    [bkk07]="10.155.255.7|10.155.107.0|fd00:155:107::0|160.22.181.7|2401:a860:181::7|2401:a860:7::/48|10.7.0.0/16"
-    [bkk08]="10.155.255.8|10.155.108.0|fd00:155:108::0|160.22.181.8|2401:a860:181::8|2401:a860:8::/48|10.8.0.0/16"
-)
-
-# validate site argument
-readonly SITE="${1:-}"
-if [[ -z "$SITE" ]] || [[ -z "${SITES[$SITE]:-}" ]]; then
-    echo "usage: $0 <site>" >&2
-    echo "valid sites: ${!SITES[*]}" >&2
+# load config
+CONFIG_FILE="${CONFIG_FILE:-../config.json}"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "error: config file not found: $CONFIG_FILE" >&2
     exit 1
 fi
 
-# parse site configuration
-IFS='|' read -r ROUTER_ID LOCAL_IP4 LOCAL_IP6 PUBLIC_IP4 PUBLIC_IP6 INTERNAL_NET6 INTERNAL_NET4 <<< "${SITES[$SITE]}"
+# validate site argument
+readonly SITE="${1:-}"
+if [[ -z "$SITE" ]]; then
+    echo "usage: $0 <site>" >&2
+    echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
+    exit 1
+fi
 
-# generate config with heredoc
-cat << EOF
+# validate site exists
+if ! jq -e ".sites.$SITE" "$CONFIG_FILE" >/dev/null 2>&1; then
+    echo "error: invalid site: $SITE" >&2
+    exit 1
+fi
+
+# extract site config
+SITE_CONFIG=$(jq -r ".sites.$SITE" "$CONFIG_FILE")
+ROUTER_ID=$(echo "$SITE_CONFIG" | jq -r '.router_id')
+LOCAL_IP4=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_v4')
+LOCAL_IP6=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_v6')
+PUBLIC_IP4=$(echo "$SITE_CONFIG" | jq -r '.public_v4')
+PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
+INTERNAL_NET6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
+INTERNAL_NET4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
+
+# extract global config
+AS_NUMBER=$(jq -r '.as_number' "$CONFIG_FILE")
+
+# generate bird configuration
+generate_bird_config() {
+    cat << BIRD
 # BIRD 2.x configuration for ${SITE^^}
 # Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-# SHA256: $(echo -n "${SITES[$SITE]}" | sha256sum | cut -d' ' -f1)
+# Config hash: $(echo -n "$SITE_CONFIG" | sha256sum | cut -d' ' -f1)
 
+$(generate_constants)
+
+$(generate_logging)
+
+$(generate_templates)
+
+$(generate_kernel_protocols)
+
+$(generate_basic_protocols)
+
+$(generate_static_routes)
+
+$(generate_bfd)
+
+$(generate_bgp_sessions)
+BIRD
+}
+
+# generate constants section
+generate_constants() {
+    cat << CONSTANTS
 #
 # Router Identity and Constants
 #
 router id ${ROUTER_ID};
 
 # AS Numbers
-define LOCAL_AS = 142108;
+define LOCAL_AS = ${AS_NUMBER};
 
 # Public IPs
 define PUBLIC_IP4 = ${PUBLIC_IP4};
@@ -44,15 +82,21 @@ define PUBLIC_NET6 = ${PUBLIC_IP6}/128;
 define INTERNAL_NET4 = ${INTERNAL_NET4};
 define INTERNAL_NET6 = ${INTERNAL_NET6};
 
-# Route Reflector IPs (point-to-point addresses)
-define RR1_IP4 = 10.155.108.1;      # RR1 IPv4 /31
-define RR1_IP6 = fd00:155:108::1;   # RR1 IPv6 /127
-define RR2_IP4 = 10.155.208.1;      # RR2 IPv4 /31
-define RR2_IP6 = fd00:155:208::1;   # RR2 IPv6 /127
+# Route Reflector IPs
+CONSTANTS
+
+    # add RR IPs from config
+    jq -r '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP4 = \(.value.v4);"' "$CONFIG_FILE"
+    jq -r '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP6 = \(.value.v6);"' "$CONFIG_FILE"
+    
+    cat << 'CONSTANTS_END'
 
 # Local IPs for BGP sessions
-define LOCAL_IP4 = ${LOCAL_IP4};
-define LOCAL_IP6 = ${LOCAL_IP6};
+CONSTANTS_END
+    echo "define LOCAL_IP4 = ${LOCAL_IP4};"
+    echo "define LOCAL_IP6 = ${LOCAL_IP6};"
+    
+    cat << 'PREFERENCES'
 
 # BGP Preferences
 define PREF_IPV6 = 200;
@@ -67,7 +111,12 @@ define BFD_MIN_RX = 100 ms;
 define BFD_MIN_TX = 100 ms;
 define BFD_MULTIPLIER = 3;
 define SCAN_TIME = 10;
+PREFERENCES
+}
 
+# generate logging configuration
+generate_logging() {
+    cat << 'LOGGING'
 #
 # Logging Configuration
 #
@@ -78,27 +127,38 @@ timeformat base iso long;
 timeformat log iso long;
 timeformat protocol iso long;
 timeformat route iso long;
+LOGGING
+}
 
+# generate bgp templates
+generate_templates() {
+    local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+    cat << TEMPLATES
 #
 # BGP Templates
 #
 template bgp BGP_COMMON {
     local as LOCAL_AS;
-    # Direct connection over vlan208
+    # Direct connection over ${bgp_iface}
     direct;
-    
+
     # Faster convergence
     hold time BGP_HOLD_TIME;
     keepalive time BGP_KEEPALIVE;
-    
+
     # BFD for fast failure detection
     bfd on;
-    
+
     # Graceful restart
     graceful restart on;
     graceful restart time 120;
 }
+TEMPLATES
+}
 
+# generate kernel protocols
+generate_kernel_protocols() {
+    cat << 'KERNEL'
 #
 # Kernel Protocols
 #
@@ -130,7 +190,13 @@ protocol kernel kernel6 {
     scan time SCAN_TIME;
     merge paths on;
 }
+KERNEL
+}
 
+# generate basic protocols
+generate_basic_protocols() {
+    local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+    cat << BASIC
 #
 # Basic Protocols
 #
@@ -141,9 +207,14 @@ protocol device {
 protocol direct {
     ipv4;
     ipv6;
-    interface "vmbr*", "lo", "vlan208";
+    interface "vmbr*", "lo", "${bgp_iface}";
+}
+BASIC
 }
 
+# generate static routes
+generate_static_routes() {
+    cat << 'STATIC'
 #
 # Static Routes
 #
@@ -158,38 +229,57 @@ protocol static static6 {
     route PUBLIC_NET6 unreachable;
     route INTERNAL_NET6 unreachable;
 }
+STATIC
+}
 
+# generate bfd protocol
+generate_bfd() {
+    local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+    cat << BFD
 #
 # BFD Protocol
 #
 protocol bfd {
-    interface "vlan208" {
+    interface "${bgp_iface}" {
         min rx interval BFD_MIN_RX;
         min tx interval BFD_MIN_TX;
         multiplier BFD_MULTIPLIER;
     };
 }
+BFD
+}
 
-#
-# BGP Sessions to Route Reflectors
-#
-protocol bgp RR1_v6 from BGP_COMMON {
-    description "Route Reflector 1 - BKK00 IPv6";
-    neighbor RR1_IP6 as LOCAL_AS;
-    source address LOCAL_IP6;
+# generate bgp sessions
+generate_bgp_sessions() {
+    echo "#"
+    echo "# BGP Sessions to Route Reflectors"
+    echo "#"
     
+    # generate sessions for each RR
+    jq -r '.route_reflectors | to_entries | .[]' "$CONFIG_FILE" | while read -r rr_entry; do
+        rr_key=$(echo "$rr_entry" | jq -r '.key | ascii_upcase')
+        rr_name=$(echo "$rr_entry" | jq -r '.value.name')
+        
+        # IPv6 session
+        cat << BGP_V6
+
+protocol bgp ${rr_key}_v6 from BGP_COMMON {
+    description "Route Reflector - ${rr_name} IPv6";
+    neighbor ${rr_key}_IP6 as LOCAL_AS;
+    source address LOCAL_IP6;
+
     ipv6 {
         next hop self;
         import filter {
             # Prefer IPv6 routes
             preference = PREF_IPV6;
-            
+
             # Accept default route
             if net = ::/0 then {
                 bgp_local_pref = LOCAL_PREF_PRIMARY;
                 accept;
             }
-            
+
             # Accept all other routes
             accept;
         };
@@ -202,18 +292,22 @@ protocol bgp RR1_v6 from BGP_COMMON {
         };
     };
 }
+BGP_V6
 
-protocol bgp RR1_v4 from BGP_COMMON {
-    description "Route Reflector 1 - BKK00 IPv4";
-    neighbor RR1_IP4 as LOCAL_AS;
+        # IPv4 session
+        cat << BGP_V4
+
+protocol bgp ${rr_key}_v4 from BGP_COMMON {
+    description "Route Reflector - ${rr_name} IPv4";
+    neighbor ${rr_key}_IP4 as LOCAL_AS;
     source address LOCAL_IP4;
-    
+
     ipv4 {
         next hop self;
         import filter {
             # Lower preference for IPv4
             preference = PREF_IPV4;
-            
+
             # Accept default
             if net = 0.0.0.0/0 then {
                 bgp_local_pref = LOCAL_PREF_BACKUP;
@@ -228,28 +322,9 @@ protocol bgp RR1_v4 from BGP_COMMON {
         };
     };
 }
-
-protocol bgp RR2_v6 from BGP_COMMON {
-    description "Route Reflector 2 - BKK10 IPv6";
-    neighbor RR2_IP6 as LOCAL_AS;
-    source address LOCAL_IP6;
-    
-    ipv6 {
-        next hop self;
-        import filter {
-            preference = PREF_IPV6;
-            if net = ::/0 then {
-                bgp_local_pref = LOCAL_PREF_BACKUP;
-                accept;
-            }
-            accept;
-        };
-        export filter {
-            if net = PUBLIC_NET6 then accept;
-            if net ~ INTERNAL_NET6 then accept;
-            reject;
-        };
-    };
+BGP_V4
+    done
 }
-EOF
 
+# main execution
+generate_bird_config
