@@ -26,12 +26,14 @@ jobs:
             echo "${!key_var}" > ~/.ssh/bkk${i}
             chmod 600 ~/.ssh/bkk${i}
           done
+          # jg: ensure backup/mikrotik directory exists
+          mkdir -p backup/mikrotik
           for i in 00 10 20 30 40 50 60; do
             temp_file=$(mktemp)
             if ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/export' > "$temp_file" 2>/dev/null; then
               # jg: only update if non-empty and different
-              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "bkk${i}.rsc"; then
-                mv "$temp_file" "bkk${i}.rsc"
+              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/mikrotik/bkk${i}.rsc"; then
+                mv "$temp_file" "backup/mikrotik/bkk${i}.rsc"
               else
                 rm -f "$temp_file"
               fi
@@ -46,7 +48,7 @@ jobs:
         run: |
           echo "$INTERFACE_KEY" > ~/.ssh/interface_key
           chmod 600 ~/.ssh/interface_key
-          mkdir -p interfaces
+          mkdir -p backup/interfaces
           # Map nodes to ports
           declare -A ports
           ports[bkk01]=22781
@@ -62,8 +64,8 @@ jobs:
           for node in "${!ports[@]}"; do
             temp_file=$(mktemp)
             if ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p ${ports[$node]} root@160.22.181.181 'cat /etc/network/interfaces' > "$temp_file" 2>/dev/null; then
-              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "interfaces/${node}.conf"; then
-                mv "$temp_file" "interfaces/${node}.conf"
+              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/interfaces/${node}.conf"; then
+                mv "$temp_file" "backup/interfaces/${node}.conf"
               else
                 rm -f "$temp_file"
               fi
@@ -76,21 +78,21 @@ jobs:
         env:
           INTERFACE_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
         run: |
-          mkdir -p bgp firewall
+          mkdir -p backup/bird backup/nftables
           # jg: redeclare ports array in this step
           declare -A ports
           ports[bkk06]=22786
           ports[bkk07]=22787
           ports[bkk08]=22788
-          
+
           for node in bkk06 bkk07 bkk08; do
             port=${ports[$node]}
-            
+
             # bird config
             temp_file=$(mktemp)
             if ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $port root@160.22.181.181 'cat /etc/bird/bird.conf' > "$temp_file" 2>/dev/null; then
-              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "bgp/${node}.conf"; then
-                mv "$temp_file" "bgp/${node}.conf"
+              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/bird/${node}.conf"; then
+                mv "$temp_file" "backup/bird/${node}.conf"
               else
                 rm -f "$temp_file"
               fi
@@ -98,12 +100,12 @@ jobs:
               echo "Failed bird config: ${node}"
               rm -f "$temp_file"
             fi
-            
+
             # nftables config
             temp_file=$(mktemp)
             if ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $port root@160.22.181.181 'nft list ruleset' > "$temp_file" 2>/dev/null; then
-              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "firewall/${node}.nft"; then
-                mv "$temp_file" "firewall/${node}.nft"
+              if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/nftables/${node}.nft"; then
+                mv "$temp_file" "backup/nftables/${node}.nft"
               else
                 rm -f "$temp_file"
               fi
@@ -116,6 +118,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add *.rsc interfaces/ bgp/ firewall/
+          git add backup/
           git diff --cached --quiet || git commit -m "Config export $(date -u +%Y-%m-%d)"
           git push
