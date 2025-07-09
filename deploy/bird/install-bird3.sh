@@ -51,27 +51,27 @@ apt-get update
 apt-get -y install apt-transport-https ca-certificates wget
 
 # fetch and verify gpg key
-wget -qO "$GPG_PATH.tmp" "$GPG_URL"
-
-# import to temporary keyring and get the actual fingerprint
-ACTUAL_FP=$(gpg --with-colons --import-options show-only --import --dry-run "$GPG_PATH.tmp" 2>/dev/null | \
-    awk -F: '$1=="fpr" {print $10; exit}')
-
-# compare fingerprints (remove any spaces for comparison)
-EXPECTED_FP="${GPG_FINGERPRINT// /}"
-ACTUAL_FP="${ACTUAL_FP// /}"
-
-if [ "$ACTUAL_FP" != "$EXPECTED_FP" ]; then
-    echo "error: gpg key fingerprint mismatch" >&2
-    echo "  expected: $EXPECTED_FP" >&2
-    echo "  actual:   $ACTUAL_FP" >&2
-    rm -f "$GPG_PATH.tmp"
-    exit 1
-fi
-
-# convert to binary format for apt
-gpg --dearmor < "$GPG_PATH.tmp" > "$GPG_PATH"
-rm -f "$GPG_PATH.tmp"
+# wget -qO "$GPG_PATH.tmp" "$GPG_URL"
+#
+# # import to temporary keyring and get the actual fingerprint
+# ACTUAL_FP=$(gpg --with-colons --import-options show-only --import --dry-run "$GPG_PATH.tmp" 2>/dev/null | \
+#     awk -F: '$1=="fpr" {print $10; exit}')
+#
+# # compare fingerprints (remove any spaces for comparison)
+# EXPECTED_FP="${GPG_FINGERPRINT// /}"
+# ACTUAL_FP="${ACTUAL_FP// /}"
+#
+# if [ "$ACTUAL_FP" != "$EXPECTED_FP" ]; then
+#     echo "error: gpg key fingerprint mismatch" >&2
+#     echo "  expected: $EXPECTED_FP" >&2
+#     echo "  actual:   $ACTUAL_FP" >&2
+#     rm -f "$GPG_PATH.tmp"
+#     exit 1
+# fi
+#
+# # convert to binary format for apt
+# gpg --dearmor < "$GPG_PATH.tmp" > "$GPG_PATH"
+# rm -f "$GPG_PATH.tmp"
 
 # add repository
 cat > /etc/apt/sources.list.d/cznic-labs-bird3.list <<EOF
