@@ -53,7 +53,7 @@ jobs:
 
           # nc: generate and deploy config
           echo "Generating BIRD config for $SERVER"
-          ./deploy/bird/gencfg.sh $SERVER > /tmp/bird.conf
+          ./deploy/bird/gencfg.sh -c ./deploy/config.json $SERVER > /tmp/bird.conf
 
           # nc: backup existing config
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
@@ -62,6 +62,23 @@ jobs:
           # nc: deploy new config
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
             /tmp/bird.conf root@160.22.181.181:/etc/bird/bird.conf
+
+          # nc: ensure log file exists with proper permissions
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT root@160.22.181.181 << EOF
+              # Create log file if it doesn't exist
+              if [ ! -f /var/log/bird.log ]; then
+                touch /var/log/bird.log
+              fi
+              
+              # Set proper ownership - try bird user first, fallback to root
+              if id "bird" &>/dev/null; then
+                chown bird:bird /var/log/bird.log
+              else
+                # If bird user doesn't exist, make it world-writable
+                chmod 666 /var/log/bird.log
+              fi
+          EOF
+            
 
           # nc: validate and reload
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \

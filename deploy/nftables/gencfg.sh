@@ -4,6 +4,15 @@ set -euo pipefail
 
 # load config
 CONFIG_FILE="${CONFIG_FILE:-../config.json}"
+while getopts ':c:' opt; do
+  case "$opt" in
+    c) CONFIG_FILE="$OPTARG" ;;
+    *) echo "Usage: $0 [-c <config-file>] <site>" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "error: config file not found: $CONFIG_FILE" >&2
     exit 1

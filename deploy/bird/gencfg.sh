@@ -4,6 +4,14 @@ set -euo pipefail
 
 # load config
 CONFIG_FILE="${CONFIG_FILE:-../config.json}"
+while getopts ':c:' opt; do
+  case "$opt" in
+    c) CONFIG_FILE="$OPTARG" ;;
+    *) echo "Usage: $0 [-c <config-file>] <site>" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "error: config file not found: $CONFIG_FILE" >&2
     exit 1
@@ -107,8 +115,8 @@ define LOCAL_PREF_BACKUP = 90;
 # Timers
 define BGP_HOLD_TIME = 30;
 define BGP_KEEPALIVE = 10;
-define BFD_MIN_RX = 100 ms;
-define BFD_MIN_TX = 100 ms;
+define BFD_MIN_RX = 100;
+define BFD_MIN_TX = 100;
 define BFD_MULTIPLIER = 3;
 define SCAN_TIME = 10;
 PREFERENCES
@@ -241,8 +249,8 @@ generate_bfd() {
 #
 protocol bfd {
     interface "${bgp_iface}" {
-        min rx interval BFD_MIN_RX;
-        min tx interval BFD_MIN_TX;
+        min rx interval BFD_MIN_RX ms;
+        min tx interval BFD_MIN_TX ms;
         multiplier BFD_MULTIPLIER;
     };
 }
