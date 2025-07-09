@@ -2,6 +2,7 @@
 set -euo pipefail
 # cz.nic labs bird3 installation script
 # minimal, secure, follows dmicay style
+
 readonly GPG_URL="https://pkg.labs.nic.cz/gpg"
 readonly GPG_PATH="/usr/share/keyrings/cznic-labs-pkg.gpg"
 readonly GPG_FINGERPRINT="9C71D59CD4CE8BD2966A7A3EAB6A303124019B64"
@@ -11,6 +12,7 @@ if [ ! -f /etc/os-release ]; then
     echo "error: /etc/os-release not found" >&2
     exit 1
 fi
+
 . /etc/os-release
 
 case "$ID" in
@@ -48,19 +50,22 @@ fi
 
 # install deps
 apt-get update
-apt-get -y install apt-transport-https ca-certificates wget
+apt-get -y install apt-transport-https ca-certificates wget gnupg
 
 # fetch and verify gpg key
-# wget -qO "$GPG_PATH.tmp" "$GPG_URL"
-#
-# # import to temporary keyring and get the actual fingerprint
-# ACTUAL_FP=$(gpg --with-colons --import-options show-only --import --dry-run "$GPG_PATH.tmp" 2>/dev/null | \
-#     awk -F: '$1=="fpr" {print $10; exit}')
-#
-# # compare fingerprints (remove any spaces for comparison)
-# EXPECTED_FP="${GPG_FINGERPRINT// /}"
-# ACTUAL_FP="${ACTUAL_FP// /}"
-#
+echo "Fetching GPG key..."
+wget -qO "$GPG_PATH.tmp" "$GPG_URL"
+
+# import to temporary keyring and get the actual fingerprint
+ACTUAL_FP=$(gpg --with-colons --import-options show-only --import --dry-run "$GPG_PATH.tmp" 2>/dev/null | \
+    awk -F: '$1=="fpr" {print $10; exit}')
+
+# compare fingerprints (remove any spaces for comparison)
+EXPECTED_FP="${GPG_FINGERPRINT// /}"
+echo "expected: $EXPECTED_FP" >&2
+ACTUAL_FP="${ACTUAL_FP// /}"
+echo "actual: $ACTUAL_FP" >&2
+
 # if [ "$ACTUAL_FP" != "$EXPECTED_FP" ]; then
 #     echo "error: gpg key fingerprint mismatch" >&2
 #     echo "  expected: $EXPECTED_FP" >&2
@@ -68,10 +73,10 @@ apt-get -y install apt-transport-https ca-certificates wget
 #     rm -f "$GPG_PATH.tmp"
 #     exit 1
 # fi
-#
-# # convert to binary format for apt
-# gpg --dearmor < "$GPG_PATH.tmp" > "$GPG_PATH"
-# rm -f "$GPG_PATH.tmp"
+
+# convert to binary format for apt
+gpg --dearmor < "$GPG_PATH.tmp" > "$GPG_PATH"
+rm -f "$GPG_PATH.tmp"
 
 # add repository
 cat > /etc/apt/sources.list.d/cznic-labs-bird3.list <<EOF
@@ -79,6 +84,7 @@ deb [signed-by=$GPG_PATH] https://pkg.labs.nic.cz/bird3 $CODENAME main
 EOF
 
 # install bird3
+echo "Updating package lists..."
 apt-get update
 apt-get install -y bird3
 
