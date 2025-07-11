@@ -19,6 +19,7 @@ fi
 
 # validate site argument
 readonly SITE="${1:-}"
+SITE_UPPER="$(echo "$SITE" | tr '[:lower:]' '[:upper:]')"
 if [[ -z "$SITE" ]]; then
     echo "usage: $0 <site>" >&2
     echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
@@ -93,10 +94,9 @@ define INTERNAL_NET6 = ${INTERNAL_NET6};
 # Route Reflector IPs
 CONSTANTS
 
-    # add RR IPs from config
-    jq -r '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP4 = \(.value.v4);"' "$CONFIG_FILE"
-    jq -r '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP6 = \(.value.v6);"' "$CONFIG_FILE"
-    
+# Route Reflector IPs for current site
+    jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP4 = \(.value[$site].v4);"' "$CONFIG_FILE"
+    jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP6 = \(.value[$site].v6);"' "$CONFIG_FILE"    
     cat << 'CONSTANTS_END'
 
 # Local IPs for BGP sessions

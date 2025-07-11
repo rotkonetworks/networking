@@ -6,30 +6,33 @@ set -euo pipefail
 CONFIG_FILE="${CONFIG_FILE:-../config.json}"
 while getopts ':c:' opt; do
   case "$opt" in
-    c) CONFIG_FILE="$OPTARG" ;;
-    *) echo "Usage: $0 [-c <config-file>] <site>" >&2; exit 1 ;;
+  c) CONFIG_FILE="$OPTARG" ;;
+  *)
+    echo "Usage: $0 [-c <config-file>] <site>" >&2
+    exit 1
+    ;;
   esac
 done
 shift $((OPTIND - 1))
 
-
 if [[ ! -f "$CONFIG_FILE" ]]; then
-    echo "error: config file not found: $CONFIG_FILE" >&2
-    exit 1
+  echo "error: config file not found: $CONFIG_FILE" >&2
+  exit 1
 fi
 
 # validate site argument
 readonly SITE="${1:-}"
+SITE_UPPER="$(echo "$SITE" | tr '[:lower:]' '[:upper:]')"
 if [[ -z "$SITE" ]]; then
-    echo "usage: $0 <site>" >&2
-    echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
-    exit 1
+  echo "usage: $0 <site>" >&2
+  echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
+  exit 1
 fi
 
 # validate site exists
 if ! jq -e ".sites.$SITE" "$CONFIG_FILE" >/dev/null 2>&1; then
-    echo "error: invalid site: $SITE" >&2
-    exit 1
+  echo "error: invalid site: $SITE" >&2
+  exit 1
 fi
 
 # extract site config
@@ -41,7 +44,7 @@ INTERNAL_V6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
 
 # generate nftables configuration
 generate_nftables_config() {
-    cat << NFT
+  cat <<NFT
 #!/usr/sbin/nft -f
 # nftables configuration for ${SITE^^}
 # Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -58,7 +61,7 @@ NFT
 
 # generate variables section
 generate_variables() {
-    cat << VARS
+  cat <<VARS
 # Variables from central config
 define PUBLIC_IP4 = ${PUBLIC_IP4}
 define PUBLIC_IP6 = ${PUBLIC_IP6}
@@ -69,28 +72,31 @@ define INTERNAL6 = ${INTERNAL_V6}
 define MGMT_NET = $(jq -r '.networks.management' "$CONFIG_FILE")
 VARS
 
-    # add bgp peers
-    echo "define BGP_PEERS_V6 = { $(jq -r '.route_reflectors | to_entries | map(.value.v6) | join(", ")' "$CONFIG_FILE") }"
-    echo "define BGP_PEERS_V4 = { $(jq -r '.route_reflectors | to_entries | map(.value.v4) | join(", ")' "$CONFIG_FILE") }"
+  # add bgp peers - extract site-specific IPs for current site
+  local bgp_peers_v6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v6) | join(", ")' "$CONFIG_FILE")
+  local bgp_peers_v4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v4) | join(", ")' "$CONFIG_FILE")
+
+  echo "define BGP_PEERS_V6 = { $bgp_peers_v6 }"
+  echo "define BGP_PEERS_V4 = { $bgp_peers_v4 }"
 }
 
 # generate filter table
 generate_filter_table() {
-    cat << 'FILTER'
+  cat <<'FILTER'
 
 # Main filter table - IPv6 and IPv4 combined
 table inet filter {
 FILTER
-    generate_sets
-    generate_input_chain
-    generate_forward_chain
-    generate_output_chain
-    echo "}"
+  generate_sets
+  generate_input_chain
+  generate_forward_chain
+  generate_output_chain
+  echo "}"
 }
 
 # generate sets
 generate_sets() {
-    cat << 'SETS'
+  cat <<'SETS'
     set allowed_ssh {
         type ipv4_addr
         flags interval
@@ -107,7 +113,7 @@ SETS
 
 # generate input chain
 generate_input_chain() {
-    cat << 'INPUT'
+  cat <<'INPUT'
     
     chain input {
         type filter hook input priority filter; policy drop;
@@ -120,10 +126,10 @@ generate_input_chain() {
         iif "lo" accept
         
 INPUT
-    generate_icmp_rules
-    generate_routing_protocols
-    generate_management_services
-    cat << 'INPUT_END'
+  generate_icmp_rules
+  generate_routing_protocols
+  generate_management_services
+  cat <<'INPUT_END'
         
         # Log drops
         limit rate 5/minute log prefix "[DROP-IN] "
@@ -133,7 +139,7 @@ INPUT_END
 
 # generate icmp rules
 generate_icmp_rules() {
-    cat << 'ICMP'
+  cat <<'ICMP'
         # ICMPv6 (required for IPv6)
         ip6 nexthdr icmpv6 icmpv6 type {
             destination-unreachable,
@@ -160,8 +166,8 @@ ICMP
 
 # generate routing protocol rules
 generate_routing_protocols() {
-    local iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
-    cat << ROUTING
+  local iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+  cat <<ROUTING
         
         # BGP
         tcp dport 179 ip6 saddr @BGP_PEERS_V6 accept
@@ -179,11 +185,11 @@ ROUTING
 
 # generate management services
 generate_management_services() {
-    local mgmt_iface=$(jq -r '.interfaces.management' "$CONFIG_FILE")
-    local internal_iface=$(jq -r '.interfaces.internal' "$CONFIG_FILE")
-    local storage_iface=$(jq -r '.interfaces.storage_private' "$CONFIG_FILE")
-    
-    cat << MGMT
+  local mgmt_iface=$(jq -r '.interfaces.management' "$CONFIG_FILE")
+  local internal_iface=$(jq -r '.interfaces.internal' "$CONFIG_FILE")
+  local storage_iface=$(jq -r '.interfaces.storage_private' "$CONFIG_FILE")
+
+  cat <<MGMT
         
         # SSH rate limited
         tcp dport 22 ip6 saddr @allowed_ssh_v6 accept
@@ -204,10 +210,10 @@ MGMT
 
 # generate forward chain
 generate_forward_chain() {
-    local mgmt_iface=$(jq -r '.interfaces.management' "$CONFIG_FILE")
-    local internal_iface=$(jq -r '.interfaces.internal' "$CONFIG_FILE")
-    
-    cat << FORWARD
+  local mgmt_iface=$(jq -r '.interfaces.management' "$CONFIG_FILE")
+  local internal_iface=$(jq -r '.interfaces.internal' "$CONFIG_FILE")
+
+  cat <<FORWARD
     
     chain forward {
         type filter hook forward priority filter; policy drop;
@@ -231,7 +237,7 @@ FORWARD
 
 # generate output chain
 generate_output_chain() {
-    cat << 'OUTPUT'
+  cat <<'OUTPUT'
     
     chain output {
         type filter hook output priority filter; policy accept;
@@ -241,9 +247,9 @@ OUTPUT
 
 # generate nat table
 generate_nat_table() {
-    local public_iface=$(jq -r '.interfaces.public' "$CONFIG_FILE")
-    
-    cat << NAT
+  local public_iface=$(jq -r '.interfaces.public' "$CONFIG_FILE")
+
+  cat <<NAT
 
 # NAT table - IPv4 only (IPv6 doesn't need NAT)
 table ip nat {
@@ -251,8 +257,8 @@ table ip nat {
         type nat hook prerouting priority dstnat; policy accept;
         
 NAT
-    generate_service_mappings
-    cat << NAT_POST
+  generate_service_mappings
+  cat <<NAT_POST
     }
     
     chain postrouting {
@@ -273,19 +279,19 @@ NAT_POST
 
 # generate service mappings
 generate_service_mappings() {
-    # web services
-    local web_target=$(jq -r '.services.web.target' "$CONFIG_FILE")
-    jq -r '.services.web.ports[]' "$CONFIG_FILE" | while read -r port; do
-        echo "        tcp dport $port dnat to $web_target"
-    done
-    
-    # ssh containers
-    echo "        "
-    echo "        # SSH to specific containers"
-    jq -r '.services.ssh_containers | keys[]' "$CONFIG_FILE" | while read -r port; do
-        target=$(jq -r ".services.ssh_containers.\"$port\"" "$CONFIG_FILE")
-        echo "        tcp dport $port dnat to $target"
-    done
+  # web services
+  local web_target=$(jq -r '.services.web.target' "$CONFIG_FILE")
+  jq -r '.services.web.ports[]' "$CONFIG_FILE" | while read -r port; do
+    echo "        tcp dport $port dnat to $web_target"
+  done
+
+  # ssh containers
+  echo "        "
+  echo "        # SSH to specific containers"
+  jq -r '.services.ssh_containers | keys[]' "$CONFIG_FILE" | while read -r port; do
+    target=$(jq -r ".services.ssh_containers.\"$port\"" "$CONFIG_FILE")
+    echo "        tcp dport $port dnat to $target"
+  done
 }
 
 # main execution
