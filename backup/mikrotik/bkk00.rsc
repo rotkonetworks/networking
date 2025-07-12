@@ -1,4 +1,4 @@
-# 2025-07-11 14:11:57 by RouterOS 7.20beta2
+# 2025-07-12 14:09:56 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -451,9 +451,12 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-2 remote.address=2001:7f8:1::a501:3335:2 .as=13335 templates=AMSIX-v6
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=210000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=HE-AMSIX-v4 remote.address=80.249.209.150 .as=6939 templates=AMSIX-v4
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=237000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
-/routing bgp connection add as=142108 instance=bgp-instance-1 local.address=10.155.254.100 .role=ibgp-rr name=rr-client-bkk07 remote.address=10.155.254.7 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add as=142108 instance=bgp-instance-1 local.address=10.155.254.100 .role=ibgp-rr name=rr-client-bkk08 remote.address=10.155.254.8 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add as=142108 instance=bgp-instance-1 local.address=10.155.254.100 .role=ibgp-rr name=rr-client-bkk06 remote.address=10.155.254.6 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.106.0 .role=ibgp-rr name=rr-client-bkk06 remote.address=10.155.106.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.107.0 .role=ibgp-rr name=rr-client-bkk07 remote.address=10.155.107.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.108.0 .role=ibgp-rr name=rr-client-bkk08 remote.address=10.155.108.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.206.0 .role=ibgp-rr name=rr-client-bkk06 remote.address=10.155.206.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.207.0 .role=ibgp-rr name=rr-client-bkk07 remote.address=10.155.207.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.208.0 .role=ibgp-rr name=rr-client-bkk08 remote.address=10.155.208.1 .as=142108 templates=RR-CLIENTS
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
