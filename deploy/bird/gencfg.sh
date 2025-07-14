@@ -6,37 +6,38 @@ set -euo pipefail
 CONFIG_FILE="${CONFIG_FILE:-../config.json}"
 while getopts ':c:' opt; do
   case "$opt" in
-    c) CONFIG_FILE="$OPTARG" ;;
-    *) echo "Usage: $0 [-c <config-file>] <site>" >&2; exit 1 ;;
+  c) CONFIG_FILE="$OPTARG" ;;
+  *)
+    echo "Usage: $0 [-c <config-file>] <site>" >&2
+    exit 1
+    ;;
   esac
 done
 shift $((OPTIND - 1))
 
 if [[ ! -f "$CONFIG_FILE" ]]; then
-    echo "error: config file not found: $CONFIG_FILE" >&2
-    exit 1
+  echo "error: config file not found: $CONFIG_FILE" >&2
+  exit 1
 fi
 
 # validate site argument
 readonly SITE="${1:-}"
 SITE_UPPER="$(echo "$SITE" | tr '[:lower:]' '[:upper:]')"
 if [[ -z "$SITE" ]]; then
-    echo "usage: $0 <site>" >&2
-    echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
-    exit 1
+  echo "usage: $0 <site>" >&2
+  echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
+  exit 1
 fi
 
 # validate site exists
 if ! jq -e ".sites.$SITE" "$CONFIG_FILE" >/dev/null 2>&1; then
-    echo "error: invalid site: $SITE" >&2
-    exit 1
+  echo "error: invalid site: $SITE" >&2
+  exit 1
 fi
 
 # extract site config
 SITE_CONFIG=$(jq -r ".sites.$SITE" "$CONFIG_FILE")
 ROUTER_ID=$(echo "$SITE_CONFIG" | jq -r '.router_id')
-LOCAL_IP4=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_v4')
-LOCAL_IP6=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_v6')
 PUBLIC_IP4=$(echo "$SITE_CONFIG" | jq -r '.public_v4')
 PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_NET6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
@@ -47,7 +48,7 @@ AS_NUMBER=$(jq -r '.as_number' "$CONFIG_FILE")
 
 # generate bird configuration
 generate_bird_config() {
-    cat << BIRD
+  cat <<BIRD
 # BIRD 2.x configuration for ${SITE^^}
 # Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 # Config hash: $(echo -n "$SITE_CONFIG" | sha256sum | cut -d' ' -f1)
@@ -72,7 +73,7 @@ BIRD
 
 # generate constants section
 generate_constants() {
-    cat << CONSTANTS
+  cat <<CONSTANTS
 #
 # Router Identity and Constants
 #
@@ -94,17 +95,28 @@ define INTERNAL_NET6 = ${INTERNAL_NET6};
 # Route Reflector IPs
 CONSTANTS
 
-# Route Reflector IPs for current site
-    jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP4 = \(.value[$site].v4);"' "$CONFIG_FILE"
-    jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP6 = \(.value[$site].v6);"' "$CONFIG_FILE"    
-    cat << 'CONSTANTS_END'
+  # Route Reflector IPs for current site
+  jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP4 = \(.value[$site].v4);"' "$CONFIG_FILE"
+  jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP6 = \(.value[$site].v6);"' "$CONFIG_FILE"
+
+  cat <<'CONSTANTS_END'
 
 # Local IPs for BGP sessions
 CONSTANTS_END
-    echo "define LOCAL_IP4 = ${LOCAL_IP4};"
-    echo "define LOCAL_IP6 = ${LOCAL_IP6};"
-    
-    cat << 'PREFERENCES'
+
+  # Generate local IPs for each RR
+  jq -r --arg site "$SITE" '.route_reflectors | keys[]' "$CONFIG_FILE" | while read -r rr_key; do
+    rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
+
+    # Try to get per-RR local IPs first, fallback to general ones
+    local_v4=$(echo "$SITE_CONFIG" | jq -r ".bgp_local_${rr_key}_v4 // .bgp_local_v4")
+    local_v6=$(echo "$SITE_CONFIG" | jq -r ".bgp_local_${rr_key}_v6 // .bgp_local_v6")
+
+    echo "define LOCAL_IP4_${rr_key_upper} = ${local_v4};"
+    echo "define LOCAL_IP6_${rr_key_upper} = ${local_v6};"
+  done
+
+  cat <<'PREFERENCES'
 
 # BGP Preferences
 define PREF_IPV6 = 200;
@@ -124,7 +136,7 @@ PREFERENCES
 
 # generate logging configuration
 generate_logging() {
-    cat << 'LOGGING'
+  cat <<'LOGGING'
 #
 # Logging Configuration
 #
@@ -140,8 +152,8 @@ LOGGING
 
 # generate bgp templates
 generate_templates() {
-    local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
-    cat << TEMPLATES
+  local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+  cat <<TEMPLATES
 #
 # BGP Templates
 #
@@ -166,7 +178,7 @@ TEMPLATES
 
 # generate kernel protocols
 generate_kernel_protocols() {
-    cat << 'KERNEL'
+  cat <<'KERNEL'
 #
 # Kernel Protocols
 #
@@ -203,8 +215,8 @@ KERNEL
 
 # generate basic protocols
 generate_basic_protocols() {
-    local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
-    cat << BASIC
+  local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+  cat <<BASIC
 #
 # Basic Protocols
 #
@@ -222,7 +234,7 @@ BASIC
 
 # generate static routes
 generate_static_routes() {
-    cat << 'STATIC'
+  cat <<'STATIC'
 #
 # Static Routes
 #
@@ -242,8 +254,8 @@ STATIC
 
 # generate bfd protocol
 generate_bfd() {
-    local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
-    cat << BFD
+  local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+  cat <<BFD
 #
 # BFD Protocol
 #
@@ -259,22 +271,22 @@ BFD
 
 # generate bgp sessions
 generate_bgp_sessions() {
-    echo "#"
-    echo "# BGP Sessions to Route Reflectors"
-    echo "#"
-    
-    # generate sessions for each RR
-    jq -r '.route_reflectors | keys[]' "$CONFIG_FILE" | while read -r rr_key; do
-        rr_name=$(jq -r ".route_reflectors.$rr_key.name" "$CONFIG_FILE")
-        rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
-        
-        # IPv6 session
-        cat << BGP_V6
+  echo "#"
+  echo "# BGP Sessions to Route Reflectors"
+  echo "#"
+
+  # generate sessions for each RR
+  jq -r '.route_reflectors | keys[]' "$CONFIG_FILE" | while read -r rr_key; do
+    rr_name=$(jq -r ".route_reflectors.$rr_key.name" "$CONFIG_FILE")
+    rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
+
+    # IPv6 session
+    cat <<BGP_V6
 
 protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
     description "Route Reflector - ${rr_name} IPv6";
     neighbor ${rr_key_upper}_IP6 as LOCAL_AS;
-    source address LOCAL_IP6;
+    source address LOCAL_IP6_${rr_key_upper};
 
     ipv6 {
         next hop self;
@@ -302,13 +314,13 @@ protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
 }
 BGP_V6
 
-        # IPv4 session
-        cat << BGP_V4
+    # IPv4 session
+    cat <<BGP_V4
 
 protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
     description "Route Reflector - ${rr_name} IPv4";
     neighbor ${rr_key_upper}_IP4 as LOCAL_AS;
-    source address LOCAL_IP4;
+    source address LOCAL_IP4_${rr_key_upper};
 
     ipv4 {
         next hop self;
@@ -331,7 +343,7 @@ protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
     };
 }
 BGP_V4
-    done
+  done
 }
 
 # main execution
