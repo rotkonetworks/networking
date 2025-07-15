@@ -2,7 +2,7 @@
 # network interfaces config generator
 set -euo pipefail
 
-# Load config
+# load config
 CONFIG_FILE="${CONFIG_FILE:-../config.json}"
 while getopts ':c:' opt; do
   case "$opt" in
@@ -37,7 +37,8 @@ fi
 
 # extract site config
 SITE_CONFIG=$(jq -r ".sites.$SITE" "$CONFIG_FILE")
-SITE_NUM="${SITE#bkk}"  # Extract number from site name
+SITE_NUM="${SITE#bkk}"  # extract number from site name
+SITE_NUM="${SITE_NUM#0}"  # remove leading zero if present
 
 # extract configuration values
 ROUTER_ID=$(echo "$SITE_CONFIG" | jq -r '.router_id')
@@ -65,7 +66,7 @@ ANYCAST_LOCAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v6 // empty' | se
 ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' | sed 's|/32||')
 ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | sed 's|/128||')
 
-# ohysical interfaces
+# physical interfaces
 MGMT_IFACE=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.management // "eno2"')
 BOND_MEMBERS=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.bond_members[]?' 2>/dev/null | tr '\n' ' ')
 UNUSED_IFACES=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.unused[]?' 2>/dev/null | tr '\n' ' ')
@@ -80,63 +81,69 @@ BOND_MIIMON=$(jq -r '.bond_config.miimon // 100' "$CONFIG_FILE")
 BOND_LACP_RATE=$(jq -r '.bond_config.lacp_rate // "fast"' "$CONFIG_FILE")
 BOND_MTU=$(jq -r '.bond_config.mtu // 9000' "$CONFIG_FILE")
 
-# VLAN IDs based on site number
-VLAN_RR1="1${SITE_NUM}"
-VLAN_RR2="2${SITE_NUM}"
+# VLAN IDs based on site number (pad to 2 digits)
+VLAN_RR1="1$(printf "%02d" "$SITE_NUM")"
+VLAN_RR2="2$(printf "%02d" "$SITE_NUM")"
+
+# fix IPv6 addresses to ensure no extra colons
+INTERNAL_V6_PREFIX="${INTERNAL_V6%%/*}"
+# remove all trailing colons
+while [[ "$INTERNAL_V6_PREFIX" == *: ]]; do
+  INTERNAL_V6_PREFIX="${INTERNAL_V6_PREFIX%:}"
+done
 
 # generate interfaces configuration
 generate_interfaces() {
   cat <<INTERFACES
 # /etc/network/interfaces for ${SITE}
-# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+# this file describes the network interfaces available on your system
+# and how to activate them. for more information, see interfaces(5).
 
 source /etc/network/interfaces.d/*
 
-# The loopback network interface
+# the loopback network interface
 auto lo
 iface lo inet loopback
-    # Router ID
+    # router ID
     up ip addr add ${ROUTER_ID}/32 dev lo
 INTERFACES
 
-  # Add anycast IPs if present
+  # add anycast IPs if present
   if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
-    echo "    # Anycast local IPv4"
+    echo "    # anycast local IPs"
     echo "    up ip addr add ${ANYCAST_LOCAL_V4}/32 dev lo"
   fi
   if [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
-    echo "    # Anycast global IPv4"
+    echo "    # anycast global IPs"
     echo "    up ip addr add ${ANYCAST_GLOBAL_V4}/32 dev lo"
   fi
 
   cat <<INTERFACES
 
 iface lo inet6 loopback
-    # Router ID
+    # router ID
     up ip -6 addr add fd00:155:255::${SITE_NUM}/128 dev lo
-    # Public IPv6
+    # public IPv6
     up ip -6 addr add ${PUBLIC_V6}/128 dev lo
 INTERFACES
 
-  # Add IPv6 anycast if present
+  # add IPv6 anycast if present
   if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
-    echo "    # Anycast local IPv6"
+    echo "    # anycast local IPv6"
     echo "    up ip -6 addr add ${ANYCAST_LOCAL_V6}/128 dev lo"
   fi
   if [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
-    echo "    # Anycast global IPv6"
+    echo "    # anycast global IPv6"
     echo "    up ip -6 addr add ${ANYCAST_GLOBAL_V6}/128 dev lo"
   fi
 
   cat <<INTERFACES
 
-# Physical interfaces
+# physical interfaces
 iface ${MGMT_IFACE} inet manual
 iface ${MGMT_IFACE} inet6 manual
 
-# Management bridge
+# management bridge
 auto vmbr0
 iface vmbr0 inet static
     address ${MANAGEMENT_IP%%/*}
@@ -146,16 +153,18 @@ iface vmbr0 inet static
     bridge-stp off
     bridge-fd 0
 
-# Physical interfaces for bonding
+# physical interfaces for bonding
 INTERFACES
 
-  # List bond member interfaces
+  # list bond member interfaces
   for iface in $BOND_MEMBERS; do
     echo "iface $iface inet manual"
   done
 
-  # List unused interfaces if any
+  # list unused interfaces if any
   if [[ -n "$UNUSED_IFACES" ]]; then
+    echo ""
+    echo "# unused interfaces"
     for iface in $UNUSED_IFACES; do
       echo "iface $iface inet manual"
     done
@@ -172,7 +181,7 @@ iface bond0 inet manual
     bond-lacp-rate ${BOND_LACP_RATE}
     mtu ${BOND_MTU}
 
-# QinQ outer VLAN ${QINQ_OUTER} on the bond
+# Q-in-Q outer VLAN ${QINQ_OUTER} on the bond
 auto bond0.${QINQ_OUTER}
 iface bond0.${QINQ_OUTER} inet manual
     vlan-raw-device bond0
@@ -193,7 +202,7 @@ iface vlan${VLAN_RR2} inet manual
     vlan-id ${VLAN_RR2}
     mtu 1500
 
-# Internal services bridge
+# internal services bridge
 auto vmbr1
 iface vmbr1 inet static
     address 10.${SITE_NUM}.0.1
@@ -203,11 +212,11 @@ iface vmbr1 inet static
     bridge-fd 0
 
 iface vmbr1 inet6 static
-    address ${INTERNAL_V6%%/*}::1/48
+    address ${INTERNAL_V6_PREFIX}::1/48
     accept_ra 0
     autoconf 0
 
-# Public services bridge (Q-in-Q terminated)
+# public services bridge (Q-in-Q terminated)
 auto vmbr2
 iface vmbr2 inet static
     bridge-ports vlan${VLAN_RR2} vlan${VLAN_RR1}
@@ -218,10 +227,10 @@ iface vmbr2 inet static
     mtu 1500
 INTERFACES
 
-  # Add anycast routing if anycast IPs are present
+  # add anycast routing if anycast IPs are present
   if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
     cat <<ANYCAST_V4
-    # Anycast source routing for IPv4
+    # anycast source routing for IPv4
     post-up echo "100 anycast" >> /etc/iproute2/rt_tables 2>/dev/null || true
 ANYCAST_V4
     
@@ -233,7 +242,7 @@ ANYCAST_V4
     fi
     
     echo "    post-up ip route add default table anycast nexthop via ${RR1_GW_V4} dev vmbr2 weight 1 nexthop via ${RR2_GW_V4} dev vmbr2 weight 1 2>/dev/null || true"
-    echo "    # Cleanup on interface down"
+    echo "    # cleanup on interface down"
     
     if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
       echo "    pre-down ip rule del from ${ANYCAST_LOCAL_V4} table anycast 2>/dev/null || true"
@@ -254,10 +263,16 @@ iface vmbr2 inet6 static
     autoconf 0
 INTERFACES
 
-  # Add IPv6 anycast routing if present
+  # add IPv6 anycast routing if present
   if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    # ensure IPv6 gateways end with ::
+    RR1_GW_V6_CLEAN="${RR1_GW_V6%::0}"
+    RR2_GW_V6_CLEAN="${RR2_GW_V6%::0}"
+    [[ "$RR1_GW_V6_CLEAN" != *:: ]] && RR1_GW_V6_CLEAN="${RR1_GW_V6_CLEAN}::"
+    [[ "$RR2_GW_V6_CLEAN" != *:: ]] && RR2_GW_V6_CLEAN="${RR2_GW_V6_CLEAN}::"
+    
     cat <<ANYCAST_V6
-    # Anycast source routing for IPv6
+    # anycast source routing for IPv6
     post-up echo "100 anycast" >> /etc/iproute2/rt_tables 2>/dev/null || true
 ANYCAST_V6
     
@@ -268,8 +283,8 @@ ANYCAST_V6
       echo "    post-up ip -6 rule add from ${ANYCAST_GLOBAL_V6} table anycast priority 100 2>/dev/null || true"
     fi
     
-    echo "    post-up ip -6 route add default table anycast nexthop via ${RR1_GW_V6} dev vmbr2 weight 1 nexthop via ${RR2_GW_V6} dev vmbr2 weight 1 2>/dev/null || true"
-    echo "    # Cleanup on interface down"
+    echo "    post-up ip -6 route add default table anycast nexthop via ${RR1_GW_V6_CLEAN} dev vmbr2 weight 1 nexthop via ${RR2_GW_V6_CLEAN} dev vmbr2 weight 1 2>/dev/null || true"
+    echo "    # cleanup on interface down"
     
     if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
       echo "    pre-down ip -6 rule del from ${ANYCAST_LOCAL_V6} table anycast 2>/dev/null || true"
@@ -279,15 +294,6 @@ ANYCAST_V6
     fi
     
     echo "    pre-down ip -6 route flush table anycast 2>/dev/null || true"
-  fi
-
-  # Add any remaining unused interfaces at the end
-  if [[ -n "$UNUSED_IFACES" ]]; then
-    echo ""
-    echo "# Unused interfaces"
-    for iface in $UNUSED_IFACES; do
-      echo "iface $iface inet manual"
-    done
   fi
 }
 
