@@ -1,4 +1,4 @@
-# 2025-07-14 23:39:07 by RouterOS 7.20beta2
+# 2025-07-15 07:40:08 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -275,18 +275,14 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
 /ip route add distance=220 dst-address=160.22.181.0/24
 /ip route add distance=220 dst-address=160.22.180.0/24
-/ip route add comment="BKK08 via BKK20" distance=240 dst-address=10.155.254.8/32 gateway=10.155.254.20
-/ip route add comment="BKK07 via BKK20" distance=240 dst-address=10.155.254.7/32 gateway=10.155.254.20
-/ip route add comment="BKK06 via BKK20" distance=240 dst-address=10.155.254.6/32 gateway=10.155.254.20
+/ip route add comment="Local Q-in-Q infrastructure" distance=1 dst-address=10.155.0.0/16 gateway=bridge_vlan
+/ip route add distance=1 dst-address=10.155.108.0/31 gateway=qnq-108-400
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 ULA (RFC4193)" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
-/ipv6 route add disabled=no distance=250 dst-address=2401:a860::/36
-/ipv6 route add disabled=no distance=250 dst-address=2401:a860:1000::/36
-/ipv6 route add comment="BKK08 via BKK20" distance=240 dst-address=fd00:155:254::8/128 gateway=fd00:155:254::20
-/ipv6 route add comment="BKK07 via BKK20" distance=240 dst-address=fd00:155:254::7/128 gateway=fd00:155:254::20
-/ipv6 route add comment="BKK06 via BKK20" distance=240 dst-address=fd00:155:254::6/128 gateway=fd00:155:254::20
+/ipv6 route add comment=anycast_global_v6 disabled=no distance=250 dst-address=2401:a860::/36
+/ipv6 route add comment=unicast_global_v6 disabled=no distance=250 dst-address=2401:a860:1000::/36
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes

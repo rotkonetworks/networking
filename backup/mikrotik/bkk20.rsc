@@ -1,4 +1,4 @@
-# 2025-07-14 23:39:21 by RouterOS 7.20beta2
+# 2025-07-15 07:40:19 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -213,6 +213,8 @@
 /ip route add comment="Force src-IP for BKNIX RPKI v4" dst-address=203.159.70.26/32 gateway=172.16.30.1 pref-src=160.22.181.178
 /ip route add distance=220 dst-address=160.22.181.0/24
 /ip route add distance=220 dst-address=160.22.180.0/24
+/ip route add comment="Local Q-in-Q infrastructure" distance=1 dst-address=10.155.0.0/16 gateway=bridge_vlan
+/ip route add distance=1 dst-address=10.155.208.0/31 gateway=qnq-208-400
 /ipv6 route add blackhole comment=IPV6RANGE distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
