@@ -30,15 +30,23 @@ jobs:
           mkdir -p backup/mikrotik
           for i in 00 10 20 30 40 50 60; do
             temp_file=$(mktemp)
-            if ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/export' > "$temp_file" 2>/dev/null; then
+            echo "Backing up bkk${i}..."
+            if timeout 30s ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/export' > "$temp_file" 2>/dev/null; then
               # jg: only update if non-empty and different
               if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/mikrotik/bkk${i}.rsc"; then
                 mv "$temp_file" "backup/mikrotik/bkk${i}.rsc"
+                echo "Updated: bkk${i}"
               else
                 rm -f "$temp_file"
+                echo "No changes: bkk${i}"
               fi
             else
-              echo "Failed: bkk${i}"
+              exit_code=$?
+              if [ $exit_code -eq 124 ]; then
+                echo "Timeout (30s): bkk${i}"
+              else
+                echo "Failed: bkk${i}"
+              fi
               rm -f "$temp_file"
             fi
           done
@@ -63,14 +71,22 @@ jobs:
           ports[bkk13]=22803
           for node in "${!ports[@]}"; do
             temp_file=$(mktemp)
-            if ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p ${ports[$node]} root@160.22.181.181 'cat /etc/network/interfaces' > "$temp_file" 2>/dev/null; then
+            echo "Backing up interface config for ${node}..."
+            if timeout 30s ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p ${ports[$node]} root@160.22.181.181 'cat /etc/network/interfaces' > "$temp_file" 2>/dev/null; then
               if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/interfaces/${node}.conf"; then
                 mv "$temp_file" "backup/interfaces/${node}.conf"
+                echo "Updated: ${node}"
               else
                 rm -f "$temp_file"
+                echo "No changes: ${node}"
               fi
             else
-              echo "Failed: ${node}"
+              exit_code=$?
+              if [ $exit_code -eq 124 ]; then
+                echo "Timeout (30s): ${node}"
+              else
+                echo "Failed: ${node}"
+              fi
               rm -f "$temp_file"
             fi
           done
@@ -90,27 +106,43 @@ jobs:
 
             # bird config
             temp_file=$(mktemp)
-            if ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $port root@160.22.181.181 'cat /etc/bird/bird.conf' > "$temp_file" 2>/dev/null; then
+            echo "Backing up bird config for ${node}..."
+            if timeout 30s ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $port root@160.22.181.181 'cat /etc/bird/bird.conf' > "$temp_file" 2>/dev/null; then
               if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/bird/${node}.conf"; then
                 mv "$temp_file" "backup/bird/${node}.conf"
+                echo "Updated bird: ${node}"
               else
                 rm -f "$temp_file"
+                echo "No changes bird: ${node}"
               fi
             else
-              echo "Failed bird config: ${node}"
+              exit_code=$?
+              if [ $exit_code -eq 124 ]; then
+                echo "Timeout (30s) bird config: ${node}"
+              else
+                echo "Failed bird config: ${node}"
+              fi
               rm -f "$temp_file"
             fi
 
             # nftables config
             temp_file=$(mktemp)
-            if ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $port root@160.22.181.181 'nft list ruleset' > "$temp_file" 2>/dev/null; then
+            echo "Backing up nftables config for ${node}..."
+            if timeout 30s ssh -i ~/.ssh/interface_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $port root@160.22.181.181 'nft list ruleset' > "$temp_file" 2>/dev/null; then
               if [ -s "$temp_file" ] && ! cmp -s "$temp_file" "backup/nftables/${node}.nft"; then
                 mv "$temp_file" "backup/nftables/${node}.nft"
+                echo "Updated nftables: ${node}"
               else
                 rm -f "$temp_file"
+                echo "No changes nftables: ${node}"
               fi
             else
-              echo "Failed nftables config: ${node}"
+              exit_code=$?
+              if [ $exit_code -eq 124 ]; then
+                echo "Timeout (30s) nftables config: ${node}"
+              else
+                echo "Failed nftables config: ${node}"
+              fi
               rm -f "$temp_file"
             fi
           done
