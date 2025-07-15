@@ -1,4 +1,4 @@
-# 2025-07-15 12:10:31 by RouterOS 7.20beta2
+# 2025-07-15 13:48:18 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -81,8 +81,7 @@
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=8192 soft-max-neighbor-entries=8191
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK30-LAG,BKK10-LAG vlan-ids=400
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG untagged=bridge_vlan vlan-ids=300
-/interface bridge vlan add bridge=bridge_vlan disabled=yes tagged=BKK30-LAG vlan-ids=108
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=300
 /interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=BKK10-LAG list=LAN
@@ -98,6 +97,11 @@
 /interface list member add interface=BKK20-LAG list=LAN
 /interface list member add interface=qsfp28-1-1 list=LAN
 /interface list member add interface=qsfp28-2-1 list=LAN
+/interface list member add interface=vlan400-bgp list=LAN
+/interface list member add interface=vlan300 list=LAN
+/interface list member add interface=qnq-106-400 list=LAN
+/interface list member add interface=qnq-107-400 list=LAN
+/interface list member add interface=qnq-108-400 list=LAN
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.20/32 interface=wg_rotko name=bkk20 public-key="/09ofEbIM1qjlq7xM/R0KfJMQ8R/UR9aHaph70FTp30="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
@@ -112,7 +116,6 @@
 /ip address add address=10.25.1.126/24 interface=EU-AMS-IX-vlan3995 network=10.25.1.0
 /ip address add address=80.249.212.139/21 interface=EU-AMS-IX-vlan3995 network=80.249.208.0
 /ip address add address=103.168.174.182/30 interface=SG-HGC-IPTx-backup-vlan2518 network=103.168.174.180
-/ip address add address=172.16.110.0/31 disabled=yes interface=BKK10-LAG network=172.16.110.0
 /ip address add address=172.16.10.1/30 interface=BKK50-LAG network=172.16.10.0
 /ip address add address=172.31.0.100/16 interface=wg_rotko network=172.31.0.0
 /ip address add address=172.16.50.0/31 interface=BKK50-LAG network=172.16.50.0

@@ -1,4 +1,4 @@
-# 2025-07-15 12:10:44 by RouterOS 7.20beta2
+# 2025-07-15 13:48:55 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -11,6 +11,7 @@
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
+/interface vlan add interface=bridge_vlan name=vlan300 vlan-id=300
 /interface vlan add interface=bridge_vlan name=vlan400-bgp vlan-id=400
 /interface bonding add arp-timeout=4h comment=WAN-LAG-sfp2 lacp-rate=1sec mode=802.3ad name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
@@ -51,6 +52,7 @@
 /routing bgp template add afi=ipv6 as=142108 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
 /tool traffic-generator port add interface=BKK00-LAG name=test-port
 /user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
+/certificate settings set builtin-trust-anchors=not-trusted
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -59,7 +61,6 @@
 /interface bridge filter add action=accept chain=forward dst-mac-address=FF:FF:FF:FF:FF:FF/FF:FF:FF:FF:FF:FF out-interface-list=WAN
 /interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
-/interface bridge port add bridge=*64 interface=ether1
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK10-LAG
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK40-LAG
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
@@ -67,6 +68,7 @@
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,BKK40-LAG vlan-ids=400
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=300
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
@@ -99,11 +101,11 @@
 /ip address add address=172.16.30.2/30 interface=BKK00-LAG network=172.16.30.0
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
-/ip address add address=172.16.210.0/31 comment=from_bkk10 interface=BKK10-LAG network=172.16.210.0
 /ip address add address=10.155.254.200/24 interface=vlan400-bgp network=10.155.254.0
 /ip address add address=10.155.208.0/31 interface=qnq-208-400 network=10.155.208.0
 /ip address add address=10.155.206.0/31 interface=qnq-206-400 network=10.155.206.0
 /ip address add address=10.155.207.0/31 interface=qnq-207-400 network=10.155.207.0
+/ip address add address=172.16.210.0/31 interface=vlan300 network=172.16.210.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
@@ -555,6 +557,7 @@
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
+/routing ospf interface-template add area=backbone comment=vlan300-to-bkk10 disabled=no interfaces=vlan300 networks=172.16.210.0/31
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323

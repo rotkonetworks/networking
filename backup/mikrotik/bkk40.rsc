@@ -1,4 +1,4 @@
-# 2025-07-11 04:24:18 by RouterOS 7.20beta4
+# 2025-07-11 06:02:29 by RouterOS 7.20beta4
 # software id = S02Y-Y1T7
 #
 # model = CRS504-4XQ
