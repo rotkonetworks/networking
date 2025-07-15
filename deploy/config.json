@@ -15,7 +15,18 @@
       "anycast_local_v4": "160.22.181.81/32",
       "anycast_local_v6": "2401:a860:1181::",
       "anycast_global_v4": "160.22.180.180/32",
-      "anycast_global_v6": "2401:a860::"
+      "anycast_global_v6": "2401:a860::",
+      "physical_interfaces": {
+        "management": "eno2",
+        "bond_members": [
+          "enp193s0f1np1",
+          "eno1"
+        ],
+        "unused": [
+          "enp193s0f0np0",
+          "enxbe3af2b6059f"
+        ]
+      }
     },
     "bkk07": {
       "router_id": "10.155.255.7",
@@ -31,7 +42,20 @@
       "anycast_local_v4": "160.22.181.81/32",
       "anycast_local_v6": "2401:a860:1181::",
       "anycast_global_v4": "160.22.180.180/32",
-      "anycast_global_v6": "2401:a860::"
+      "anycast_global_v6": "2401:a860::",
+      "physical_interfaces": {
+        "management": "eno2",
+        "bond_members": [
+          "enp1s0f1np1",
+          "eno1"
+        ],
+        "unused": [
+          "enp1s0f0np0",
+          "enp193s0f0",
+          "enp193s0f1",
+          "enxbe3af2b6059f"
+        ]
+      }
     },
     "bkk08": {
       "router_id": "10.155.255.8",
@@ -47,7 +71,18 @@
       "anycast_local_v4": "160.22.181.81/32",
       "anycast_local_v6": "2401:a860:1181::",
       "anycast_global_v4": "160.22.180.180/32",
-      "anycast_global_v6": "2401:a860::"
+      "anycast_global_v6": "2401:a860::",
+      "physical_interfaces": {
+        "management": "eno2",
+        "bond_members": [
+          "enp193s0f1np1",
+          "eno1"
+        ],
+        "unused": [
+          "enp193s0f0np0",
+          "enxb03af2b6059f"
+        ]
+      }
     }
   },
   "route_reflectors": {
@@ -84,6 +119,8 @@
   },
   "networks": {
     "management": "192.168.0.0/16",
+    "management_gateway": "192.168.69.1",
+    "qinq_outer": 400,
     "private_v4": [
       "10.0.0.0/8",
       "172.16.0.0/12",
@@ -95,6 +132,12 @@
       "fe80::/10",
       "2401:a860::/32"
     ]
+  },
+  "bond_config": {
+    "mode": "802.3ad",
+    "miimon": 100,
+    "lacp_rate": "fast",
+    "mtu": 9000
   },
   "services": {
     "web": {

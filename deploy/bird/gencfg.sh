@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bird config generator using central config
+# bird config generator with full anycast support
 set -euo pipefail
 
 # load config
@@ -42,6 +42,12 @@ PUBLIC_IP4=$(echo "$SITE_CONFIG" | jq -r '.public_v4')
 PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_NET6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
 INTERNAL_NET4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
+
+# extract all anycast IPs if present
+ANYCAST_LOCAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v4 // empty' 2>/dev/null | sed 's|/32||')
+ANYCAST_LOCAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v6 // empty' 2>/dev/null)
+ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' 2>/dev/null | sed 's|/32||')
+ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' 2>/dev/null)
 
 # extract global config
 AS_NUMBER=$(jq -r '.as_number' "$CONFIG_FILE")
@@ -91,9 +97,23 @@ define PUBLIC_NET4 = ${PUBLIC_IP4}/32;
 define PUBLIC_NET6 = ${PUBLIC_IP6}/128;
 define INTERNAL_NET4 = ${INTERNAL_NET4};
 define INTERNAL_NET6 = ${INTERNAL_NET6};
-
-# Route Reflector IPs
 CONSTANTS
+
+  # Add anycast constants if present
+  if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
+    echo ""
+    echo "# Anycast IPs"
+    [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "define ANYCAST_LOCAL_V4 = ${ANYCAST_LOCAL_V4}/32;"
+    [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "define ANYCAST_GLOBAL_V4 = ${ANYCAST_GLOBAL_V4}/32;"
+  fi
+
+  if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "define ANYCAST_LOCAL_V6 = ${ANYCAST_LOCAL_V6}/128;"
+    [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6 = ${ANYCAST_GLOBAL_V6}/128;"
+  fi
+
+  echo ""
+  echo "# Route Reflector IPs"
 
   # Route Reflector IPs for current site
   jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | .[] | "define \(.key | ascii_upcase)_IP4 = \(.value[$site].v4);"' "$CONFIG_FILE"
@@ -241,15 +261,29 @@ generate_static_routes() {
 protocol static static4 {
     ipv4;
     route PUBLIC_NET4 unreachable;
+STATIC
+
+  # Add anycast routes if present
+  [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    route ${ANYCAST_LOCAL_V4}/32 unreachable;"
+  [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "    route ${ANYCAST_GLOBAL_V4}/32 unreachable;"
+
+  cat <<'STATIC_CONT'
     route INTERNAL_NET4 unreachable;
 }
 
 protocol static static6 {
     ipv6;
     route PUBLIC_NET6 unreachable;
+STATIC_CONT
+
+  # Add IPv6 anycast routes if present
+  [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "    route ${ANYCAST_LOCAL_V6}/128 unreachable;"
+  [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "    route ${ANYCAST_GLOBAL_V6}/128 unreachable;"
+
+  cat <<'STATIC_V6_CONT'
     route INTERNAL_NET6 unreachable;
 }
-STATIC
+STATIC_V6_CONT
 }
 
 # generate bfd protocol
@@ -306,15 +340,24 @@ protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
         export filter {
             # Export our networks
             if net = PUBLIC_NET6 then accept;
+BGP_V6
+
+    # Add IPv6 anycast exports if present
+    if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+        [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "            if net = ANYCAST_LOCAL_V6 then accept;"
+        [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "            if net = ANYCAST_GLOBAL_V6 then accept;"
+    fi
+
+    cat <<BGP_V6_CONT
             if net ~ INTERNAL_NET6 then accept;
             # Don't export learned routes
             reject;
         };
     };
 }
-BGP_V6
+BGP_V6_CONT
 
-    # IPv4 session
+    # IPv4 session with anycast support
     cat <<BGP_V4
 
 protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
@@ -337,12 +380,21 @@ protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
         };
         export filter {
             if net = PUBLIC_NET4 then accept;
+BGP_V4
+
+    # Add IPv4 anycast exports if present
+    if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
+        [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "            if net = ANYCAST_LOCAL_V4 then accept;"
+        [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "            if net = ANYCAST_GLOBAL_V4 then accept;"
+    fi
+
+    cat <<BGP_V4_CONT
             if net ~ INTERNAL_NET4 then accept;
             reject;
         };
     };
 }
-BGP_V4
+BGP_V4_CONT
   done
 }
 
