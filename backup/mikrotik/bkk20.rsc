@@ -1,4 +1,4 @@
-# 2025-07-15 07:40:19 by RouterOS 7.20beta2
+# 2025-07-15 10:48:41 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -211,16 +211,15 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
 /ip route add comment="Force src-IP for BKNIX RPKI v4" dst-address=203.159.70.26/32 gateway=172.16.30.1 pref-src=160.22.181.178
-/ip route add distance=220 dst-address=160.22.181.0/24
-/ip route add distance=220 dst-address=160.22.180.0/24
-/ip route add comment="Local Q-in-Q infrastructure" distance=1 dst-address=10.155.0.0/16 gateway=bridge_vlan
-/ip route add distance=1 dst-address=10.155.208.0/31 gateway=qnq-208-400
-/ipv6 route add blackhole comment=IPV6RANGE distance=240 dst-address=2401:a860::/32
+/ip route add blackhole comment=global_unicast_v4 distance=240 dst-address=160.22.181.0/24
+/ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" dst-address=240.0.0.0/4
+/ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
-/ipv6 route add comment=ANYCAST distance=240 dst-address=2401:a860::/36
-/ipv6 route add comment=UNICAST distance=240 dst-address=2401:a860:1000::/36
+/ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
+/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
 /ip service set ftp address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,158.140.0.0/16,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32
 /ip service set telnet address=10.0.0.0/8,192.168.88.0/24 disabled=yes
