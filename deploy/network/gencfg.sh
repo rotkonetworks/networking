@@ -43,6 +43,9 @@ SITE_NUM="${SITE_NUM#0}"  # remove leading zero if present
 # extract configuration values
 ROUTER_ID=$(echo "$SITE_CONFIG" | jq -r '.router_id')
 MANAGEMENT_IP=$(echo "$SITE_CONFIG" | jq -r '.management')
+MANAGEMENT_GW=$(echo "$SITE_CONFIG" | jq -r '.management_gateway // empty')
+MANAGEMENT_V6=$(echo "$SITE_CONFIG" | jq -r '.management_v6 // empty')
+MANAGEMENT_V6_GW=$(echo "$SITE_CONFIG" | jq -r '.management_v6_gateway // empty')
 PUBLIC_V4=$(echo "$SITE_CONFIG" | jq -r '.public_v4')
 PUBLIC_V6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_V4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
@@ -72,7 +75,7 @@ BOND_MEMBERS=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.bond_members[]?
 UNUSED_IFACES=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.unused[]?' 2>/dev/null | tr '\n' ' ')
 
 # global settings
-MGMT_GATEWAY=$(jq -r '.networks.management_gateway // "192.168.69.1"' "$CONFIG_FILE")
+MGMT_GATEWAY="${MANAGEMENT_GW:-$(jq -r '.networks.management_gateway // "192.168.69.1"' "$CONFIG_FILE")}"
 QINQ_OUTER=$(jq -r '.networks.qinq_outer // 400' "$CONFIG_FILE")
 
 # bond configuration
@@ -152,6 +155,22 @@ iface vmbr0 inet static
     bridge-ports ${MGMT_IFACE}
     bridge-stp off
     bridge-fd 0
+INTERFACES
+
+  # add IPv6 to vmbr0 if present
+  if [[ -n "$MANAGEMENT_V6" ]]; then
+    cat <<VMBR0_V6
+iface vmbr0 inet6 static
+    address ${MANAGEMENT_V6}
+    gateway ${MANAGEMENT_V6_GW}
+    pre-up echo 0 > /proc/sys/net/ipv6/conf/vmbr0/accept_ra
+    pre-up echo 0 > /proc/sys/net/ipv6/conf/vmbr0/autoconf
+    accept_ra 0
+    autoconf 0
+VMBR0_V6
+  fi
+
+  cat <<INTERFACES
 
 # physical interfaces for bonding
 INTERFACES
