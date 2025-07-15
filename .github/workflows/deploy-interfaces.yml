@@ -1,0 +1,56 @@
+name: Deploy Interfaces Config
+on:
+  workflow_dispatch:
+    inputs:
+      server:
+        description: "Target server"
+        required: true
+        type: choice
+        options:
+          - bkk06
+          - bkk07
+          - bkk08
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy interfaces
+        run: |
+          # nc: port mapping for ssh access
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
+
+          # nc: generate and deploy config
+          echo "Generating interfaces config for $SERVER"
+          ./deploy/network/gencfg.sh -c ./deploy/config.json $SERVER > /tmp/interfaces.conf
+
+          # nc: backup existing config
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'cp /etc/network/interfaces /etc/network/interfaces.bak' || true
+
+          # nc: deploy new config
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
+            /tmp/interfaces.conf root@160.22.181.181:/etc/network/interfaces
+
+          # nc: validate and reload
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'ifreload -a'
+
+          rm -f /tmp/interfaces.conf
