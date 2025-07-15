@@ -37,8 +37,8 @@ fi
 
 # extract site config
 SITE_CONFIG=$(jq -r ".sites.$SITE" "$CONFIG_FILE")
-SITE_NUM="${SITE#bkk}"  # extract number from site name
-SITE_NUM="${SITE_NUM#0}"  # remove leading zero if present
+SITE_NUM="${SITE#bkk}"   # extract number from site name
+SITE_NUM="${SITE_NUM#0}" # remove leading zero if present
 
 # extract configuration values
 ROUTER_ID=$(echo "$SITE_CONFIG" | jq -r '.router_id')
@@ -87,6 +87,8 @@ BOND_MTU=$(jq -r '.bond_config.mtu // 9000' "$CONFIG_FILE")
 # VLAN IDs based on site number (pad to 2 digits)
 VLAN_RR1="1$(printf "%02d" "$SITE_NUM")"
 VLAN_RR2="2$(printf "%02d" "$SITE_NUM")"
+VLAN_RR3="3$(printf "%02d" "$SITE_NUM")"
+VLAN_RR4="4$(printf "%02d" "$SITE_NUM")"
 
 # fix IPv6 addresses to ensure no extra colons
 INTERNAL_V6_PREFIX="${INTERNAL_V6%%/*}"
@@ -109,6 +111,8 @@ auto lo
 iface lo inet loopback
     # router ID
     up ip addr add ${ROUTER_ID}/32 dev lo
+    # public IPv4
+    up ip addr add ${PUBLIC_V4}/32 dev lo
 INTERFACES
 
   # add anycast IPs if present
@@ -212,13 +216,27 @@ auto vlan${VLAN_RR1}
 iface vlan${VLAN_RR1} inet manual
     vlan-raw-device bond0.${QINQ_OUTER}
     vlan-id ${VLAN_RR1}
-    mtu 1500
+    mtu ${BOND_MTU}
 
 # Q-in-Q inner VLAN ${VLAN_RR2} (to bkk20/rr2)
 auto vlan${VLAN_RR2}
 iface vlan${VLAN_RR2} inet manual
     vlan-raw-device bond0.${QINQ_OUTER}
     vlan-id ${VLAN_RR2}
+    mtu ${BOND_MTU}
+
+# Q-in-Q inner VLAN ${VLAN_RR3} (via bkk10 to bkk00/rr2)
+auto vlan${VLAN_RR3}
+iface vlan${VLAN_RR3} inet manual
+    vlan-raw-device bond0.${QINQ_OUTER}
+    vlan-id ${VLAN_RR3}
+    mtu 1500
+    
+# Q-in-Q inner VLAN ${VLAN_RR4} (via bkk10 to bkk20/rr2)
+auto vlan${VLAN_RR4}
+iface vlan${VLAN_RR4} inet manual
+    vlan-raw-device bond0.${QINQ_OUTER}
+    vlan-id ${VLAN_RR4}
     mtu 1500
 
 # internal services bridge
@@ -252,24 +270,24 @@ INTERFACES
     # anycast source routing for IPv4
     post-up echo "100 anycast" >> /etc/iproute2/rt_tables 2>/dev/null || true
 ANYCAST_V4
-    
+
     if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
       echo "    post-up ip rule add from ${ANYCAST_LOCAL_V4} table anycast priority 100 2>/dev/null || true"
     fi
     if [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
       echo "    post-up ip rule add from ${ANYCAST_GLOBAL_V4} table anycast priority 100 2>/dev/null || true"
     fi
-    
+
     echo "    post-up ip route add default table anycast nexthop via ${RR1_GW_V4} dev vmbr2 weight 1 nexthop via ${RR2_GW_V4} dev vmbr2 weight 1 2>/dev/null || true"
     echo "    # cleanup on interface down"
-    
+
     if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
       echo "    pre-down ip rule del from ${ANYCAST_LOCAL_V4} table anycast 2>/dev/null || true"
     fi
     if [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
       echo "    pre-down ip rule del from ${ANYCAST_GLOBAL_V4} table anycast 2>/dev/null || true"
     fi
-    
+
     echo "    pre-down ip route flush table anycast 2>/dev/null || true"
   fi
 
@@ -289,29 +307,29 @@ INTERFACES
     RR2_GW_V6_CLEAN="${RR2_GW_V6%::0}"
     [[ "$RR1_GW_V6_CLEAN" != *:: ]] && RR1_GW_V6_CLEAN="${RR1_GW_V6_CLEAN}::"
     [[ "$RR2_GW_V6_CLEAN" != *:: ]] && RR2_GW_V6_CLEAN="${RR2_GW_V6_CLEAN}::"
-    
+
     cat <<ANYCAST_V6
     # anycast source routing for IPv6
     post-up echo "100 anycast" >> /etc/iproute2/rt_tables 2>/dev/null || true
 ANYCAST_V6
-    
+
     if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
       echo "    post-up ip -6 rule add from ${ANYCAST_LOCAL_V6} table anycast priority 100 2>/dev/null || true"
     fi
     if [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
       echo "    post-up ip -6 rule add from ${ANYCAST_GLOBAL_V6} table anycast priority 100 2>/dev/null || true"
     fi
-    
+
     echo "    post-up ip -6 route add default table anycast nexthop via ${RR1_GW_V6_CLEAN} dev vmbr2 weight 1 nexthop via ${RR2_GW_V6_CLEAN} dev vmbr2 weight 1 2>/dev/null || true"
     echo "    # cleanup on interface down"
-    
+
     if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
       echo "    pre-down ip -6 rule del from ${ANYCAST_LOCAL_V6} table anycast 2>/dev/null || true"
     fi
     if [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
       echo "    pre-down ip -6 rule del from ${ANYCAST_GLOBAL_V6} table anycast 2>/dev/null || true"
     fi
-    
+
     echo "    pre-down ip -6 route flush table anycast 2>/dev/null || true"
   fi
 }
