@@ -1,4 +1,4 @@
-# 2025-07-15 13:48:55 by RouterOS 7.20beta2
+# 2025-07-15 14:14:05 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -11,7 +11,7 @@
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface vlan add interface=bridge_vlan name=vlan300 vlan-id=300
+/interface vlan add interface=bridge_vlan name=vlan301 vlan-id=301
 /interface vlan add interface=bridge_vlan name=vlan400-bgp vlan-id=400
 /interface bonding add arp-timeout=4h comment=WAN-LAG-sfp2 lacp-rate=1sec mode=802.3ad name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
@@ -69,6 +69,7 @@
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,BKK40-LAG vlan-ids=400
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=300
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=301
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
@@ -105,7 +106,7 @@
 /ip address add address=10.155.208.0/31 interface=qnq-208-400 network=10.155.208.0
 /ip address add address=10.155.206.0/31 interface=qnq-206-400 network=10.155.206.0
 /ip address add address=10.155.207.0/31 interface=qnq-207-400 network=10.155.207.0
-/ip address add address=172.16.210.0/31 interface=vlan300 network=172.16.210.0
+/ip address add address=172.16.210.0/31 interface=vlan301 network=172.16.210.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
@@ -550,14 +551,13 @@
 /routing ospf interface-template add area=backbone comment=GW-BKK50-LAG-v4 disabled=no networks=172.16.20.0/30
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-LAG-v6 disabled=no networks=fd00:dead:beef:30::2/126
 /routing ospf interface-template add area=backbone comment=EDGE-BKK00-LAG-v4 disabled=no networks=172.16.30.0/30
-/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no networks=fd00:dead:beef:1020::1/127
-/routing ospf interface-template add area=backbone comment=GW-BKK10-LAG-v4 disabled=no networks=172.16.210.0/31
+/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no interfaces=vlan301 networks=fd00:dead:beef:1020::1/127
+/routing ospf interface-template add area=backbone comment=GW-BKK10-LAG-v4 disabled=no interfaces=vlan301 networks=172.16.210.0/31
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-v6 disabled=no networks=fd00:dead:beef::/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
-/routing ospf interface-template add area=backbone comment=vlan300-to-bkk10 disabled=no interfaces=vlan300 networks=172.16.210.0/31
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
