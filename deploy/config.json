@@ -11,9 +11,12 @@
       "public_v6": "2401:a860:1006::",
       "internal_v4": "10.6.0.0/16",
       "internal_v6": "2401:a860:1006::/48",
-      "management": "192.168.69.216/16",
+      "management": "192.168.76.1/16",
+      "management_gateway": "192.168.69.1",
+      "management_v6": "2401:a860:1181::76/64",
+      "management_v6_gateway": "2401:a860:1181::1",
       "anycast_local_v4": "160.22.181.81/32",
-      "anycast_local_v6": "2401:a860:1181::",
+      "anycast_local_v6": "2401:a860:1081::",
       "anycast_global_v4": "160.22.180.180/32",
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
@@ -38,9 +41,10 @@
       "public_v6": "2401:a860:1007::",
       "internal_v4": "10.7.0.0/16",
       "internal_v6": "2401:a860:1007::/48",
-      "management": "192.168.69.217/16",
+      "management": "192.168.77.1/16",
+      "management_gateway": "192.168.69.1",
       "anycast_local_v4": "160.22.181.81/32",
-      "anycast_local_v6": "2401:a860:1181::",
+      "anycast_local_v6": "2401:a860:1081::",
       "anycast_global_v4": "160.22.180.180/32",
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
@@ -51,8 +55,6 @@
         ],
         "unused": [
           "enp1s0f0np0",
-          "enp193s0f0",
-          "enp193s0f1",
           "enxbe3af2b6059f"
         ]
       }
@@ -68,6 +70,7 @@
       "internal_v4": "10.8.0.0/16",
       "internal_v6": "2401:a860:1008::/48",
       "management": "192.168.69.218/16",
+      "management_gateway": "192.168.69.1",
       "anycast_local_v4": "160.22.181.81/32",
       "anycast_local_v6": "2401:a860:1181::",
       "anycast_global_v4": "160.22.180.180/32",
