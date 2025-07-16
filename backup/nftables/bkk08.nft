@@ -1,0 +1,89 @@
+table inet filter {
+	set allowed_ssh {
+		type ipv4_addr
+		flags interval
+		elements = { 0.0.0.0/0 }
+	}
+
+	set allowed_ssh_v6 {
+		type ipv6_addr
+		flags interval
+		elements = { ::/0 }
+	}
+
+	chain input {
+		type filter hook input priority filter; policy drop;
+		ct state established,related accept
+		ct state invalid drop
+		iif "lo" accept
+		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
+		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10/second accept
+		tcp dport 179 ip saddr { 10.155.108.0, 10.155.208.0 } accept
+		tcp dport 179 ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
+		udp dport { 3784, 4784 } ip saddr { 10.155.108.0, 10.155.208.0 } accept
+		udp dport { 3784, 4784 } ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
+		ip protocol ospf accept
+		ip6 nexthdr ospf accept
+		tcp dport 22 ip6 saddr ::/0 accept
+		tcp dport 22 ip saddr 0.0.0.0/0 accept
+		iifname "vmbr0" tcp dport { 111, 2049, 3128, 8006 } accept
+		iifname "vmbr0" udp dport { 111, 5405-5412 } accept
+		iifname "vmbr1" udp dport 53 accept
+		iifname "vmbr1" tcp dport 53 accept
+		iifname "vprivate" tcp dport { 3300, 6789, 6800-7300 } accept
+		limit rate 5/minute log prefix "[DROP-IN] "
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+		ct state established,related accept
+		ct state invalid drop
+		iifname "vmbr1" accept
+		iifname "vmbr0" accept
+		ct status dnat accept
+		ip saddr 192.168.0.0/16 accept
+		limit rate 5/minute log prefix "[DROP-FWD] "
+	}
+
+	chain output {
+		type filter hook output priority filter; policy accept;
+		oifname "vmbr2" ip daddr 10.155.108.0 accept
+		oifname "vmbr2" ip daddr 10.155.208.0 accept
+		oifname "vmbr2" ip6 daddr fd00:155:108:: accept
+		oifname "vmbr2" ip6 daddr fd00:155:208:: accept
+		oifname "vmbr2" ip daddr 10.0.0.0/8 drop
+		oifname "vmbr2" ip daddr 100.64.0.0/10 drop
+		oifname "vmbr2" ip daddr 127.16.0.0/12 drop
+		oifname "vmbr2" ip daddr 169.254.0.0/16 drop
+		oifname "vmbr2" ip daddr 172.16.0.0/12 drop
+		oifname "vmbr2" ip daddr 192.0.0.0/24 drop
+		oifname "vmbr2" ip daddr 192.0.2.0/24 drop
+		oifname "vmbr2" ip daddr 192.88.99.0/24 drop
+		oifname "vmbr2" ip daddr 192.168.0.0/16 drop
+		oifname "vmbr2" ip daddr 198.18.0.0/15 drop
+		oifname "vmbr2" ip daddr 198.51.100.0/24 drop
+		oifname "vmbr2" ip daddr 203.0.113.0/24 drop
+		oifname "vmbr2" ip daddr 224.0.0.0/4 drop
+		oifname "vmbr2" ip daddr 240.0.0.0/4 drop
+		oifname "vmbr2" ip daddr 255.255.255.255 drop
+	}
+}
+table ip nat {
+	chain prerouting {
+		type nat hook prerouting priority dstnat; policy accept;
+		tcp dport 80 dnat to 10.8.10.80
+		tcp dport 443 dnat to 10.8.10.80
+		tcp dport 8080 dnat to 10.8.10.80
+		tcp dport 2201 dnat to 10.8.10.1:22
+		tcp dport 2202 dnat to 10.8.10.2:22
+		tcp dport 2203 dnat to 10.8.10.3:22
+	}
+
+	chain postrouting {
+		type nat hook postrouting priority srcnat; policy accept;
+		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to 160.22.181.8
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to 160.22.181.8
+	}
+}
+table ip6 nat {
+}

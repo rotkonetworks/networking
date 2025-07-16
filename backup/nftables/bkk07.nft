@@ -1,0 +1,184 @@
+table inet filter {
+	set allowed_ssh {
+		type ipv4_addr
+		flags interval
+		elements = { 0.0.0.0/0 }
+	}
+
+	set allowed_ssh_v6 {
+		type ipv6_addr
+		flags interval
+		elements = { ::/0 }
+	}
+
+	chain input {
+		type filter hook input priority filter; policy drop;
+		ct state established,related accept
+		ct state invalid drop
+		iif "lo" accept
+		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
+		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10/second accept
+		tcp dport 179 ip saddr { 10.155.107.0/31, 10.155.207.0/31 } accept
+		tcp dport 179 ip6 saddr { fd00:155:107::/127, fd00:155:207::/127 } accept
+		udp dport { 3784, 4784 } ip saddr { 10.155.107.0/31, 10.155.207.0/31 } accept
+		udp dport { 3784, 4784 } ip6 saddr { fd00:155:107::/127, fd00:155:207::/127 } accept
+		ip protocol ospf accept
+		ip6 nexthdr ospf accept
+		tcp dport 22 ip6 saddr ::/0 accept
+		tcp dport 22 ip saddr 0.0.0.0/0 accept
+		iifname "vmbr0" tcp dport { 111, 2049, 3128, 8006 } accept
+		iifname "vmbr0" udp dport { 111, 5405-5412 } accept
+		iifname "vmbr1" udp dport 53 accept
+		iifname "vmbr1" tcp dport 53 accept
+		iifname "vprivate" tcp dport { 3300, 6789, 6800-7300 } accept
+		limit rate 5/minute log prefix "[DROP-IN] "
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+		ct state established,related accept
+		ct state invalid drop
+		iifname "vmbr1" accept
+		iifname "vmbr0" accept
+		ct status dnat accept
+		ip saddr 192.168.0.0/16 accept
+		limit rate 5/minute log prefix "[DROP-FWD] "
+	}
+
+	chain output {
+		type filter hook output priority filter; policy accept;
+		oifname "vmbr2" ip daddr 10.155.107.0/31 accept
+		oifname "vmbr2" ip daddr 10.155.207.0/31 accept
+		oifname "vmbr2" ip6 daddr fd00:155:107::/127 accept
+		oifname "vmbr2" ip6 daddr fd00:155:207::/127 accept
+		oifname "vmbr2" ip daddr 10.0.0.0/8 drop
+		oifname "vmbr2" ip daddr 100.64.0.0/10 drop
+		oifname "vmbr2" ip daddr 127.16.0.0/12 drop
+		oifname "vmbr2" ip daddr 169.254.0.0/16 drop
+		oifname "vmbr2" ip daddr 172.16.0.0/12 drop
+		oifname "vmbr2" ip daddr 192.0.0.0/24 drop
+		oifname "vmbr2" ip daddr 192.0.2.0/24 drop
+		oifname "vmbr2" ip daddr 192.88.99.0/24 drop
+		oifname "vmbr2" ip daddr 192.168.0.0/16 drop
+		oifname "vmbr2" ip daddr 198.18.0.0/15 drop
+		oifname "vmbr2" ip daddr 198.51.100.0/24 drop
+		oifname "vmbr2" ip daddr 203.0.113.0/24 drop
+		oifname "vmbr2" ip daddr 224.0.0.0/4 drop
+		oifname "vmbr2" ip daddr 240.0.0.0/4 drop
+		oifname "vmbr2" ip daddr 255.255.255.255 drop
+	}
+}
+table ip nat {
+	chain prerouting {
+		type nat hook prerouting priority dstnat; policy accept;
+		tcp dport 80 dnat to 10.7.10.80
+		tcp dport 443 dnat to 10.7.10.80
+		tcp dport 8080 dnat to 10.7.10.80
+		tcp dport 2201 dnat to 10.7.10.1:22
+		tcp dport 2202 dnat to 10.7.10.2:22
+		tcp dport 2203 dnat to 10.7.10.3:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2957 dnat to 192.168.77.50:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10957 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33957 dnat to 192.168.77.50:33957
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34957 dnat to 192.168.77.50:34957
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 35957 dnat to 192.168.77.50:35957
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2847 dnat to 192.168.77.18:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10847 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33847 dnat to 192.168.77.18:33847
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34847 dnat to 192.168.77.18:34847
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 35847 dnat to 192.168.77.18:35847
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2967 dnat to 192.168.77.60:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10967 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33967 dnat to 192.168.77.60:33967
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34967 dnat to 192.168.77.60:34967
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 35967 dnat to 192.168.77.60:35967
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2312 dnat to 192.168.77.12:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10312 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33312 dnat to 192.168.77.12:33312
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2322 dnat to 192.168.77.22:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10322 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33322 dnat to 192.168.77.22:33322
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34322 dnat to 192.168.77.22:34322
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 35322 dnat to 192.168.77.22:35322
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2332 dnat to 192.168.77.32:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10332 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33332 dnat to 192.168.77.32:33332
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34332 dnat to 192.168.77.32:34332
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 35332 dnat to 192.168.77.32:35332
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2342 dnat to 192.168.77.42:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10342 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33342 dnat to 192.168.77.42:33342
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34342 dnat to 192.168.77.42:34342
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 35342 dnat to 192.168.77.42:35342
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2902 dnat to 192.168.47.90:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10967 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2905 dnat to 192.168.47.94:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10967 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2612 dnat to 192.168.112.11:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10612 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 31012 dnat to 192.168.112.11:31012
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2642 dnat to 192.168.112.12:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10642 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 31022 dnat to 192.168.112.12:31022
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2662 dnat to 192.168.132.12:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10662 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33022 dnat to 192.168.132.12:33022
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2672 dnat to 192.168.112.13:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10672 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 31032 dnat to 192.168.112.13:31032
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2692 dnat to 192.168.132.13:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10692 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33032 dnat to 192.168.132.13:33032
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2845 dnat to 192.168.77.16:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10845 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 31052 dnat to 192.168.77.16:31052
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2935 dnat to 192.168.132.15:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10937 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33052 dnat to 192.168.132.15:33052
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2634 dnat to 192.168.132.11:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10634 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33012 dnat to 192.168.132.11:33012
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2869 dnat to 192.168.132.14:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10869 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 33042 dnat to 192.168.132.14:33042
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2623 dnat to 192.168.122.11:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10623 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 32012 dnat to 192.168.122.11:32012
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2651 dnat to 192.168.122.12:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10651 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 32022 dnat to 192.168.122.12:32022
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2828 dnat to 192.168.122.15:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10828 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 32052 dnat to 192.168.122.15:32052
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2830 dnat to 192.168.122.14:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10830 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 32042 dnat to 192.168.122.14:32042
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2601 dnat to 192.168.122.16:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10601 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 32062 dnat to 192.168.122.16:32062
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2996 dnat to 192.168.77.97:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10314 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2991 dnat to 192.168.77.91:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10991 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2917 dnat to 192.168.77.177:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10177 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2992 dnat to 192.168.77.92:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10172 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2482 dnat to 192.168.77.82:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 26682 dnat to 192.168.77.82:26682
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 2141 dnat to 192.168.241.10:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10141 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34004 dnat to 192.168.241.10:34004
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 3147 dnat to 192.168.141.17:22
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 10971 dnat to 192.168.69.98:10050
+		iifname "vmbr2" ip saddr != 10.7.0.0/16 tcp dport 34071 dnat to 192.168.141.17:34071
+	}
+
+	chain postrouting {
+		type nat hook postrouting priority srcnat; policy accept;
+		ip saddr 10.7.0.0/16 oifname "vmbr2" snat to 160.22.181.7
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to 160.22.181.7
+	}
+}
+table ip6 nat {
+}

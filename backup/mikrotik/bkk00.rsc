@@ -1,4 +1,4 @@
-# 2025-07-15 14:13:28 by RouterOS 7.20beta2
+# 2025-07-16 14:13:07 by RouterOS 7.20beta2
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -26,6 +26,9 @@
 /interface vlan add interface=vlan400-bgp name=qnq-106-400 vlan-id=106
 /interface vlan add interface=vlan400-bgp name=qnq-107-400 vlan-id=107
 /interface vlan add interface=vlan400-bgp name=qnq-108-400 vlan-id=108
+/interface vlan add interface=vlan400-bgp name=qnq-400-206 vlan-id=206
+/interface vlan add interface=vlan400-bgp name=qnq-400-207 vlan-id=207
+/interface vlan add interface=vlan400-bgp name=qnq-400-208 vlan-id=208
 /interface list add name=LAN
 /interface list add name=WAN
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
@@ -473,6 +476,9 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter community-list add comment=HGC-local-pref-380 communities=9304:382 list=HGC
 /routing filter community-list add communities=graceful-shutdown list=shutdown
 /routing filter community-list add comment="RFC 7999 BLACKHOLE" communities=65535:666 list=blackhole
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="Block leaked VLAN 308 anycast" rule="if (dst == 160.22.181.208/32) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="Block leaked VLAN 307 anycast" rule="if (dst == 160.22.181.207/32) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="Block leaked VLAN 306 anycast" rule="if (dst == 160.22.181.206/32) { reject; }"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"

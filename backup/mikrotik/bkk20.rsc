@@ -1,4 +1,4 @@
-# 2025-07-15 14:14:05 by RouterOS 7.20beta2
+# 2025-07-16 14:13:44 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -25,6 +25,9 @@
 /interface vlan add interface=vlan400-bgp name=qnq-206-400 vlan-id=206
 /interface vlan add interface=vlan400-bgp name=qnq-207-400 vlan-id=207
 /interface vlan add interface=vlan400-bgp name=qnq-208-400 vlan-id=208
+/interface vlan add interface=vlan400-bgp name=qnq-400-106 vlan-id=106
+/interface vlan add interface=vlan400-bgp name=qnq-400-107 vlan-id=107
+/interface vlan add interface=vlan400-bgp name=qnq-400-108 vlan-id=108
 /interface list add name=LAN
 /interface list add name=WAN
 /port set 0 name=serial0
@@ -73,7 +76,6 @@
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
-/interface list member add interface=*64 list=LAN
 /interface list member add interface=wg_rotko list=LAN
 /interface list member add interface=BKK10-LAG list=LAN
 /interface list member add interface=BKK50-LAG list=LAN
@@ -86,6 +88,11 @@
 /interface list member add interface=BKK00-LAG list=LAN
 /interface list member add interface=qsfp28-1-1 list=LAN
 /interface list member add interface=qsfp28-2-1 list=LAN
+/interface list member add interface=qnq-206-400 list=LAN
+/interface list member add interface=qnq-207-400 list=LAN
+/interface list member add interface=qnq-208-400 list=LAN
+/interface list member add interface=vlan301 list=LAN
+/interface list member add interface=vlan400-bgp list=LAN
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.10/32 interface=wg_rotko name=bkk10 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
@@ -194,7 +201,7 @@
 /ip firewall raw add action=accept chain=icmp icmp-options=8:0 protocol=icmp
 /ip firewall raw add action=drop chain=icmp
 /ip firewall raw add action=accept chain=prerouting comment="accept LAN after RFC checks" in-interface-list=LAN
-/ip firewall raw add action=add-src-to-address-list address-list=seen-junk address-list-timeout=1h chain=prerouting comment="DEFAULT-DROP (log + mark first packet)" in-interface-list=WAN log=yes log-prefix="DEFAULT-DROP " src-address-list=!seen-junk
+/ip firewall raw add action=add-src-to-address-list address-list=seen-junk address-list-timeout=1h chain=prerouting comment="DEFAULT-DROP (log + mark first packet)" disabled=yes in-interface-list=WAN log=yes log-prefix="DEFAULT-DROP " src-address-list=!seen-junk
 /ip firewall raw add action=drop chain=prerouting comment="everything else dies" disabled=yes log=yes log-prefix=DEFAULT-DROP
 /ip firewall raw add action=drop chain=prerouting comment="drop rest of junk" disabled=yes
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
@@ -219,6 +226,7 @@
 /ip route add blackhole comment=global_unicast_v4 distance=240 dst-address=160.22.181.0/24
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" dst-address=240.0.0.0/4
+/ip route add disabled=yes distance=150 dst-address=160.22.181.81 gateway=10.155.208.1
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
