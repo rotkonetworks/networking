@@ -1,4 +1,4 @@
-# 2025-07-16 14:13:44 by RouterOS 7.20beta2
+# 2025-07-17 14:13:57 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -11,7 +11,6 @@
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface vlan add interface=bridge_vlan name=vlan301 vlan-id=301
 /interface vlan add interface=bridge_vlan name=vlan400-bgp vlan-id=400
 /interface bonding add arp-timeout=4h comment=WAN-LAG-sfp2 lacp-rate=1sec mode=802.3ad name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
@@ -22,12 +21,12 @@
 /interface vlan add interface=AMSIX-LAG name=HK-AMS-IX-vlan3994 vlan-id=3994
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-backup-vlan2517 vlan-id=2517
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
-/interface vlan add interface=vlan400-bgp name=qnq-206-400 vlan-id=206
-/interface vlan add interface=vlan400-bgp name=qnq-207-400 vlan-id=207
-/interface vlan add interface=vlan400-bgp name=qnq-208-400 vlan-id=208
 /interface vlan add interface=vlan400-bgp name=qnq-400-106 vlan-id=106
 /interface vlan add interface=vlan400-bgp name=qnq-400-107 vlan-id=107
 /interface vlan add interface=vlan400-bgp name=qnq-400-108 vlan-id=108
+/interface vlan add interface=vlan400-bgp name=qnq-400-206 vlan-id=206
+/interface vlan add interface=vlan400-bgp name=qnq-400-207 vlan-id=207
+/interface vlan add interface=vlan400-bgp name=qnq-400-208 vlan-id=208
 /interface list add name=LAN
 /interface list add name=WAN
 /port set 0 name=serial0
@@ -88,10 +87,10 @@
 /interface list member add interface=BKK00-LAG list=LAN
 /interface list member add interface=qsfp28-1-1 list=LAN
 /interface list member add interface=qsfp28-2-1 list=LAN
-/interface list member add interface=qnq-206-400 list=LAN
-/interface list member add interface=qnq-207-400 list=LAN
-/interface list member add interface=qnq-208-400 list=LAN
-/interface list member add interface=vlan301 list=LAN
+/interface list member add interface=qnq-400-206 list=LAN
+/interface list member add interface=qnq-400-207 list=LAN
+/interface list member add interface=qnq-400-208 list=LAN
+/interface list member add interface=*6D list=LAN
 /interface list member add interface=vlan400-bgp list=LAN
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.10/32 interface=wg_rotko name=bkk10 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
@@ -110,10 +109,10 @@
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
 /ip address add address=10.155.254.200/24 interface=vlan400-bgp network=10.155.254.0
-/ip address add address=10.155.208.0/31 interface=qnq-208-400 network=10.155.208.0
-/ip address add address=10.155.206.0/31 interface=qnq-206-400 network=10.155.206.0
-/ip address add address=10.155.207.0/31 interface=qnq-207-400 network=10.155.207.0
-/ip address add address=172.16.210.0/31 interface=vlan301 network=172.16.210.0
+/ip address add address=10.155.208.0/31 interface=qnq-400-208 network=10.155.208.0
+/ip address add address=10.155.206.0/31 interface=qnq-400-206 network=10.155.206.0
+/ip address add address=10.155.207.0/31 interface=qnq-400-207 network=10.155.207.0
+/ip address add address=172.16.110.0/31 interface=BKK10-LAG network=172.16.110.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
@@ -253,9 +252,9 @@
 /ipv6 address add address=fd00:dead:beef:2050::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=2401:a860:1181:1020::1/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
 /ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
-/ipv6 address add address=fd00:155:206::/127 advertise=no interface=qnq-206-400
-/ipv6 address add address=fd00:155:207::/127 advertise=no interface=qnq-207-400
-/ipv6 address add address=fd00:155:208::/127 advertise=no interface=qnq-208-400
+/ipv6 address add address=fd00:155:206::/127 advertise=no interface=qnq-400-206
+/ipv6 address add address=fd00:155:207::/127 advertise=no interface=qnq-400-207
+/ipv6 address add address=fd00:155:208::/127 advertise=no interface=qnq-400-208
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons
@@ -431,6 +430,8 @@
 /routing filter community-list add comment=HGC-local-pref-380 communities=9304:382 list=HGC
 /routing filter community-list add communities=graceful-shutdown list=shutdown
 /routing filter community-list add comment="RFC 7999 BLACKHOLE" communities=65535:666 list=blackhole
+/routing filter num-list add list=private-asn range=64512-65535
+/routing filter num-list add list=private-asn range=4200000000-4294967295
 /routing filter rule add chain=iBGP-OUT rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 48) { reject; }"
@@ -454,6 +455,10 @@
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="if (not bgp-network) { reject; }"
+/routing filter rule add chain=iBGP-IN disabled=yes rule="if (dst in 10.155.0.0/17) { reject;} "
+/routing filter rule add chain=iBGP-IN comment="vlan106 not on this router" rule="if (gw in 10.155.106.0/24) { reject; }"
+/routing filter rule add chain=iBGP-IN comment="vlan107 not on this router" rule="if (gw in 10.155.107.0/24) { reject; }"
+/routing filter rule add chain=iBGP-IN comment="vlan108 not on this router" rule="if (gw in 10.155.108.0/24) { reject; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
 /routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
@@ -520,6 +525,9 @@
 /routing filter rule add chain=AMSIX-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities amsix-hk-communities; set bgp-local-pref 150; accept"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities hgc-th-hk-communities; set bgp-local-pref 140; accept"
 /routing filter rule add chain=graceful-shutdown rule="set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept"
+/routing filter rule add chain=iBGP-IN-v6 comment="vlan107 not in this router" rule="if (gw in fd00:155:107::/64) { reject; }"
+/routing filter rule add chain=iBGP-IN-v6 comment="vlan106 not in this router" rule="if (gw in fd00:155:106::/64) { reject; }"
+/routing filter rule add chain=iBGP-IN-v6 comment="vlan108 not in this router" rule="if (gw in fd00:155:108::/64) { reject; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
 /routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
@@ -543,14 +551,23 @@
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=accept-all rule="accept;"
 /routing filter rule add chain=ROUTEVIEWS-IN-v6 comment=discard rule="reject;"
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.0.0/17) { reject; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.128.0/17) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan106 not on this router" rule="if (gw in 10.155.106.0/24) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan107 not on this router" rule="if (gw in 10.155.107.0/24) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan108 not on this router" rule="if (gw in 10.155.108.0/24) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in 10.155.0.0/17) { reject;} "
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan106 not in this router" rule="if (gw in fd00:155:106::/64) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan107 not in this router" rule="if (gw in fd00:155:107::/64) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan108 not in this router" rule="if (gw in fd00:155:108::/64) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing ospf interface-template add area=backbone-v6 comment=BKK20-LO-v6 disabled=no networks=fd00:dead:beef::20
@@ -559,8 +576,8 @@
 /routing ospf interface-template add area=backbone comment=GW-BKK50-LAG-v4 disabled=no networks=172.16.20.0/30
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-LAG-v6 disabled=no networks=fd00:dead:beef:30::2/126
 /routing ospf interface-template add area=backbone comment=EDGE-BKK00-LAG-v4 disabled=no networks=172.16.30.0/30
-/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no interfaces=vlan301 networks=fd00:dead:beef:1020::1/127
-/routing ospf interface-template add area=backbone comment=GW-BKK10-LAG-v4 disabled=no interfaces=vlan301 networks=172.16.210.0/31
+/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no interfaces=*6D networks=fd00:dead:beef:1020::1/127
+/routing ospf interface-template add area=backbone comment=GW-BKK10-LAG-v4 disabled=no interfaces=*6D networks=172.16.210.0/31
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-v6 disabled=no networks=fd00:dead:beef::/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
