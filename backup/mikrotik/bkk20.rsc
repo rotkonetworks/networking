@@ -1,4 +1,4 @@
-# 2025-07-17 14:13:57 by RouterOS 7.20beta2
+# 2025-07-18 14:14:24 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -63,7 +63,7 @@
 /interface bridge filter add action=accept chain=forward dst-mac-address=FF:FF:FF:FF:FF:FF/FF:FF:FF:FF:FF:FF out-interface-list=WAN
 /interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
-/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK10-LAG
+/interface bridge port add bridge=bridge_vlan interface=BKK10-LAG
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK40-LAG
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
@@ -72,6 +72,7 @@
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,BKK40-LAG vlan-ids=400
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=300
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=301
+/interface bridge vlan add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
@@ -112,7 +113,7 @@
 /ip address add address=10.155.208.0/31 interface=qnq-400-208 network=10.155.208.0
 /ip address add address=10.155.206.0/31 interface=qnq-400-206 network=10.155.206.0
 /ip address add address=10.155.207.0/31 interface=qnq-400-207 network=10.155.207.0
-/ip address add address=172.16.110.0/31 interface=BKK10-LAG network=172.16.110.0
+/ip address add address=172.16.210.0/31 interface=BKK10-LAG network=172.16.210.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
