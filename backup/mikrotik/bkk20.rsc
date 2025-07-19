@@ -1,4 +1,4 @@
-# 2025-07-18 14:14:24 by RouterOS 7.20beta2
+# 2025-07-19 14:09:32 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -63,16 +63,12 @@
 /interface bridge filter add action=accept chain=forward dst-mac-address=FF:FF:FF:FF:FF:FF/FF:FF:FF:FF:FF:FF out-interface-list=WAN
 /interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
-/interface bridge port add bridge=bridge_vlan interface=BKK10-LAG
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK40-LAG
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,BKK40-LAG vlan-ids=400
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=300
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=301
-/interface bridge vlan add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK40-LAG vlan-ids=400
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
@@ -249,9 +245,9 @@
 /ipv6 address add address=fd00:dead:beef:30::2/126 advertise=no interface=BKK00-LAG
 /ipv6 address add address=2401:a860:1181::20/128 advertise=no comment=BKK20-GUA-SG-OUT interface=lo
 /ipv6 address add address=fd00:dead:beef::1/127 advertise=no comment=EDGE-BKK00-LUA interface=BKK00-LAG
-/ipv6 address add address=fd00:dead:beef:1020::1/127 advertise=no comment="ULA P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=fd00:dead:beef:2010::/127 advertise=no comment="ULA P2P to BKK10" interface=BKK10-LAG
 /ipv6 address add address=fd00:dead:beef:2050::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
-/ipv6 address add address=2401:a860:1181:1020::1/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
+/ipv6 address add address=2401:a860:1181:2010::/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
 /ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=fd00:155:206::/127 advertise=no interface=qnq-400-206
 /ipv6 address add address=fd00:155:207::/127 advertise=no interface=qnq-400-207
