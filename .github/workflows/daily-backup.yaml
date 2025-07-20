@@ -152,4 +152,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add backup/
           git diff --cached --quiet || git commit -m "Config export $(date -u +%Y-%m-%d)"
-          git push
+          git push --force-with-lease
