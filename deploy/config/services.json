@@ -1,0 +1,349 @@
+{
+  "haproxy": {
+    "bind_ips": [
+      "*",
+      "185.16.38.165",
+      "2a0e:8f01:1000:18::165"
+    ],
+    "domain_suffixes": [
+      "rotko.net",
+      "dotters.network",
+      "ibp.network"
+    ]
+  },
+  "rpc_nodes": {
+    "polkadot": {
+      "type": "relay",
+      "instances": {
+        "rpc-polkadot-01-bkk06": {
+          "address": "192.168.111.10",
+          "port": 9300
+        },
+        "rpc-polkadot-02-bkk07": {
+          "address": "192.168.77.12",
+          "port": 9312
+        },
+        "rpc-polkadot-03-bkk08": {
+          "address": "192.168.113.10",
+          "port": 9300
+        }
+      }
+    },
+    "kusama": {
+      "type": "relay",
+      "instances": {
+        "rpc-kusama-01-bkk06": {
+          "address": "192.168.121.10",
+          "port": 9300
+        },
+        "rpc-kusama-02-bkk07": {
+          "address": "192.168.77.22",
+          "port": 9322
+        }
+      }
+    },
+    "westend": {
+      "type": "relay",
+      "instances": {
+        "rpc-westend-01-bkk06": {
+          "address": "192.168.131.10",
+          "port": 9300
+        },
+        "rpc-westend-02-bkk07": {
+          "address": "192.168.77.32",
+          "port": 9332
+        }
+      }
+    },
+    "paseo": {
+      "type": "relay",
+      "instances": {
+        "rpc-paseo-01-bkk06": {
+          "address": "192.168.141.10",
+          "port": 9300
+        },
+        "rpc-paseo-02-bkk07": {
+          "address": "192.168.77.42",
+          "port": 9342
+        }
+      }
+    },
+    "asset_hub_polkadot": {
+      "type": "system-parachain",
+      "aliases": ["statemint"],
+      "instances": {
+        "rpc-asset-hub-polkadot-01": {
+          "address": "192.168.111.11",
+          "port": 9400
+        },
+        "rpc-asset-hub-polkadot-02": {
+          "address": "192.168.112.11",
+          "port": 9400
+        }
+      }
+    },
+    "bridge_hub_polkadot": {
+      "type": "system-parachain",
+      "aliases": ["bridgehubPolkadot"],
+      "instances": {
+        "rpc-bridge-hub-polkadot-01": {
+          "address": "192.168.111.12",
+          "port": 9400
+        },
+        "rpc-bridge-hub-polkadot-02": {
+          "address": "192.168.112.12",
+          "port": 9400
+        }
+      }
+    },
+    "collectives_polkadot": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-collectives-polkadot-01": {
+          "address": "192.168.111.13",
+          "port": 9400
+        },
+        "rpc-collectives-polkadot-02": {
+          "address": "192.168.112.13",
+          "port": 9400
+        }
+      }
+    },
+    "coretime_polkadot": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-coretime-polkadot-01-bkk06": {
+          "address": "192.168.176.16",
+          "port": 9816
+        },
+        "rpc-coretime-polkadot-02-bkk07": {
+          "address": "192.168.77.16",
+          "port": 9400
+        }
+      }
+    },
+    "people_polkadot": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-people-polkadot-01-bkk06": {
+          "address": "192.168.76.18",
+          "port": 9400
+        },
+        "rpc-people-polkadot-02-bkk07": {
+          "address": "192.168.77.18",
+          "port": 9847
+        }
+      }
+    },
+    "asset_hub_kusama": {
+      "type": "system-parachain",
+      "aliases": ["statemine"],
+      "instances": {
+        "rpc-asset-hub-kusama-01-bkk06": {
+          "address": "192.168.121.11",
+          "port": 9400
+        },
+        "rpc-asset-hub-kusama-02-bkk07": {
+          "address": "192.168.122.11",
+          "port": 9400
+        }
+      }
+    },
+    "bridge_hub_kusama": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-bridge-hub-kusama-01-bkk06": {
+          "address": "192.168.121.12",
+          "port": 9400
+        },
+        "rpc-bridge-hub-kusama-02-bkk07": {
+          "address": "192.168.122.12",
+          "port": 9400
+        }
+      }
+    },
+    "coretime_kusama": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-coretime-kusama-01-bkk06": {
+          "address": "192.168.121.15",
+          "port": 9400
+        },
+        "rpc-coretime-kusama-02-bkk07": {
+          "address": "192.168.122.15",
+          "port": 9400
+        }
+      }
+    },
+    "people_kusama": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-people-kusama-01-bkk06": {
+          "address": "192.168.121.14",
+          "port": 9400
+        },
+        "rpc-people-kusama-02-bkk07": {
+          "address": "192.168.122.14",
+          "port": 9400
+        }
+      }
+    },
+    "encointer_kusama": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-encointer-kusama-01-bkk06": {
+          "address": "192.168.121.16",
+          "port": 9400
+        },
+        "rpc-encointer-kusama-02-bkk07": {
+          "address": "192.168.122.16",
+          "port": 9400
+        }
+      }
+    },
+    "hydration": {
+      "type": "parachain",
+      "aliases": ["hydradx"],
+      "instances": {
+        "hydration-polkadot-rpc-01": {
+          "address": "192.168.111.35",
+          "port": 9400
+        },
+        "hydration-polkadot-rpc-02": {
+          "address": "192.168.112.35",
+          "port": 9400
+        }
+      }
+    },
+    "acala": {
+      "type": "parachain",
+      "instances": {
+        "acala-polkadot-rpc-01": {
+          "address": "192.168.111.33",
+          "port": 9400
+        },
+        "acala-polkadot-rpc-02": {
+          "address": "192.168.112.33",
+          "port": 9400
+        }
+      }
+    },
+    "ajuna": {
+      "type": "parachain",
+      "instances": {
+        "ajuna-polkadot-rpc-01": {
+          "address": "192.168.111.37",
+          "port": 9400
+        },
+        "ajuna-polkadot-rpc-02": {
+          "address": "192.168.112.37",
+          "port": 9400
+        }
+      }
+    },
+    "bifrost_polkadot": {
+      "type": "parachain",
+      "instances": {
+        "bifrost-polkadot-rpc-01": {
+          "address": "192.168.111.36",
+          "port": 9400
+        },
+        "bifrost-polkadot-rpc-02": {
+          "address": "192.168.112.36",
+          "port": 9400
+        }
+      }
+    },
+    "kilt": {
+      "type": "parachain",
+      "instances": {
+        "kilt-polkadot-rpc-01": {
+          "address": "192.168.86.86",
+          "port": 9400
+        },
+        "kilt-polkadot-rpc-02": {
+          "address": "192.168.112.34",
+          "port": 9400
+        }
+      }
+    },
+    "moonbeam": {
+      "type": "parachain",
+      "instances": {
+        "moonbeam-polkadot-rpc-01": {
+          "address": "192.168.111.30",
+          "port": 9400
+        },
+        "moonbeam-polkadot-rpc-02": {
+          "address": "192.168.112.30",
+          "port": 9400
+        }
+      }
+    },
+    "mythos": {
+      "type": "parachain",
+      "instances": {
+        "mythos-polkadot-rpc-01": {
+          "address": "192.168.111.42",
+          "port": 9400
+        },
+        "mythos-polkadot-rpc-02": {
+          "address": "192.168.112.42",
+          "port": 9400
+        }
+      }
+    },
+    "nexus": {
+      "type": "parachain",
+      "instances": {
+        "nexus-polkadot-rpc-01": {
+          "address": "192.168.111.31",
+          "port": 9400
+        },
+        "nexus-polkadot-rpc-02": {
+          "address": "192.168.112.31",
+          "port": 9400
+        }
+      }
+    },
+    "polimec": {
+      "type": "parachain",
+      "instances": {
+        "polimec-polkadot-rpc-01": {
+          "address": "192.168.111.38",
+          "port": 9400
+        },
+        "polimec-polkadot-rpc-02": {
+          "address": "192.168.112.38",
+          "port": 9400
+        }
+      }
+    },
+    "unique": {
+      "type": "parachain",
+      "instances": {
+        "unique-polkadot-rpc-01": {
+          "address": "192.168.111.39",
+          "port": 9400
+        },
+        "unique-polkadot-rpc-02": {
+          "address": "192.168.112.39",
+          "port": 9400
+        }
+      }
+    },
+    "xcavate": {
+      "type": "parachain",
+      "instances": {
+        "xcavate-polkadot-rpc-01": {
+          "address": "192.168.111.41",
+          "port": 9400
+        },
+        "xcavate-polkadot-rpc-02": {
+          "address": "192.168.112.41",
+          "port": 9400
+        }
+      }
+    }
+  }
+}

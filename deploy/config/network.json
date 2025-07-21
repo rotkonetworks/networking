@@ -142,21 +142,6 @@
     "lacp_rate": "fast",
     "mtu": 9000
   },
-  "services": {
-    "web": {
-      "ports": [
-        80,
-        443,
-        8080
-      ],
-      "target": "10.8.10.80"
-    },
-    "ssh_containers": {
-      "2201": "10.8.10.1:22",
-      "2202": "10.8.10.2:22",
-      "2203": "10.8.10.3:22"
-    }
-  },
   "interfaces": {
     "management": "vmbr0",
     "internal": "vmbr1",
