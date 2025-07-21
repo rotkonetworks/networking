@@ -208,7 +208,7 @@
     }
   },
   "bond_config": {
-    "mode": "802.3ad",
+    "mode": "active-backup",
     "miimon": 100,
     "lacp_rate": "fast",
     "mtu": 9000

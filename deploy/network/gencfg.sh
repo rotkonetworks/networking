@@ -192,7 +192,9 @@ VMBR0_V6
     # Split uplink configuration
     UPLINK1=$(echo "$BOND_MEMBERS" | awk '{print $1}')
     UPLINK2=$(echo "$BOND_MEMBERS" | awk '{print $2}')
-    
+    UP1_BASE="100$(printf '%s' "$UPLINK1" | sed 's/^.*\(..\)$/\1/')"
+    UP2_BASE=$(printf "%s" "$UPLINK2" | sed 's/^.*\(.\{5\}\)$/\1/')
+
     cat <<BONDED_CONFIG
 
 # physical interfaces for split uplinks
@@ -212,14 +214,14 @@ BONDED_CONFIG
     cat <<BONDED_CONFIG
 
 # VLAN 400 on each physical interface
-auto ${UPLINK1}.${QINQ_OUTER}
-iface ${UPLINK1}.${QINQ_OUTER} inet manual
+auto ${UP1_BASE}.${QINQ_OUTER}
+iface ${UP1_BASE}.${QINQ_OUTER} inet manual
     vlan-raw-device ${UPLINK1}
     vlan-id ${QINQ_OUTER}
     mtu ${BOND_MTU}
 
-auto ${UPLINK2}.${QINQ_OUTER}
-iface ${UPLINK2}.${QINQ_OUTER} inet manual
+auto ${UP2_BASE}.${QINQ_OUTER}
+iface ${UP2_BASE}.${QINQ_OUTER} inet manual
     vlan-raw-device ${UPLINK2}
     vlan-id ${QINQ_OUTER}
     mtu ${BOND_MTU}
@@ -255,6 +257,7 @@ auto bond-bkk00
 iface bond-bkk00 inet manual
     bond-slaves vlan${VLAN_RR1_DIRECT} vlan${VLAN_RR1_VIA_BKK10}
     bond-mode ${BOND_MODE}
+    bond-primary vlan${VLAN_RR1_DIRECT}
     bond-miimon ${BOND_MIIMON}
     bond-lacp-rate ${BOND_LACP_RATE}
     bond-xmit-hash-policy layer3+4
@@ -265,6 +268,7 @@ auto bond-bkk20
 iface bond-bkk20 inet manual
     bond-slaves vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR2_VIA_BKK10}
     bond-mode ${BOND_MODE}
+    bond-primary vlan${VLAN_RR2_DIRECT}
     bond-miimon ${BOND_MIIMON}
     bond-lacp-rate ${BOND_LACP_RATE}
     bond-xmit-hash-policy layer3+4
