@@ -53,7 +53,7 @@ jobs:
 
           # nc: generate and deploy config
           echo "Generating BIRD config for $SERVER"
-          ./deploy/bird/gencfg.sh -c ./deploy/config.json $SERVER > /tmp/bird.conf
+          ./deploy/bird/gencfg.sh -c ./deploy/config/network.json $SERVER > /tmp/bird.conf
 
           # nc: backup existing config
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
