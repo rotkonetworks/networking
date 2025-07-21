@@ -255,13 +255,28 @@ generate_public_services() {
         # Bootnode P2P ports
 PUBLIC
 
-  # Get all unique P2P ports
-  local p2p_ports=$(jq -r '.bootnodes[].ports.p2p' "$SERVICES_FILE" | sort -u | tr '\n' ',' | sed 's/,$//')
-  local p2p_ws_ports=$(jq -r '.bootnodes[].ports.p2p_ws' "$SERVICES_FILE" | sort -u | tr '\n' ',' | sed 's/,$//')
-  
+  # collect all p2p ports (always defined)
+  local p2p_ports
+  p2p_ports=$(jq -r '.bootnodes[].ports.p2p' "$SERVICES_FILE" |
+    sort -u |
+    tr '\n' ',' |
+    sed 's/,$//')
+
+  # collect only non-null websocket ports
+  local p2p_wss_ports
+  p2p_wss_ports=$(jq -r '.bootnodes[].ports.p2p_wss? // empty' "$SERVICES_FILE" |
+    sort -u |
+    tr '\n' ',' |
+    sed 's/,$//')
+
+  # emit IPv4 rules
   echo "        tcp dport { ${p2p_ports} } accept"
   echo "        udp dport { ${p2p_ports} } accept"
-  echo "        tcp dport { ${p2p_ws_ports} } accept"
+
+  # only emit WS rule if there’s at least one port
+  if [[ -n "$p2p_wss_ports" ]]; then
+    echo "        tcp dport { ${p2p_wss_ports} } accept"
+  fi
 }
 
 # Generate forward chain
@@ -315,10 +330,10 @@ table ip nat {
         type nat hook prerouting priority dstnat; policy accept;
 
 NAT
-  
+
   # Generate bootnode port mappings
   generate_bootnode_mappings
-  
+
   cat <<NAT_POST
     }
 
@@ -341,17 +356,29 @@ NAT_POST
 # Generate bootnode port mappings
 generate_bootnode_mappings() {
   echo "        # Bootnode P2P ports"
-  
   # Read bootnodes from services.json
-  jq -r '.bootnodes | to_entries[] | "\(.key) \(.value.container) \(.value.ports.p2p) \(.value.ports.p2p_ws)"' "$SERVICES_FILE" | \
-  while read -r chain container p2p p2p_ws; do
+
+  jq -r --arg site "$SITE" '
+    .bootnodes
+    | to_entries[]
+    | (
+        .key as $chain
+        | (
+            .value.container
+            | if type=="object" then .[$site] else . end
+          ) as $container
+        | .value.ports.p2p as $p2p
+        | (.value.ports.p2p_wss // "") as $p2p_wss
+        | "\($chain) \($container) \($p2p) \($p2p_wss)"
+      )
+  ' "$SERVICES_FILE" | while read -r chain container p2p p2p_wss; do
     echo "        # ${chain}"
-    echo "        tcp dport ${p2p} dnat to ${container}:30333"
-    echo "        udp dport ${p2p} dnat to ${container}:30333"
-    if [[ -n "$p2p_ws" ]]; then
-      echo "        tcp dport ${p2p_ws} dnat to ${container}:30334"
+    echo "        tcp dport ${p2p} dnat to ${container}:${p2p}"
+    echo "        udp dport ${p2p} dnat to ${container}:${p2p}"
+    if [[ -n "$p2p_wss" ]]; then
+      echo "        tcp dport ${p2p_wss} dnat to ${container}:${p2p_wss}"
     fi
-    echo ""
+    echo
   done
 }
 

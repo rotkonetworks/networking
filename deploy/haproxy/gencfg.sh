@@ -231,6 +231,96 @@ backend no-access
 EOF
 }
 
+generate_wss_frontends() {
+  local bootchains_json="$1"
+  # we only care about the "rotko.net" suffix
+  local suffixes="rotko.net"
+
+  cat <<'EOF'
+
+# P2P WSS Frontends
+EOF
+
+  ### Relay chains on 30335 ###
+  echo "frontend p2p-relay-wss-passthrough"
+  echo "    bind *:30335"
+  echo "    mode tcp"
+  echo "    tcp-request inspect-delay 2s"
+  echo "    tcp-request content accept if { req_ssl_hello_type 1 }"
+  echo
+
+  # per-chain ACLs (relay)
+  jq -r 'to_entries[] | select(.value.type=="relay") | .key' <<<"$bootchains_json" \
+  | while read -r chain; do
+      # only *.boot.rotko.net
+      printf "    acl domain-match-%s req_ssl_sni -i %s.boot.rotko.net" "$chain" "$chain"
+      echo
+    done
+  echo
+
+  # per-chain routing (relay)
+  jq -r 'to_entries[] | select(.value.type=="relay") | .key' <<<"$bootchains_json" \
+  | while read -r chain; do
+      printf "    use_backend %s-p2p-wss-backend if domain-match-%s\n" "$chain" "$chain"
+    done
+  echo
+
+
+  ### Parachains on 30435 ###
+  echo "frontend p2p-parachain-wss-passthrough"
+  echo "    bind *:30435"
+  echo "    mode tcp"
+  echo "    tcp-request inspect-delay 2s"
+  echo "    tcp-request content accept if { req_ssl_hello_type 1 }"
+  echo
+
+  # per-chain ACLs (parachain)
+  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" \
+  | while read -r chain; do
+      printf "    acl domain-match-%s req_ssl_sni -i %s.boot.rotko.net" "$chain" "$chain"
+      echo
+    done
+  echo
+
+  # per-chain routing (parachain)
+  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" \
+  | while read -r chain; do
+      printf "    use_backend %s-p2p-wss-backend if domain-match-%s\n" "$chain" "$chain"
+    done
+  echo
+}
+
+# Generate P2P WSS backends
+generate_wss_backends() {
+  local bootchains_json="$1"
+
+  cat <<'EOF'
+
+# P2P WSS Backends
+EOF
+
+  # for each relay or parachain bootnode, pick its scalar container and static port
+  echo "$bootchains_json" \
+    | jq -r 'to_entries[]
+             | select(.value.type=="relay" or .value.type=="parachain")
+             | [.key, .value.type, .value.container]
+             | @tsv' \
+    | while IFS=$'\t' read -r chain ctype container; do
+    # static port: 30335 for relay, 30435 for parachain
+    if [[ "$ctype" == "relay" ]]; then
+      port=30335
+    else
+      port=30435
+    fi
+
+
+    echo "backend ${chain}-p2p-wss-backend"
+    echo "    mode tcp"
+    echo "    server ${chain} ${container}:${port} check"
+    echo
+  done
+}
+
 # Main function
 main() {
     if [[ ! -f "$SERVICES_CONFIG" ]]; then
@@ -240,6 +330,7 @@ main() {
     
     # Load configuration
     local rpc_nodes=$(jq -r '.rpc_nodes' "$SERVICES_CONFIG")
+    local bootnodes=$(jq -c '.bootnodes' "$SERVICES_CONFIG")
     
     echo "#"
     echo "# HAProxy configuration for IBP RPC nodes"
@@ -258,6 +349,10 @@ main() {
     generate_ssl_frontend "$rpc_nodes"
     echo ""
     generate_backends "$rpc_nodes"
+    echo ""
+    generate_wss_frontends "$(jq -c '.bootnodes' "$SERVICES_CONFIG")"
+    echo ""
+    generate_wss_backends "$bootnodes"
 }
 
 # Run main

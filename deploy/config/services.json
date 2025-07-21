@@ -1,15 +1,7 @@
 {
   "haproxy": {
-    "bind_ips": [
-      "*",
-      "185.16.38.165",
-      "2a0e:8f01:1000:18::165"
-    ],
-    "domain_suffixes": [
-      "rotko.net",
-      "dotters.network",
-      "ibp.network"
-    ]
+    "bind_ips": ["*", "185.16.38.165", "2a0e:8f01:1000:18::165"],
+    "domain_suffixes": ["rotko.net", "dotters.network", "ibp.network"]
   },
   "rpc_nodes": {
     "polkadot": {
@@ -343,6 +335,55 @@
           "address": "192.168.112.41",
           "port": 9400
         }
+      }
+    }
+  },
+  "bootnodes": {
+    "global-haproxy": {
+      "type": "haproxy",
+      "container": {
+        "bkk06": "192.168.76.91",
+        "bkk07": "192.168.77.91",
+        "bkk08": "192.168.78.91"
+      },
+      "ports": {
+        "p2p": 30335,
+        "p2p_wss": 30435
+      }
+    },
+    "polkadot": {
+      "container": "192.xxx",
+      "type": "relay",
+      "ports": {
+        "p2p": 9400
+      }
+    },
+    "bridge-hub-polkadot": {
+      "container": "192.xxx",
+      "type": "parachain",
+      "ports": {
+        "p2p": 3021
+      }
+    },
+    "westend": {
+      "container": "192.xxx",
+      "type": "relay",
+      "ports": {
+        "p2p": 4530
+      }
+    },
+    "bridge-hub-westend": {
+      "container": "192.xxx",
+      "type": "parachain",
+      "ports": {
+        "p2p": 4560
+      }
+    },
+    "kusama": {
+      "type": "relay",
+      "container": "192.xxx",
+      "ports": {
+        "p2p": 9320
       }
     }
   }
