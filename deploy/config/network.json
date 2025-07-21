@@ -1,6 +1,26 @@
 {
   "as_number": 142108,
   "sites": {
+    "bkk00": {
+      "router_id": "10.155.255.4",
+      "public_v4": "160.22.181.180",
+      "public_v6": "2401:a860:181::100",
+      "management": "192.168.88.100/24",
+      "role": "route_reflector",
+      "physical_interfaces": {
+        "management": "ether1"
+      }
+    },
+    "bkk20": {
+      "router_id": "10.155.255.2",
+      "public_v4": "160.22.181.178",
+      "public_v6": "2401:a860:181::20",
+      "management": "192.168.88.20/24",
+      "role": "route_reflector",
+      "physical_interfaces": {
+        "management": "ether1"
+      }
+    },
     "bkk06": {
       "router_id": "10.155.255.6",
       "bgp_local_rr1_v4": "10.155.106.1",
@@ -28,7 +48,12 @@
         "unused": [
           "enp193s0f0np0",
           "enxbe3af2b6059f"
-        ]
+        ],
+        "bonded_vlans": true,
+        "uplink_split": {
+          "enp193s0f1np1": "bkk30",
+          "eno1": "bkk10"
+        }
       }
     },
     "bkk07": {
@@ -56,7 +81,12 @@
         "unused": [
           "enp1s0f0np0",
           "enxbe3af2b6059f"
-        ]
+        ],
+        "bonded_vlans": true,
+        "uplink_split": {
+          "enp1s0f1np1": "bkk30",
+          "eno1": "bkk10"
+        }
       }
     },
     "bkk08": {
@@ -84,39 +114,70 @@
         "unused": [
           "enp193s0f0np0",
           "enxb03af2b6059f"
-        ]
+        ],
+        "bonded_vlans": true,
+        "uplink_split": {
+          "enp193s0f1np1": "bkk30",
+          "eno1": "bkk10"
+        }
+      }
+    },
+    "bkk10": {
+      "router_id": "10.155.255.10",
+      "management": "192.168.88.10/24",
+      "role": "l2_bridge",
+      "physical_interfaces": {
+        "management": "ether1"
+      }
+    },
+    "bkk30": {
+      "router_id": "10.155.255.30",
+      "management": "192.168.88.30/24",
+      "role": "l2_bridge",
+      "physical_interfaces": {
+        "management": "ether1"
+      }
+    },
+    "bkk40": {
+      "router_id": "10.155.255.40",
+      "management": "192.168.88.40/24",
+      "role": "l2_bridge",
+      "physical_interfaces": {
+        "management": "ether1"
       }
     }
   },
   "route_reflectors": {
     "rr1": {
-      "name": "BKK00",
+      "name": "bkk00",
+      "router_id": "10.155.255.4",
       "BKK06": {
         "v4": "10.155.106.0",
-        "v6": "fd00:155:106::0"
+        "v6": "fd00:155:106::"
       },
       "BKK07": {
         "v4": "10.155.107.0",
-        "v6": "fd00:155:107::0"
+        "v6": "fd00:155:107::"
       },
       "BKK08": {
         "v4": "10.155.108.0",
-        "v6": "fd00:155:108::0"
+        "v6": "fd00:155:108::"
       }
     },
     "rr2": {
-      "name": "BKK20",
+      "name": "bkk20",
+      "router_id": "10.155.255.2",
       "BKK06": {
         "v4": "10.155.206.0",
-        "v6": "fd00:155:206::0"
+        "v6": "fd00:155:206::"
       },
       "BKK07": {
         "v4": "10.155.207.0",
-        "v6": "fd00:155:207::0"
+        "v6": "fd00:155:207::"
       },
       "BKK08": {
         "v4": "10.155.208.0",
-        "v6": "fd00:155:208::0"
+        "v6": "fd00:155:208::"
       }
     }
   },
@@ -134,7 +195,17 @@
       "fd00::/8",
       "fe80::/10",
       "2401:a860::/32"
-    ]
+    ],
+    "public_v4": "160.22.180.0/23",
+    "public_v6": "2401:a860::/32",
+    "anycast_v4": {
+      "local": "160.22.181.0/24",
+      "global": "160.22.180.0/24"
+    },
+    "anycast_v6": {
+      "local": "2401:a860:1081::/48",
+      "global": "2401:a860::/36"
+    }
   },
   "bond_config": {
     "mode": "802.3ad",
@@ -142,12 +213,15 @@
     "lacp_rate": "fast",
     "mtu": 9000
   },
+  "vlan_scheme": {
+    "direct_to_rr1": "1XX",
+    "direct_to_rr2": "2XX",
+    "via_bkk10_to_rr1": "11X",
+    "via_bkk10_to_rr2": "21X"
+  },
   "interfaces": {
     "management": "vmbr0",
     "internal": "vmbr1",
-    "public": "vmbr2",
-    "bgp_vlan": "vlan208",
-    "storage_public": "vpublic",
-    "storage_private": "vprivate"
+    "public": "vmbr2"
   }
 }
