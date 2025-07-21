@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# network interfaces config generator
+# network interfaces config generator with bonded VLAN support
 set -euo pipefail
 
-# load config
-CONFIG_FILE="${CONFIG_FILE:-../config.json}"
+# Find script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="${CONFIG_FILE:-${SCRIPT_DIR}/../config/network.json}"
+
+# Parse options
 while getopts ':c:' opt; do
   case "$opt" in
   c) CONFIG_FILE="$OPTARG" ;;
@@ -25,13 +28,22 @@ readonly SITE="${1:-}"
 SITE_UPPER="$(echo "$SITE" | tr '[:lower:]' '[:upper:]')"
 if [[ -z "$SITE" ]]; then
   echo "usage: $0 <site>" >&2
-  echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
+  echo "valid sites: $(jq -r '.sites | to_entries[] | select(.value.bgp_local_rr1_v4 != null) | .key' "$CONFIG_FILE" | tr '\n' ' ')" >&2
   exit 1
 fi
 
 # validate site exists
 if ! jq -e ".sites.$SITE" "$CONFIG_FILE" >/dev/null 2>&1; then
   echo "error: invalid site: $SITE" >&2
+  echo "valid sites: $(jq -r '.sites | to_entries[] | select(.value.bgp_local_rr1_v4 != null) | .key' "$CONFIG_FILE" | tr '\n' ' ')" >&2
+  exit 1
+fi
+
+# Only allow generation for BIRD client sites
+SITE_ROLE=$(jq -r ".sites.$SITE.role // \"client\"" "$CONFIG_FILE")
+if [[ "$SITE_ROLE" != "client" ]] && [[ -z "$(jq -r ".sites.$SITE.bgp_local_rr1_v4 // empty" "$CONFIG_FILE")" ]]; then
+  echo "error: site $SITE is not a BIRD client (role: $SITE_ROLE)" >&2
+  echo "this generator only works for sites with BGP configuration" >&2
   exit 1
 fi
 
@@ -73,6 +85,7 @@ ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | 
 MGMT_IFACE=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.management // "eno2"')
 BOND_MEMBERS=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.bond_members[]?' 2>/dev/null | tr '\n' ' ')
 UNUSED_IFACES=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.unused[]?' 2>/dev/null | tr '\n' ' ')
+BONDED_VLANS=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.bonded_vlans // false')
 
 # global settings
 MGMT_GATEWAY="${MANAGEMENT_GW:-$(jq -r '.networks.management_gateway // "192.168.69.1"' "$CONFIG_FILE")}"
@@ -85,14 +98,13 @@ BOND_LACP_RATE=$(jq -r '.bond_config.lacp_rate // "fast"' "$CONFIG_FILE")
 BOND_MTU=$(jq -r '.bond_config.mtu // 9000' "$CONFIG_FILE")
 
 # VLAN IDs based on site number (pad to 2 digits)
-VLAN_RR1="1$(printf "%02d" "$SITE_NUM")"
-VLAN_RR2="2$(printf "%02d" "$SITE_NUM")"
-VLAN_RR3="3$(printf "%02d" "$SITE_NUM")"
-VLAN_RR4="4$(printf "%02d" "$SITE_NUM")"
+VLAN_RR1_DIRECT="1$(printf "%02d" "$SITE_NUM")"
+VLAN_RR2_DIRECT="2$(printf "%02d" "$SITE_NUM")"
+VLAN_RR1_VIA_BKK10="11${SITE_NUM}"
+VLAN_RR2_VIA_BKK10="21${SITE_NUM}"
 
 # fix IPv6 addresses to ensure no extra colons
 INTERNAL_V6_PREFIX="${INTERNAL_V6%%/*}"
-# remove all trailing colons
 while [[ "$INTERNAL_V6_PREFIX" == *: ]]; do
   INTERNAL_V6_PREFIX="${INTERNAL_V6_PREFIX%:}"
 done
@@ -164,6 +176,7 @@ INTERFACES
   # add IPv6 to vmbr0 if present
   if [[ -n "$MANAGEMENT_V6" ]]; then
     cat <<VMBR0_V6
+
 iface vmbr0 inet6 static
     address ${MANAGEMENT_V6}
     gateway ${MANAGEMENT_V6_GW}
@@ -174,26 +187,114 @@ iface vmbr0 inet6 static
 VMBR0_V6
   fi
 
-  cat <<INTERFACES
+  # Check if using bonded VLANs (new design)
+  if [[ "$BONDED_VLANS" == "true" ]]; then
+    # Split uplink configuration
+    UPLINK1=$(echo "$BOND_MEMBERS" | awk '{print $1}')
+    UPLINK2=$(echo "$BOND_MEMBERS" | awk '{print $2}')
+    UP1_BASE="100$(printf '%s' "$UPLINK1" | sed 's/^.*\(..\)$/\1/')"
+    UP2_BASE=$(printf "%s" "$UPLINK2" | sed 's/^.*\(.\{5\}\)$/\1/')
 
-# physical interfaces for bonding
-INTERFACES
+    cat <<BONDED_CONFIG
 
-  # list bond member interfaces
-  for iface in $BOND_MEMBERS; do
-    echo "iface $iface inet manual"
-  done
+# physical interfaces for split uplinks
+iface ${UPLINK1} inet manual
+    mtu ${BOND_MTU}
 
-  # list unused interfaces if any
-  if [[ -n "$UNUSED_IFACES" ]]; then
-    echo ""
-    echo "# unused interfaces"
+iface ${UPLINK2} inet manual
+    mtu ${BOND_MTU}
+
+# unused interfaces
+BONDED_CONFIG
+
     for iface in $UNUSED_IFACES; do
       echo "iface $iface inet manual"
     done
-  fi
 
-  cat <<INTERFACES
+    cat <<BONDED_CONFIG
+
+# VLAN 400 on each physical interface
+auto ${UP1_BASE}.${QINQ_OUTER}
+iface ${UP1_BASE}.${QINQ_OUTER} inet manual
+    vlan-raw-device ${UPLINK1}
+    vlan-id ${QINQ_OUTER}
+    mtu ${BOND_MTU}
+
+auto ${UP2_BASE}.${QINQ_OUTER}
+iface ${UP2_BASE}.${QINQ_OUTER} inet manual
+    vlan-raw-device ${UPLINK2}
+    vlan-id ${QINQ_OUTER}
+    mtu ${BOND_MTU}
+
+# Q-in-Q inner VLANs on first interface (via bkk30)
+auto vlan${VLAN_RR1_DIRECT}
+iface vlan${VLAN_RR1_DIRECT} inet manual
+    vlan-raw-device ${UPLINK1}.${QINQ_OUTER}
+    vlan-id ${VLAN_RR1_DIRECT}
+    mtu 1500
+
+auto vlan${VLAN_RR2_DIRECT}
+iface vlan${VLAN_RR2_DIRECT} inet manual
+    vlan-raw-device ${UPLINK1}.${QINQ_OUTER}
+    vlan-id ${VLAN_RR2_DIRECT}
+    mtu 1500
+
+# Q-in-Q inner VLANs on second interface (via bkk10)
+auto vlan${VLAN_RR1_VIA_BKK10}
+iface vlan${VLAN_RR1_VIA_BKK10} inet manual
+    vlan-raw-device ${UPLINK2}.${QINQ_OUTER}
+    vlan-id ${VLAN_RR1_VIA_BKK10}
+    mtu 1500
+
+auto vlan${VLAN_RR2_VIA_BKK10}
+iface vlan${VLAN_RR2_VIA_BKK10} inet manual
+    vlan-raw-device ${UPLINK2}.${QINQ_OUTER}
+    vlan-id ${VLAN_RR2_VIA_BKK10}
+    mtu 1500
+
+# Bond to bkk00 (direct + via bkk10)
+auto bond-bkk00
+iface bond-bkk00 inet manual
+    bond-slaves vlan${VLAN_RR1_DIRECT} vlan${VLAN_RR1_VIA_BKK10}
+    bond-mode ${BOND_MODE}
+    bond-primary vlan${VLAN_RR1_DIRECT}
+    bond-miimon ${BOND_MIIMON}
+    bond-lacp-rate ${BOND_LACP_RATE}
+    bond-xmit-hash-policy layer3+4
+    mtu 1500
+
+# Bond to bkk20 (direct + via bkk10)
+auto bond-bkk20
+iface bond-bkk20 inet manual
+    bond-slaves vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR2_VIA_BKK10}
+    bond-mode ${BOND_MODE}
+    bond-primary vlan${VLAN_RR2_DIRECT}
+    bond-miimon ${BOND_MIIMON}
+    bond-lacp-rate ${BOND_LACP_RATE}
+    bond-xmit-hash-policy layer3+4
+    mtu 1500
+BONDED_CONFIG
+
+  else
+    # Traditional single bond configuration
+    cat <<TRADITIONAL_CONFIG
+
+# physical interfaces for bonding
+TRADITIONAL_CONFIG
+
+    for iface in $BOND_MEMBERS; do
+      echo "iface $iface inet manual"
+    done
+
+    if [[ -n "$UNUSED_IFACES" ]]; then
+      echo ""
+      echo "# unused interfaces"
+      for iface in $UNUSED_IFACES; do
+        echo "iface $iface inet manual"
+      done
+    fi
+
+    cat <<TRADITIONAL_CONFIG
 
 # LACP bond of both trunks
 auto bond0
@@ -211,33 +312,24 @@ iface bond0.${QINQ_OUTER} inet manual
     vlan-id ${QINQ_OUTER}
     mtu ${BOND_MTU}
 
-# Q-in-Q inner VLAN ${VLAN_RR1} (to bkk00/rr1)
-auto vlan${VLAN_RR1}
-iface vlan${VLAN_RR1} inet manual
+# Q-in-Q inner VLAN ${VLAN_RR1_DIRECT} (to bkk00/rr1)
+auto vlan${VLAN_RR1_DIRECT}
+iface vlan${VLAN_RR1_DIRECT} inet manual
     vlan-raw-device bond0.${QINQ_OUTER}
-    vlan-id ${VLAN_RR1}
+    vlan-id ${VLAN_RR1_DIRECT}
     mtu ${BOND_MTU}
 
-# Q-in-Q inner VLAN ${VLAN_RR2} (to bkk20/rr2)
-auto vlan${VLAN_RR2}
-iface vlan${VLAN_RR2} inet manual
+# Q-in-Q inner VLAN ${VLAN_RR2_DIRECT} (to bkk20/rr2)
+auto vlan${VLAN_RR2_DIRECT}
+iface vlan${VLAN_RR2_DIRECT} inet manual
     vlan-raw-device bond0.${QINQ_OUTER}
-    vlan-id ${VLAN_RR2}
+    vlan-id ${VLAN_RR2_DIRECT}
     mtu ${BOND_MTU}
+TRADITIONAL_CONFIG
+  fi
 
-# Q-in-Q inner VLAN ${VLAN_RR3} (via bkk10 to bkk00/rr2)
-auto vlan${VLAN_RR3}
-iface vlan${VLAN_RR3} inet manual
-    vlan-raw-device bond0.${QINQ_OUTER}
-    vlan-id ${VLAN_RR3}
-    mtu 1500
-    
-# Q-in-Q inner VLAN ${VLAN_RR4} (via bkk10 to bkk20/rr2)
-auto vlan${VLAN_RR4}
-iface vlan${VLAN_RR4} inet manual
-    vlan-raw-device bond0.${QINQ_OUTER}
-    vlan-id ${VLAN_RR4}
-    mtu 1500
+  # Common configuration for both designs
+  cat <<COMMON_CONFIG
 
 # internal services bridge
 auto vmbr1
@@ -253,16 +345,24 @@ iface vmbr1 inet6 static
     accept_ra 0
     autoconf 0
 
-# public services bridge (Q-in-Q terminated)
+# public services bridge
 auto vmbr2
 iface vmbr2 inet static
-    bridge-ports vlan${VLAN_RR2} vlan${VLAN_RR1}
+COMMON_CONFIG
+
+  if [[ "$BONDED_VLANS" == "true" ]]; then
+    echo "    bridge-ports bond-bkk00 bond-bkk20"
+  else
+    echo "    bridge-ports vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR1_DIRECT}"
+  fi
+
+  cat <<COMMON_CONFIG
     bridge-stp off
     bridge-fd 0
     address ${BGP_RR1_V4}/31
     address ${BGP_RR2_V4}/31
     mtu 1500
-INTERFACES
+COMMON_CONFIG
 
   # add anycast routing if anycast IPs are present
   if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
@@ -302,7 +402,6 @@ INTERFACES
 
   # add IPv6 anycast routing if present
   if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
-    # ensure IPv6 gateways end with ::
     RR1_GW_V6_CLEAN="${RR1_GW_V6%::0}"
     RR2_GW_V6_CLEAN="${RR2_GW_V6%::0}"
     [[ "$RR1_GW_V6_CLEAN" != *:: ]] && RR1_GW_V6_CLEAN="${RR1_GW_V6_CLEAN}::"

@@ -39,7 +39,7 @@ jobs:
 
           # nc: generate and deploy config
           echo "Generating interfaces config for $SERVER"
-          ./deploy/network/gencfg.sh -c ./deploy/config.json $SERVER > /tmp/interfaces.conf
+          ./deploy/network/gencfg.sh -c ./deploy/config/network.json $SERVER > /tmp/interfaces.conf
 
           # nc: backup existing config
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \

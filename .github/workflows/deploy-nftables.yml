@@ -43,7 +43,7 @@ jobs:
 
           # nc: generate config
           echo "Generating nftables config for $SERVER"
-          ./deploy/nftables/gencfg.sh -c ./deploy/config.json $SERVER > /tmp/nftables.conf
+          ./deploy/nftables/gencfg.sh $SERVER > /tmp/nftables.conf
 
           # nc: deploy to temp location for validation
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # load config
-CONFIG_FILE="${CONFIG_FILE:-../config.json}"
+CONFIG_FILE="${CONFIG_FILE:-../config/network.json}"
 while getopts ':c:' opt; do
   case "$opt" in
   c) CONFIG_FILE="$OPTARG" ;;
