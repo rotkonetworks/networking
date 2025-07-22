@@ -222,6 +222,7 @@
   "interfaces": {
     "management": "vmbr0",
     "internal": "vmbr1",
-    "public": "vmbr2"
+    "public": "vmbr2",
+    "bgp_vlan": "vmbr2"
   }
 }
