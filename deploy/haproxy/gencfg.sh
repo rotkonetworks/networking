@@ -135,7 +135,7 @@ frontend ssl-frontend
     
     # Log high-rate IPs for alerting (but don't block)
     http-request set-var(txn.req_rate) sc_http_req_rate(0)
-    http-request capture var(txn.req_rate) len 10 if { var(txn.req_rate) gt 1000 }
+    http-request capture var(txn.req_rate) len 10 if { var(txn.req_rate) -m int gt 1000 }
     
     # Compression
     compression algo gzip
@@ -209,7 +209,8 @@ generate_backends() {
         echo "    balance leastconn"
         echo "    "
         echo "    # Health checks"
-        echo "    option httpchk POST / HTTP/1.1\\r\\nHost:localhost\\r\\nContent-Type:application/json\\r\\nContent-Length:58\\r\\n\\r\\n{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"
+        echo "    option httpchk"
+        echo '    http-check send meth POST uri / ver HTTP/1.1 hdr Host localhost hdr Content-Type application/json body "{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"'
         echo "    http-check expect rstring \"isSyncing.*false\""
         echo "    "
         echo "    # Retry and timeout"
