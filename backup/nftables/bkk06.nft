@@ -32,6 +32,7 @@ table inet filter {
 		iifname "vmbr1" tcp dport 53 accept
 		iifname "vprivate" tcp dport { 3300, 6789, 6800-7300 } accept
 		limit rate 5/minute log prefix "[DROP-IN] "
+		tcp dport 443 accept
 	}
 
 	chain forward {

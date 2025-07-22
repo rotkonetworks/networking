@@ -1,4 +1,4 @@
-# 2025-07-21 14:17:45 by RouterOS 7.20beta2
+# 2025-07-22 14:14:26 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -21,18 +21,15 @@
 /interface vlan add interface=AMSIX-LAG name=HK-AMS-IX-vlan3994 vlan-id=3994
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-backup-vlan2517 vlan-id=2517
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
-/interface vlan add interface=vlan400-bgp name=qnq-400-106 vlan-id=106
-/interface vlan add interface=vlan400-bgp name=qnq-400-107 vlan-id=107
-/interface vlan add interface=vlan400-bgp name=qnq-400-108 vlan-id=108
-/interface vlan add interface=vlan400-bgp name=qnq-400-116 vlan-id=116
-/interface vlan add interface=vlan400-bgp name=qnq-400-117 vlan-id=117
-/interface vlan add interface=vlan400-bgp name=qnq-400-118 vlan-id=118
 /interface vlan add interface=vlan400-bgp name=qnq-400-206 vlan-id=206
 /interface vlan add interface=vlan400-bgp name=qnq-400-207 vlan-id=207
 /interface vlan add interface=vlan400-bgp name=qnq-400-208 vlan-id=208
 /interface vlan add interface=vlan400-bgp name=qnq-400-216 vlan-id=216
 /interface vlan add interface=vlan400-bgp name=qnq-400-217 vlan-id=217
 /interface vlan add interface=vlan400-bgp name=qnq-400-218 vlan-id=218
+/interface bonding add mode=active-backup name=BKK06-LAG primary=qnq-400-206 slaves=qnq-400-206,qnq-400-216 transmit-hash-policy=layer-3-and-4
+/interface bonding add mode=active-backup name=BKK07-LAG primary=qnq-400-207 slaves=qnq-400-207,qnq-400-217 transmit-hash-policy=layer-3-and-4
+/interface bonding add mode=active-backup name=BKK08-LAG primary=qnq-400-208 slaves=qnq-400-208,qnq-400-218 transmit-hash-policy=layer-3-and-4
 /interface list add name=LAN
 /interface list add name=WAN
 /port set 0 name=serial0
@@ -70,11 +67,12 @@
 /interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK40-LAG
+/interface bridge port add bridge=bridge_vlan interface=BKK10-LAG
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK40-LAG vlan-ids=400
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK40-LAG,BKK10-LAG vlan-ids=400
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
@@ -112,9 +110,9 @@
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
 /ip address add address=10.155.254.200/24 interface=vlan400-bgp network=10.155.254.0
-/ip address add address=10.155.208.0/31 interface=qnq-400-208 network=10.155.208.0
-/ip address add address=10.155.206.0/31 interface=qnq-400-206 network=10.155.206.0
-/ip address add address=10.155.207.0/31 interface=qnq-400-207 network=10.155.207.0
+/ip address add address=10.155.208.0/31 interface=BKK08-LAG network=10.155.208.0
+/ip address add address=10.155.206.0/31 interface=BKK06-LAG network=10.155.206.0
+/ip address add address=10.155.207.0/31 interface=BKK07-LAG network=10.155.207.0
 /ip address add address=172.16.210.0/31 interface=BKK10-LAG network=172.16.210.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
@@ -255,9 +253,9 @@
 /ipv6 address add address=fd00:dead:beef:2050::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=2401:a860:1181:2010::/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
 /ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
-/ipv6 address add address=fd00:155:206::/127 advertise=no interface=qnq-400-206
-/ipv6 address add address=fd00:155:207::/127 advertise=no interface=qnq-400-207
-/ipv6 address add address=fd00:155:208::/127 advertise=no interface=qnq-400-208
+/ipv6 address add address=fd00:155:206::/127 advertise=no interface=BKK06-LAG
+/ipv6 address add address=fd00:155:207::/127 advertise=no interface=BKK07-LAG
+/ipv6 address add address=fd00:155:208::/127 advertise=no interface=BKK08-LAG
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons
