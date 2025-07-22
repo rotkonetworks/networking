@@ -229,26 +229,26 @@ iface ${UP2_BASE}.${QINQ_OUTER} inet manual
 # Q-in-Q inner VLANs on first interface (via bkk30)
 auto vlan${VLAN_RR1_DIRECT}
 iface vlan${VLAN_RR1_DIRECT} inet manual
-    vlan-raw-device ${UPLINK1}.${QINQ_OUTER}
+    vlan-raw-device ${UP1_BASE}.${QINQ_OUTER}
     vlan-id ${VLAN_RR1_DIRECT}
     mtu 1500
 
 auto vlan${VLAN_RR2_DIRECT}
 iface vlan${VLAN_RR2_DIRECT} inet manual
-    vlan-raw-device ${UPLINK1}.${QINQ_OUTER}
+    vlan-raw-device ${UP1_BASE}.${QINQ_OUTER}
     vlan-id ${VLAN_RR2_DIRECT}
     mtu 1500
 
 # Q-in-Q inner VLANs on second interface (via bkk10)
 auto vlan${VLAN_RR1_VIA_BKK10}
 iface vlan${VLAN_RR1_VIA_BKK10} inet manual
-    vlan-raw-device ${UPLINK2}.${QINQ_OUTER}
+    vlan-raw-device ${UP2_BASE}.${QINQ_OUTER}
     vlan-id ${VLAN_RR1_VIA_BKK10}
     mtu 1500
 
 auto vlan${VLAN_RR2_VIA_BKK10}
 iface vlan${VLAN_RR2_VIA_BKK10} inet manual
-    vlan-raw-device ${UPLINK2}.${QINQ_OUTER}
+    vlan-raw-device ${UP2_BASE}.${QINQ_OUTER}
     vlan-id ${VLAN_RR2_VIA_BKK10}
     mtu 1500
 
