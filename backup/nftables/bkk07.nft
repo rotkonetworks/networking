@@ -31,8 +31,8 @@ table inet filter {
 		iifname "vmbr1" udp dport 53 accept
 		iifname "vmbr1" tcp dport 53 accept
 		iifname "vprivate" tcp dport { 3300, 6789, 6800-7300 } accept
+		tcp dport 80 ct state established,new accept
 		limit rate 5/minute log prefix "[DROP-IN] "
-		tcp dport 443 accept
 	}
 
 	chain forward {
@@ -72,9 +72,6 @@ table inet filter {
 table ip nat {
 	chain prerouting {
 		type nat hook prerouting priority dstnat; policy accept;
-		tcp dport 80 dnat to 10.7.10.80
-		tcp dport 443 dnat to 10.7.10.80
-		tcp dport 8080 dnat to 10.7.10.80
 		tcp dport 2201 dnat to 10.7.10.1:22
 		tcp dport 2202 dnat to 10.7.10.2:22
 		tcp dport 2203 dnat to 10.7.10.3:22
