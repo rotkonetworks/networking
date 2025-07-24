@@ -31,6 +31,10 @@ table inet filter {
 		iifname "vmbr1" udp dport 53 accept
 		iifname "vmbr1" tcp dport 53 accept
 		iifname "vprivate" tcp dport { 3300, 6789, 6800-7300 } accept
+		tcp dport 80 ct state established,new accept
+		tcp dport 443 ct state established,new accept
+		tcp dport 30335 ct state established,new accept
+		tcp dport 30435 ct state established,new accept
 		limit rate 5/minute log prefix "[DROP-IN] "
 	}
 
