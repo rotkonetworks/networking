@@ -11,12 +11,12 @@ TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # Helper function to normalize chain names
 normalize_chain() {
-    echo "$1" | tr '_' '-'
+  echo "$1" | tr '_' '-'
 }
 
 # Generate global section
 generate_global() {
-    cat << 'EOF'
+  cat <<'EOF'
 # Global settings
 global
     log 127.0.0.1:514 local0 info  # Log more for monitoring
@@ -49,7 +49,7 @@ EOF
 
 # Generate defaults section
 generate_defaults() {
-    cat << 'EOF'
+  cat <<'EOF'
 # Defaults
 defaults
     log global
@@ -79,7 +79,7 @@ EOF
 
 # Generate minimal stats
 generate_stats() {
-    cat << 'EOF'
+  cat <<'EOF'
 # Stats - internal only
 listen stats
     bind 127.0.0.1:8404
@@ -92,7 +92,7 @@ EOF
 
 # Generate HTTP frontend
 generate_http_frontend() {
-    cat << 'EOF'
+  cat <<'EOF'
 # HTTP Frontend - redirect only
 frontend http-frontend
     bind *:80
@@ -109,10 +109,10 @@ EOF
 
 # Generate SSL frontend
 generate_ssl_frontend() {
-    local chains="$1"
-    local domain_suffixes=$(jq -r '.haproxy.domain_suffixes[]' "$SERVICES_CONFIG" | tr '\n' ' ')
-    
-    cat << 'EOF'
+  local chains="$1"
+  local domain_suffixes=$(jq -r '.haproxy.domain_suffixes[]' "$SERVICES_CONFIG" | tr '\n' ' ')
+
+  cat <<'EOF'
 # SSL Frontend
 frontend ssl-frontend
     bind *:443 ssl crt /etc/haproxy/certs/ alpn h2,http/1.1
@@ -156,74 +156,74 @@ frontend ssl-frontend
     
 EOF
 
-    # Generate domain ACLs only for configured chains
-    echo "$chains" | jq -r 'keys[]' | while read -r chain; do
-        echo "    # ${chain} ACLs"
-        echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
-    done
-    
-    # Path-based ACLs for centralized endpoints
-    echo ""
-    echo "    # Centralized endpoint ACLs"
-    echo "    acl is_rpc hdr_beg(host) -i rpc."
-    echo "    acl is_sys hdr_beg(host) -i sys."
-    
-    echo "$chains" | jq -r 'keys[]' | while read -r chain; do
-        echo "    acl path_${chain} path_beg -i /${chain}"
-    done
+  # Generate domain ACLs only for configured chains
+  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+    echo "    # ${chain} ACLs"
+    echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
+  done
 
-    echo ""
-    echo "    # Backend routing"
-    
-    # Direct domain routing
-    echo "$chains" | jq -r 'keys[]' | while read -r chain; do
-        echo "    use_backend ${chain}-backend if is_${chain}"
-    done
-    
-    echo ""
-    # Path-based routing
-    echo "$chains" | jq -r 'keys[]' | while read -r chain; do
-        echo "    use_backend ${chain}-backend if is_rpc path_${chain}"
-        echo "    use_backend ${chain}-backend if is_sys path_${chain}"
-    done
-    
-    echo ""
-    echo "    # Default backend"
-    echo "    default_backend no-access"
+  # Path-based ACLs for centralized endpoints
+  echo ""
+  echo "    # Centralized endpoint ACLs"
+  echo "    acl is_rpc hdr_beg(host) -i rpc."
+  echo "    acl is_sys hdr_beg(host) -i sys."
+
+  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+    echo "    acl path_${chain} path_beg -i /${chain}"
+  done
+
+  echo ""
+  echo "    # Backend routing"
+
+  # Direct domain routing
+  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+    echo "    use_backend ${chain}-backend if is_${chain}"
+  done
+
+  echo ""
+  # Path-based routing
+  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+    echo "    use_backend ${chain}-backend if is_rpc path_${chain}"
+    echo "    use_backend ${chain}-backend if is_sys path_${chain}"
+  done
+
+  echo ""
+  echo "    # Default backend"
+  echo "    default_backend no-access"
 }
 
 # Generate backends
 generate_backends() {
-    local chains="$1"
-    
+  local chains="$1"
+
+  echo ""
+  echo "# RPC Backends"
+
+  echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
+    local chain=$(echo "$entry" | jq -r '.key')
+    local instances=$(echo "$entry" | jq -r '.value.instances')
+
     echo ""
-    echo "# RPC Backends"
-    
-    echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
-        local chain=$(echo "$entry" | jq -r '.key')
-        local instances=$(echo "$entry" | jq -r '.value.instances')
-        
-        echo ""
-        echo "backend ${chain}-backend"
-        echo "    mode http"
-        echo "    balance leastconn"
-        echo "    "
-        echo "    # Health checks"
-        echo "    option httpchk"
-        echo '    http-check send meth POST uri / ver HTTP/1.1 hdr Host localhost hdr Content-Type application/json body "{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"'
-        echo "    http-check expect rstring \"isSyncing.*false\""
-        echo "    "
-        echo "    # Retry and timeout"
-        echo "    retries 2"
-        echo "    option redispatch"
-        echo "    timeout server 30s"
-        echo "    "
-        echo "    # Servers"
-        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
-    done
-    
-    # Minimal deny backend
-    cat << 'EOF'
+    echo "backend ${chain}-backend"
+    echo "    mode http"
+    echo "    balance leastconn"
+    echo "    "
+    echo "    # Health checks"
+    echo "    option httpchk"
+    echo '    http-check send meth POST uri / ver HTTP/1.1 hdr Host localhost hdr Content-Type application/json body "{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"'
+    echo "    http-check expect rstring \"isSyncing.*false\""
+    echo "    "
+    echo "    # Retry and timeout"
+    echo "    retries 2"
+    echo "    option redispatch"
+    echo "    timeout server 30s"
+    echo "    "
+    echo "    # Servers"
+    echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+  done
+
+  # Minimal deny backend
+  cat <<'EOF'
 
 # Deny backend
 backend no-access
@@ -246,13 +246,14 @@ EOF
   echo "frontend p2p-relay-wss-passthrough"
   echo "    bind *:30335"
   echo "    mode tcp"
+  echo "    option tcplog"
   echo "    tcp-request inspect-delay 2s"
   echo "    tcp-request content accept if { req_ssl_hello_type 1 }"
   echo
 
   # per-chain ACLs (relay)
-  jq -r 'to_entries[] | select(.value.type=="relay") | .key' <<<"$bootchains_json" \
-  | while read -r chain; do
+  jq -r 'to_entries[] | select(.value.type=="relay") | .key' <<<"$bootchains_json" |
+    while read -r chain; do
       # only *.boot.rotko.net
       printf "    acl domain-match-%s req_ssl_sni -i %s.boot.rotko.net" "$chain" "$chain"
       echo
@@ -260,32 +261,32 @@ EOF
   echo
 
   # per-chain routing (relay)
-  jq -r 'to_entries[] | select(.value.type=="relay") | .key' <<<"$bootchains_json" \
-  | while read -r chain; do
+  jq -r 'to_entries[] | select(.value.type=="relay") | .key' <<<"$bootchains_json" |
+    while read -r chain; do
       printf "    use_backend %s-p2p-wss-backend if domain-match-%s\n" "$chain" "$chain"
     done
   echo
-
 
   ### Parachains on 30435 ###
   echo "frontend p2p-parachain-wss-passthrough"
   echo "    bind *:30435"
   echo "    mode tcp"
+  echo "    option tcplog"
   echo "    tcp-request inspect-delay 2s"
   echo "    tcp-request content accept if { req_ssl_hello_type 1 }"
   echo
 
   # per-chain ACLs (parachain)
-  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" \
-  | while read -r chain; do
+  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" |
+    while read -r chain; do
       printf "    acl domain-match-%s req_ssl_sni -i %s.boot.rotko.net" "$chain" "$chain"
       echo
     done
   echo
 
   # per-chain routing (parachain)
-  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" \
-  | while read -r chain; do
+  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" |
+    while read -r chain; do
       printf "    use_backend %s-p2p-wss-backend if domain-match-%s\n" "$chain" "$chain"
     done
   echo
@@ -301,59 +302,58 @@ generate_wss_backends() {
 EOF
 
   # for each relay or parachain bootnode, pick its scalar container and static port
-  echo "$bootchains_json" \
-    | jq -r 'to_entries[]
+  echo "$bootchains_json" |
+    jq -r 'to_entries[]
              | select(.value.type=="relay" or .value.type=="parachain")
              | [.key, .value.type, .value.container]
-             | @tsv' \
-    | while IFS=$'\t' read -r chain ctype container; do
-    # static port: 30335 for relay, 30435 for parachain
-    if [[ "$ctype" == "relay" ]]; then
-      port=30335
-    else
-      port=30435
-    fi
+             | @tsv' |
+    while IFS=$'\t' read -r chain ctype container; do
+      # static port: 30335 for relay, 30435 for parachain
+      if [[ "$ctype" == "relay" ]]; then
+        port=30335
+      else
+        port=30435
+      fi
 
-
-    echo "backend ${chain}-p2p-wss-backend"
-    echo "    mode tcp"
-    echo "    server ${chain} ${container}:${port} check"
-    echo
-  done
+      echo "backend ${chain}-p2p-wss-backend"
+      echo "    mode tcp"
+      echo "    server ${chain} ${container}:${port} check"
+      echo
+    done
 }
 
 # Main function
 main() {
-    if [[ ! -f "$SERVICES_CONFIG" ]]; then
-        echo "error: $SERVICES_CONFIG not found" >&2
-        exit 1
-    fi
-    
-    # Load configuration
-    local rpc_nodes=$(jq -r '.rpc_nodes' "$SERVICES_CONFIG")
-    local bootnodes=$(jq -c '.bootnodes' "$SERVICES_CONFIG")
-    
-    echo "#"
-    echo "# HAProxy configuration for IBP RPC nodes"
-    echo "# Generated: ${TIMESTAMP}"
-    echo "#"
-    echo ""
-    
-    generate_global
-    echo ""
-    generate_defaults
-    echo ""
-    generate_stats
-    echo ""
-    generate_http_frontend
-    echo ""
-    generate_ssl_frontend "$rpc_nodes"
-    echo ""
-    generate_backends "$rpc_nodes"
-    echo ""
-    generate_wss_frontends "$(jq -c '.bootnodes' "$SERVICES_CONFIG")"
-    echo ""
-    generate_wss_backends "$bootnodes"
+  if [[ ! -f "$SERVICES_CONFIG" ]]; then
+    echo "error: $SERVICES_CONFIG not found" >&2
+    exit 1
+  fi
+
+  # Load configuration
+  local rpc_nodes=$(jq -r '.rpc_nodes' "$SERVICES_CONFIG")
+  local bootnodes=$(jq -c '.bootnodes' "$SERVICES_CONFIG")
+
+  echo "#"
+  echo "# HAProxy configuration for IBP RPC nodes"
+  echo "# Generated: ${TIMESTAMP}"
+  echo "#"
+  echo ""
+
+  generate_global
+  echo ""
+  generate_defaults
+  echo ""
+  generate_stats
+  echo ""
+  generate_http_frontend
+  echo ""
+  generate_ssl_frontend "$rpc_nodes"
+  echo ""
+  generate_backends "$rpc_nodes"
+  echo ""
+  generate_wss_frontends "$(jq -c '.bootnodes' "$SERVICES_CONFIG")"
+  echo ""
+  generate_wss_backends "$bootnodes"
 }
 
 # Run main
