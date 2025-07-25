@@ -1,4 +1,4 @@
-# 2025-07-24 14:14:19 by RouterOS 7.20beta2
+# 2025-07-25 14:14:28 by RouterOS 7.20beta2
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -630,3 +630,4 @@
     \n    :log warning \"BCP214: Service restored\"\
     \n"
 /system watchdog set watchdog-timer=no
+/tool sniffer set filter-interface=BKK06-LAG filter-ip-address=160.22.181.6/32
