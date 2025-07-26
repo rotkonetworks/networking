@@ -1,4 +1,4 @@
-# 2025-07-25 14:14:18 by RouterOS 7.20beta2
+# 2025-07-26 14:10:20 by RouterOS 7.20beta6
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -292,7 +292,7 @@
 /ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
 /ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
-/ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16
+/ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
 /ip service set www address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set www-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16
@@ -480,6 +480,8 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter community-list add comment="RFC 7999 BLACKHOLE" communities=65535:666 list=blackhole
 /routing filter num-list add list=private-asn range=64512-65535
 /routing filter num-list add list=private-asn range=4200000000-4294967295
+/routing filter rule add chain=RR-CLIENT-OUT-v4 disabled=yes rule="if (dst == 0.0.0.0/0) { accept; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 disabled=yes rule="if (dst == ::/0) { accept; }"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
