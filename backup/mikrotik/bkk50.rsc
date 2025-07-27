@@ -1,4 +1,4 @@
-# 2025-07-25 23:07:16 by RouterOS 7.20beta2
+# 2025-07-26 23:07:03 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -833,6 +833,8 @@
 /ip firewall filter add action=drop chain=forward dst-address-list=not_in_internet
 /ip firewall filter add action=accept chain=forward dst-port=30433 protocol=tcp
 /ip firewall filter add action=drop chain=forward comment="Drop all other forward"
+/ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi https - disabled" dst-address=160.22.181.181 dst-port=17845 protocol=tcp to-addresses=192.168.69.204 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi http - disabled" dst-address=160.22.181.181 dst-port=17846 protocol=tcp to-addresses=192.168.69.204 to-ports=80
 /ip firewall nat add action=masquerade chain=srcnat out-interface-list=WAN src-address=172.31.0.0/24
 /ip firewall nat add action=src-nat chain=srcnat out-interface-list=WAN src-address=192.168.0.0/16 to-addresses=160.22.181.181
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.69.103 to-ports=80
