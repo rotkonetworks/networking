@@ -1,4 +1,4 @@
-# 2025-07-28 14:16:48 by RouterOS 7.20beta6
+# 2025-07-28 19:32:27 by RouterOS 7.20beta6
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -473,9 +473,13 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter num-list add list=private-asn range=64512-65535
 /routing filter num-list add list=private-asn range=4200000000-4294967295
 /routing filter num-list add list=my-as range=142108
-/routing filter rule add chain=IBGP-IN-v4 rule="if (gw == 0.0.0.0) { reject; }"
+/routing filter rule add chain=iBGP-OUT-v4 comment="TEMP: Only send originated routes" rule="if (bgp-network && dst in ipv4-apnic-rotko) { accept; }"
+/routing filter rule add chain=iBGP-IN-v4 rule="if (gw == 0.0.0.0) { reject; }"
+/routing filter rule add chain=iBGP-OUT-v4 comment="TEMP: Block everything else" rule=reject
 /routing filter rule add chain=RR-CLIENT-OUT-v4 disabled=yes rule="if (dst == 0.0.0.0/0) { accept; }"
+/routing filter rule add chain=iBGP-OUT-v4 comment="Block blackhole routes" rule="if (blackhole) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 disabled=yes rule="if (dst == ::/0) { accept; }"
+/routing filter rule add chain=iBGP-OUT-v4 comment="Block connected routes" rule="if (protocol connected) { reject; }"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
@@ -503,6 +507,8 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter rule add chain=iBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=iBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=iBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
+/routing filter rule add chain=iBGP-IN-v4 comment="TEMP: Accept only our IPv4 prefixes" rule="if (dst in 160.22.180.0/23) { accept; }"
+/routing filter rule add chain=iBGP-IN-v4 comment="TEMP: Block all other IPv4 routes during storm" rule=reject
 /routing filter rule add chain=iBGP-IN-v4 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="set bgp-large-communities location; accept;"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="set bgp-large-communities location; accept;"
@@ -565,7 +571,8 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=bogons rule="if (dst in not_in_internet) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=default rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=RPKI-invalid rule="if (rpki invalid) { reject; }"
-/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all rule=accept
+/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment="TEMP: Accept our prefix" rule="if (dst in ipv4-apnic-rotko) { accept; }"
+/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all disabled=yes rule=accept
 /routing filter rule add chain=ROUTEVIEWS-IN-v4 comment=discard rule=reject
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=too-specific rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=bogons rule="if (dst in ipv6-bogons) { reject; }"
