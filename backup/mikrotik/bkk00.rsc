@@ -1,4 +1,4 @@
-# 2025-07-29 14:15:03 by RouterOS 7.20beta6
+# 2025-07-30 14:15:44 by RouterOS 7.20beta6
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -266,22 +266,22 @@
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
 /ip route add blackhole comment=global_ipv4_resources distance=240 dst-address=160.22.180.0/23
 /ip route add distance=220 gateway=172.16.30.2 pref-src=160.22.181.180
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=0.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=172.16.0.0/12
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.168.0.0/16
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=10.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=169.254.0.0/16
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=127.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=yes dst-address=224.0.0.0/4
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.18.0.0/15
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.0.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.2.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.51.100.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=203.0.113.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=100.64.0.0/10
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=240.0.0.0/4
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=0.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=172.16.0.0/12
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.168.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=10.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=169.254.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=127.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=yes distance=240 dst-address=224.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=198.18.0.0/15
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.0.0.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.0.2.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=198.51.100.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=203.0.113.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=100.64.0.0/10
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=240.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.88.99.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no distance=240 dst-address=255.255.255.255/32
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.181.0/24
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
@@ -473,13 +473,10 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter num-list add list=private-asn range=64512-65535
 /routing filter num-list add list=private-asn range=4200000000-4294967295
 /routing filter num-list add list=my-as range=142108
-/routing filter rule add chain=iBGP-OUT-v4 comment="TEMP: Only send originated routes" rule="if (bgp-network && dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=iBGP-IN-v4 rule="if (gw == 0.0.0.0) { reject; }"
-/routing filter rule add chain=iBGP-OUT-v4 comment="TEMP: Block everything else" rule=reject
-/routing filter rule add chain=RR-CLIENT-OUT-v4 disabled=yes rule="if (dst == 0.0.0.0/0) { accept; }"
 /routing filter rule add chain=iBGP-OUT-v4 comment="Block blackhole routes" rule="if (blackhole) { reject; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v6 disabled=yes rule="if (dst == ::/0) { accept; }"
-/routing filter rule add chain=iBGP-OUT-v4 comment="Block connected routes" rule="if (protocol connected) { reject; }"
+/routing filter rule add chain=iBGP-OUT-v4 comment="TEMP: Only send originated routes" rule="if (bgp-network && dst in ipv4-apnic-rotko) { accept; }"
+/routing filter rule add chain=iBGP-OUT-v4 comment="TEMP: Block everything else" disabled=yes rule=reject
 /routing filter rule add chain=BKNIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
@@ -558,9 +555,13 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter rule add chain=HGC-SG-IN-v6 comment="RPKI validation for IPv6" disabled=no rule="rpki-verify rpki.bknix.co.th"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v4 comment="Accept route" rule="set bgp-local-pref 200; set bgp-large-communities bknix-communities; accept"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept"
+/routing filter rule add chain=AMSIX-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Accept route" rule="set bgp-local-pref 100; set bgp-large-communities amsix-communities; accept"
 /routing filter rule add chain=BKNIX-IN-v6 comment="Accept route" rule="set bgp-local-pref 200; set bgp-large-communities bknix-communities; accept"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
@@ -618,6 +619,8 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk00
 /system logging add topics=bgp,!packet
+/system logging add topics=route,bgp,debug
+/system logging add action=disk topics=route,bgp,debug
 /system ntp client set enabled=yes
 /system ntp client servers add address=0.th.pool.ntp.org
 /system ntp client servers add address=0.asia.pool.ntp.org
