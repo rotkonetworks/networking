@@ -1,4 +1,4 @@
-# 2025-07-31 02:16:48 by RouterOS 7.20beta4
+# 2025-07-31 07:27:10 by RouterOS 7.20beta4
 # software id = VILU-XVN6
 #
 # model = CRS354-48G-4S+2Q+

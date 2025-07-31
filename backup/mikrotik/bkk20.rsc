@@ -1,4 +1,4 @@
-# 2025-07-25 14:14:28 by RouterOS 7.20beta2
+# 2025-07-31 19:27:02 by RouterOS 7.20beta7
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -34,8 +34,7 @@
 /interface list add name=WAN
 /port set 0 name=serial0
 /routing bgp instance add as=142108 name=bgp-instance-1 router-id=10.155.255.2 vrf=main
-/routing bgp template set default afi=ip input.filter=iBGP-IN multihop=yes nexthop-choice=default output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko
-/routing bgp template add afi=ipv6 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected
+/routing bgp template add afi=ipv6 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=force-self output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected
 /routing id add id=10.155.255.2 name=main select-dynamic-id=only-static select-from-vrf=main
 /routing ospf instance add comment="originate-default=always configured since we receive full BGP tables not default routes from transit/IXPs" disabled=no name=ospf-instance-v2 originate-default=always router-id=10.155.255.2
 /routing ospf instance add comment="originate-default=always configured since we receive full BGP tables not default routes from transit/IXPs" disabled=no name=ospf-instance-v3 originate-default=always router-id=10.155.255.2 version=3
@@ -54,7 +53,7 @@
 /routing bgp template add afi=ipv6 disabled=no input.filter=AMSIX-HK-IN-v6 name=AMSIX-HK-v6 output.as-override=no .filter-chain=AMSIX-HK-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add as=142108 input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /routing bgp template add afi=ipv6 as=142108 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
-/routing bgp template add afi=ipv6 as=142108 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
+/routing bgp template add afi=ip input.filter=iBGP-IN multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /tool traffic-generator port add interface=BKK00-LAG name=test-port
 /user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /certificate settings set builtin-trust-anchors=not-trusted
@@ -226,6 +225,7 @@
 /ip route add blackhole comment=global_unicast_v4 distance=240 dst-address=160.22.181.0/24
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" dst-address=240.0.0.0/4
+/ip route add disabled=yes distance=150 dst-address=160.22.181.81 gateway=10.155.208.1
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
@@ -405,14 +405,14 @@
 /routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-RS2-HK-v6 remote.address=2001:df0:296::a505:8560:2 .as=58560 routing-table=main templates=AMSIX-HK-v6
 /routing bgp connection add disabled=no input.limit-process-routes-ipv4=250000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=yes name=AMSIX-CLOUDFLARE-HK-v4 remote.address=103.247.139.50 .as=13335 routing-table=main templates=AMSIX-HK-v4
 /routing bgp connection add disabled=no input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-CLOUDFLARE-HK-v6 remote.address=2001:df0:296::a501:3335:2 .as=13335 routing-table=main templates=AMSIX-HK-v6
-/routing bgp connection add input.limit-process-routes-ipv4=2000000 instance=bgp-instance-1 local.address=10.155.255.2 .role=ibgp name=IBGP-ROTKO-BKK00-v4 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=10.155.255.4 .as=142108 routing-table=main templates=default
-/routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::20 .role=ibgp name=IBGP-ROTKO-BKK00-v6 nexthop-choice=default output.keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::100 .as=142108 routing-table=main templates=IBGP-ROTKO-v6
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.206.0 .role=ibgp-rr name=rr-client-bkk06-v4 remote.address=10.155.206.1 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.207.0 .role=ibgp-rr name=rr-client-bkk07-v4 remote.address=10.155.207.1 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.208.0 .role=ibgp-rr name=rr-client-bkk08-v4 remote.address=10.155.208.1 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add afi=ipv6 instance=bgp-instance-1 local.address=fd00:155:206:: .role=ibgp-rr name=rr-client-bkk06-v6 remote.address=fd00:155:206::1 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add afi=ipv6 instance=bgp-instance-1 local.address=fd00:155:207:: .role=ibgp-rr name=rr-client-bkk07-v6 remote.address=fd00:155:207::1 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add afi=ipv6 instance=bgp-instance-1 local.address=fd00:155:208:: .role=ibgp-rr name=rr-client-bkk08-v6 remote.address=fd00:155:208::1 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no input.filter=IBGP-IN-v4 .limit-process-routes-ipv4=2000000 instance=bgp-instance-1 local.address=10.155.255.2 .role=ibgp name=IBGP-ROTKO-BKK00-v4 nexthop-choice=default output.filter-chain=IBGP-OUT-v4 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=10.155.255.4 .as=142108 routing-table=main templates=IBGP-ROTKO-v4
+/routing bgp connection add afi=ipv6 disabled=no input.filter=IBGP-IN-v6 .limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::20 .role=ibgp name=IBGP-ROTKO-BKK00-v6 nexthop-choice=default output.filter-chain=IBGP-OUT-v6 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::100 .as=142108 routing-table=main templates=IBGP-ROTKO-v6
+/routing bgp connection add disabled=yes instance=bgp-instance-1 local.address=10.155.206.0 .role=ibgp-rr name=rr-client-bkk06-v4 remote.address=10.155.206.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=yes instance=bgp-instance-1 local.address=10.155.207.0 .role=ibgp-rr name=rr-client-bkk07-v4 remote.address=10.155.207.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=yes instance=bgp-instance-1 local.address=10.155.208.0 .role=ibgp-rr name=rr-client-bkk08-v4 remote.address=10.155.208.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add afi=ipv6 disabled=yes instance=bgp-instance-1 local.address=fd00:155:206:: .role=ibgp-rr name=rr-client-bkk06-v6 remote.address=fd00:155:206::1 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add afi=ipv6 disabled=yes instance=bgp-instance-1 local.address=fd00:155:207:: .role=ibgp-rr name=rr-client-bkk07-v6 remote.address=fd00:155:207::1 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add afi=ipv6 disabled=yes instance=bgp-instance-1 local.address=fd00:155:208:: .role=ibgp-rr name=rr-client-bkk08-v6 remote.address=fd00:155:208::1 .as=142108 templates=RR-CLIENTS-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
@@ -432,7 +432,11 @@
 /routing filter community-list add comment="RFC 7999 BLACKHOLE" communities=65535:666 list=blackhole
 /routing filter num-list add list=private-asn range=64512-65535
 /routing filter num-list add list=private-asn range=4200000000-4294967295
-/routing filter rule add chain=iBGP-OUT rule="set bgp-large-communities ibgp-communities; accept;"
+/routing filter num-list add list=my-as range=142108
+/routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
+/routing filter rule add chain=AMSIX-HK-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
+/routing filter rule add chain=IBGP-OUT-v4 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
@@ -455,19 +459,15 @@
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="if (not bgp-network) { reject; }"
-/routing filter rule add chain=iBGP-IN disabled=yes rule="if (dst in 10.155.0.0/17) { reject;} "
-/routing filter rule add chain=iBGP-IN comment="vlan106 not on this router" rule="if (gw in 10.155.106.0/24) { reject; }"
-/routing filter rule add chain=iBGP-IN comment="vlan107 not on this router" rule="if (gw in 10.155.107.0/24) { reject; }"
-/routing filter rule add chain=iBGP-IN comment="vlan108 not on this router" rule="if (gw in 10.155.108.0/24) { reject; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
-/routing filter rule add chain=iBGP-IN rule="set bgp-large-communities ibgp-communities; accept;"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=HGC-SG-OUT-v6 rule="set bgp-med 50; set bgp-path-prepend 2; set bgp-large-communities location; accept"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="set bgp-med 50; set bgp-path-prepend 2; set bgp-large-communities location; accept"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="set bgp-med 20; set bgp-large-communities location; accept"
@@ -525,24 +525,22 @@
 /routing filter rule add chain=AMSIX-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities amsix-hk-communities; set bgp-local-pref 150; accept"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route v6" rule="set bgp-large-communities hgc-th-hk-communities; set bgp-local-pref 140; accept"
 /routing filter rule add chain=graceful-shutdown rule="set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept"
-/routing filter rule add chain=iBGP-IN-v6 comment="vlan107 not in this router" rule="if (gw in fd00:155:107::/64) { reject; }"
-/routing filter rule add chain=iBGP-IN-v6 comment="vlan106 not in this router" rule="if (gw in fd00:155:106::/64) { reject; }"
-/routing filter rule add chain=iBGP-IN-v6 comment="vlan108 not in this router" rule="if (gw in fd00:155:108::/64) { reject; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
-/routing filter rule add chain=iBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
-/routing filter rule add chain=iBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
+/routing filter rule add chain=IBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=too-specific rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=bogons rule="if (dst in ipv4-bogons) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=default rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=RPKI-invalid rule="if (rpki invalid) { reject; }"
-/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all rule=accept
+/routing filter rule add chain=ROUTEVIEWS-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
+/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all disabled=yes rule=accept
 /routing filter rule add chain=ROUTEVIEWS-IN-v4 comment=discard rule=reject
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=too-specific rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=bogons rule="if (dst in ipv6-bogons) { reject; }"
@@ -551,25 +549,6 @@
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=accept-all rule="accept;"
 /routing filter rule add chain=ROUTEVIEWS-IN-v6 comment=discard rule="reject;"
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
-/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.0.0/17) { reject; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.128.0/17) { reject; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
-/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
-/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan106 not on this router" rule="if (gw in 10.155.106.0/24) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan107 not on this router" rule="if (gw in 10.155.107.0/24) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan108 not on this router" rule="if (gw in 10.155.108.0/24) { reject; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
-/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in 10.155.0.0/17) { reject;} "
-/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
-/routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
-/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan106 not in this router" rule="if (gw in fd00:155:106::/64) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan107 not in this router" rule="if (gw in fd00:155:107::/64) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan108 not in this router" rule="if (gw in fd00:155:108::/64) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
-/routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing ospf interface-template add area=backbone-v6 comment=BKK20-LO-v6 disabled=no networks=fd00:dead:beef::20
 /routing ospf interface-template add area=backbone comment=BKK20-LO-v4 disabled=no networks=10.155.255.2
 /routing ospf interface-template add area=backbone-v6 comment=GW-BKK50-LAG-v6 disabled=no networks=fd00:dead:beef:2050::/127
@@ -598,6 +577,7 @@
 /system logging add topics=error,!debug
 /system logging add topics=firewall,info,!debug
 /system logging add topics=firewall,!debug
+/system logging add topics=route,bgp,debug
 /system ntp client set enabled=yes
 /system ntp client servers add address=0.th.pool.ntp.org
 /system ntp client servers add address=0.asia.pool.ntp.org
@@ -605,6 +585,10 @@
 /system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
 /system scheduler add interval=1h name=sync-ntp-list on-event="/system script run \"update-ntp-clients\"" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-06-02 start-time=17:50:20
+/system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=16:55:00
+/system scheduler add name=bcp214-block on-event="/system script run bcp214-block" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:00:00
+/system scheduler add name=bcp214-restore on-event="/system script run bcp214-restore" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:15:00
+/system scheduler add name=bcp214-upgrade on-event="/system script run bcp214-upgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:01:00
 /system script add dont-require-permissions=no name=bcp214-start owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
     \n:foreach ruleId in=[/routing filter rule find] do={\
     \n    :local chainName [/routing filter rule get \$ruleId chain]\
@@ -629,5 +613,13 @@
     \n    /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
     \n    :log warning \"BCP214: Service restored\"\
     \n"
+/system script add dont-require-permissions=no name=bcp214-downgrade owner=ansible policy=ftp,reboot,read,write,test,password source="\
+    \n      :log warning \"BCP214: triggering package downgrade to previous build\";\
+    \n      /system package downgrade\
+    \n    "
+/system script add dont-require-permissions=no name=bcp214-upgrade owner=ansible policy=ftp,reboot,read,write,test,password source="\
+    \n      :log warning \"BCP214: triggering package upgrade\";\
+    \n      /system package update download\
+    \n      /system package update install\
+    \n    "
 /system watchdog set watchdog-timer=no
-/tool sniffer set filter-interface=BKK06-LAG filter-ip-address=160.22.181.6/32
