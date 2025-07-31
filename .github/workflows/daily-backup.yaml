@@ -49,6 +49,28 @@ jobs:
               fi
               rm -f "$temp_file"
             fi
+            
+            # binary backup
+            echo "Backing up bkk${i} binary..."
+            if timeout 30s ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/system/backup/save name=temp-backup' 2>/dev/null; then
+              temp_backup=$(mktemp)
+              if timeout 30s scp -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net:temp-backup.backup "$temp_backup" 2>/dev/null; then
+                if [ -s "$temp_backup" ] && ! cmp -s "$temp_backup" "backup/mikrotik/bkk${i}.backup"; then
+                  mv "$temp_backup" "backup/mikrotik/bkk${i}.backup"
+                  echo "Updated binary: bkk${i}"
+                else
+                  rm -f "$temp_backup"
+                  echo "No changes binary: bkk${i}"
+                fi
+                # cleanup remote file
+                ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/file remove temp-backup.backup' 2>/dev/null || true
+              else
+                echo "Failed to download binary: bkk${i}"
+                rm -f "$temp_backup"
+              fi
+            else
+              echo "Failed to create binary backup: bkk${i}"
+            fi
           done
       - name: Export interface configs
         env:
