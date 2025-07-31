@@ -16,7 +16,6 @@ table inet filter {
 		ct state established,related accept
 		ct state invalid drop
 		iif "lo" accept
-		ip daddr 160.22.181.6 ip protocol icmp accept
 		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
 		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10/second accept
 		tcp dport 179 ip saddr { 10.155.106.0/31, 10.155.206.0/31 } accept
@@ -36,10 +35,8 @@ table inet filter {
 		tcp dport 443 ct state established,new accept
 		tcp dport 30335 ct state established,new accept
 		tcp dport 30435 ct state established,new accept
+		tcp dport 8888 ct state established,new accept
 		limit rate 5/minute log prefix "[DROP-IN] "
-		ip daddr 160.22.181.6 accept
-		ip daddr 160.22.181.81 accept
-		ip daddr 160.22.180.180 accept
 	}
 
 	chain forward {

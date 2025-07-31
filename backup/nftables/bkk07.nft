@@ -36,9 +36,6 @@ table inet filter {
 		tcp dport 30335 ct state established,new accept
 		tcp dport 30435 ct state established,new accept
 		limit rate 5/minute log prefix "[DROP-IN] "
-		ip daddr 160.22.181.7 accept
-		ip daddr 160.22.181.81 accept
-		ip daddr 160.22.180.180 accept
 	}
 
 	chain forward {
