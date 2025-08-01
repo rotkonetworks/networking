@@ -1,4 +1,4 @@
-# 2025-08-01 14:16:49 by RouterOS 7.20beta7
+# 2025-08-01 16:54:49 by RouterOS 7.20beta7
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -55,7 +55,7 @@
 /routing bgp template add afi=ipv6 as=142108 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
 /routing bgp template add afi=ip input.filter=iBGP-IN multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /tool traffic-generator port add interface=BKK00-LAG name=test-port
-/user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
+/user group add name=mktxp_group policy=ssh,read,write,api,!local,!telnet,!ftp,!reboot,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /certificate settings set builtin-trust-anchors=not-trusted
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
@@ -407,12 +407,12 @@
 /routing bgp connection add disabled=no input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-CLOUDFLARE-HK-v6 remote.address=2001:df0:296::a501:3335:2 .as=13335 routing-table=main templates=AMSIX-HK-v6
 /routing bgp connection add disabled=no input.filter=IBGP-IN-v4 .limit-process-routes-ipv4=2000000 instance=bgp-instance-1 local.address=10.155.255.2 .role=ibgp name=IBGP-ROTKO-BKK00-v4 nexthop-choice=default output.filter-chain=IBGP-OUT-v4 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=10.155.255.4 .as=142108 routing-table=main templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 disabled=no input.filter=IBGP-IN-v6 .limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::20 .role=ibgp name=IBGP-ROTKO-BKK00-v6 nexthop-choice=default output.filter-chain=IBGP-OUT-v6 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::100 .as=142108 routing-table=main templates=IBGP-ROTKO-v6
-/routing bgp connection add disabled=yes instance=bgp-instance-1 local.address=10.155.206.0 .role=ibgp-rr name=rr-client-bkk06-v4 remote.address=10.155.206.1 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add disabled=yes instance=bgp-instance-1 local.address=10.155.207.0 .role=ibgp-rr name=rr-client-bkk07-v4 remote.address=10.155.207.1 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add disabled=yes instance=bgp-instance-1 local.address=10.155.208.0 .role=ibgp-rr name=rr-client-bkk08-v4 remote.address=10.155.208.1 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add afi=ipv6 disabled=yes instance=bgp-instance-1 local.address=fd00:155:206:: .role=ibgp-rr name=rr-client-bkk06-v6 remote.address=fd00:155:206::1 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add afi=ipv6 disabled=yes instance=bgp-instance-1 local.address=fd00:155:207:: .role=ibgp-rr name=rr-client-bkk07-v6 remote.address=fd00:155:207::1 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add afi=ipv6 disabled=yes instance=bgp-instance-1 local.address=fd00:155:208:: .role=ibgp-rr name=rr-client-bkk08-v6 remote.address=fd00:155:208::1 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.206.0 .role=ibgp-rr name=rr-client-bkk06-v4 remote.address=10.155.206.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.207.0 .role=ibgp-rr name=rr-client-bkk07-v4 remote.address=10.155.207.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.208.0 .role=ibgp-rr name=rr-client-bkk08-v4 remote.address=10.155.208.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add afi=ipv6 disabled=no instance=bgp-instance-1 local.address=fd00:155:206:: .role=ibgp-rr name=rr-client-bkk06-v6 remote.address=fd00:155:206::1 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add afi=ipv6 disabled=no instance=bgp-instance-1 local.address=fd00:155:207:: .role=ibgp-rr name=rr-client-bkk07-v6 remote.address=fd00:155:207::1 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add afi=ipv6 disabled=no instance=bgp-instance-1 local.address=fd00:155:208:: .role=ibgp-rr name=rr-client-bkk08-v6 remote.address=fd00:155:208::1 .as=142108 templates=RR-CLIENTS-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
