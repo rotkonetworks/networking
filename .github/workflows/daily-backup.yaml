@@ -30,7 +30,7 @@ jobs:
           done
           # jg: ensure backup/mikrotik directory exists
           mkdir -p backup/mikrotik
-          
+
           # function to backup a single router
           backup_router() {
             local i=$1
@@ -57,38 +57,44 @@ jobs:
             
             # binary backup
             echo "Backing up bkk${i} binary..."
-            if timeout 30s ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/system/backup/save name=temp-backup' 2>/dev/null; then
-              temp_backup=$(mktemp)
-              if timeout 30s scp -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net:temp-backup.backup "$temp_backup" 2>/dev/null; then
-                if [ -s "$temp_backup" ] && ! cmp -s "$temp_backup" "backup/mikrotik/bkk${i}.backup"; then
-                  mv "$temp_backup" "backup/mikrotik/bkk${i}.backup"
-                  echo "Updated binary: bkk${i}"
-                else
-                  rm -f "$temp_backup"
-                  echo "No changes binary: bkk${i}"
-                fi
-                # cleanup remote file
-                if ! ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/file remove temp-backup.backup' 2>/dev/null; then
-                  echo "Warning: Failed to cleanup remote backup file on bkk${i}"
-                fi
-              else
-                echo "Failed to download binary: bkk${i}"
-                rm -f "$temp_backup"
-              fi
+            if timeout 60s ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net backup 2>/dev/null; then
+              echo "Binary backup completed: bkk${i}"
             else
               echo "Failed to create binary backup: bkk${i}"
             fi
+            # echo "Backing up bkk${i} binary..."
+            # if timeout 30s ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/system/backup/save name=temp-backup' 2>/dev/null; then
+            #   temp_backup=$(mktemp)
+            #   if timeout 30s scp -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net:temp-backup.backup "$temp_backup" 2>/dev/null; then
+            #     if [ -s "$temp_backup" ] && ! cmp -s "$temp_backup" "backup/mikrotik/bkk${i}.backup"; then
+            #       mv "$temp_backup" "backup/mikrotik/bkk${i}.backup"
+            #       echo "Updated binary: bkk${i}"
+            #     else
+            #       rm -f "$temp_backup"
+            #       echo "No changes binary: bkk${i}"
+            #     fi
+            #     # cleanup remote file
+            #     if ! ssh -i ~/.ssh/bkk${i} -o StrictHostKeyChecking=no -o ConnectTimeout=10 bkk${i}@pj.rotko.net '/file remove temp-backup.backup' 2>/dev/null; then
+            #       echo "Warning: Failed to cleanup remote backup file on bkk${i}"
+            #     fi
+            #   else
+            #     echo "Failed to download binary: bkk${i}"
+            #     rm -f "$temp_backup"
+            #   fi
+            # else
+            #   echo "Failed to create binary backup: bkk${i}"
+            # fi
           }
-          
+
           # run backups in parallel
           for i in 00 10 20 30 40 50 60; do
             backup_router $i &
           done
-          
+
           # wait for all background jobs
           wait
           echo "All router backups completed"
-          
+
       - name: Export interface configs
         env:
           INTERFACE_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
@@ -96,7 +102,7 @@ jobs:
           echo "$INTERFACE_KEY" > ~/.ssh/interface_key
           chmod 600 ~/.ssh/interface_key
           mkdir -p backup/interfaces
-          
+
           # function to backup interface config
           backup_interface() {
             local node=$1
@@ -121,7 +127,7 @@ jobs:
               rm -f "$temp_file"
             fi
           }
-          
+
           # run all interface backups in parallel
           backup_interface bkk01 22781 &
           backup_interface bkk02 22782 &
@@ -133,16 +139,16 @@ jobs:
           backup_interface bkk09 22789 &
           backup_interface bkk11 22801 &
           backup_interface bkk13 22803 &
-          
+
           wait
           echo "All interface backups completed"
-          
+
       - name: Export BGP and firewall configs
         env:
           INTERFACE_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
         run: |
           mkdir -p backup/bird backup/nftables
-          
+
           # function to backup bird and nftables configs
           backup_bgp_firewall() {
             local node=$1
@@ -190,15 +196,15 @@ jobs:
               rm -f "$temp_file"
             fi
           }
-          
+
           # run all bgp/firewall backups in parallel
           backup_bgp_firewall bkk06 22786 &
           backup_bgp_firewall bkk07 22787 &
           backup_bgp_firewall bkk08 22788 &
-          
+
           wait
           echo "All BGP and firewall backups completed"
-          
+
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
