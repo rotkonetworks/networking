@@ -1,4 +1,4 @@
-# 2025-07-31 19:27:02 by RouterOS 7.20beta7
+# 2025-08-01 14:16:49 by RouterOS 7.20beta7
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -433,10 +433,11 @@
 /routing filter num-list add list=private-asn range=64512-65535
 /routing filter num-list add list=private-asn range=4200000000-4294967295
 /routing filter num-list add list=my-as range=142108
+/routing filter rule add chain=IBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
+/routing filter rule add chain=IBGP-OUT-v4 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=AMSIX-HK-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
-/routing filter rule add chain=IBGP-OUT-v4 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
@@ -534,7 +535,6 @@
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
-/routing filter rule add chain=IBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=too-specific rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=bogons rule="if (dst in ipv4-bogons) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=default rule="if (dst == 0.0.0.0/0) { reject; }"
