@@ -1,4 +1,4 @@
-# 2025-08-01 16:54:49 by RouterOS 7.20beta7
+# 2025-08-02 14:09:47 by RouterOS 7.20beta7
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -567,7 +567,7 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=default rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=RPKI-invalid rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment="TEMP: Accept our prefix" rule="if (dst in ipv4-apnic-rotko) { accept; }"
-/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all disabled=no rule=accept
+/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all disabled=yes rule=accept
 /routing filter rule add chain=ROUTEVIEWS-IN-v4 comment=discard rule=reject
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=too-specific rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=bogons rule="if (dst in ipv6-bogons) { reject; }"
