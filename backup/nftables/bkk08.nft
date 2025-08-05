@@ -70,6 +70,7 @@ table inet filter {
 		oifname "vmbr2" ip daddr 224.0.0.0/4 drop
 		oifname "vmbr2" ip daddr 240.0.0.0/4 drop
 		oifname "vmbr2" ip daddr 255.255.255.255 drop
+		oifname "vmbr2" ip daddr 160.22.180.0/23 accept
 	}
 }
 table ip nat {
