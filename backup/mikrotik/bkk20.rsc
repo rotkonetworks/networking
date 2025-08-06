@@ -1,4 +1,4 @@
-# 2025-08-05 14:16:53 by RouterOS 7.20beta7
+# 2025-08-06 14:16:10 by RouterOS 7.20beta7
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -387,6 +387,7 @@
 /ipv6 firewall raw add action=accept chain=prerouting comment="FINAL ACCEPT"
 /ipv6 firewall raw add action=log chain=bogon-drop disabled=yes limit=1,5:packet log-prefix=BOGON:
 /ipv6 nd set [ find default=yes ] ra-lifetime=none
+/ipv6 nd add disabled=yes interface=AMSIX-LAG
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v6 output.redistribute=connected,static,bgp remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=3000000 instance=bgp-instance-1 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v4 remote.address=118.143.234.73 .as=9304 routing-table=main templates=HGC-SG-v4
 /routing bgp connection add afi=ip input.limit-process-routes-ipv4=230000 instance=bgp-instance-1 local.address=103.100.140.31 .role=ebgp multihop=yes name=AMSIX-HE-TH-v4 remote.address=103.100.140.44 .as=6939 routing-table=main templates=AMSIX-BAN-v4
@@ -549,6 +550,25 @@
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=accept-all rule="accept;"
 /routing filter rule add chain=ROUTEVIEWS-IN-v6 comment=discard rule="reject;"
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.0.0/17) { reject; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.128.0/17) { reject; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan106 not on this router" rule="if (gw in 10.155.106.0/24) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan107 not on this router" rule="if (gw in 10.155.107.0/24) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan108 not on this router" rule="if (gw in 10.155.108.0/24) { reject; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in 10.155.0.0/17) { reject;} "
+/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan106 not in this router" rule="if (gw in fd00:155:106::/64) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan107 not in this router" rule="if (gw in fd00:155:107::/64) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan108 not in this router" rule="if (gw in fd00:155:108::/64) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing ospf interface-template add area=backbone-v6 comment=BKK20-LO-v6 disabled=no networks=fd00:dead:beef::20
 /routing ospf interface-template add area=backbone comment=BKK20-LO-v4 disabled=no networks=10.155.255.2
 /routing ospf interface-template add area=backbone-v6 comment=GW-BKK50-LAG-v6 disabled=no networks=fd00:dead:beef:2050::/127

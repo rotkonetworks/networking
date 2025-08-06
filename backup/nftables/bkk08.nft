@@ -51,6 +51,7 @@ table inet filter {
 
 	chain output {
 		type filter hook output priority filter; policy accept;
+		oifname "vmbr2" ct state established,related accept
 		oifname "vmbr2" ip daddr 10.155.108.0 accept
 		oifname "vmbr2" ip daddr 10.155.208.0 accept
 		oifname "vmbr2" ip6 daddr fd00:155:108:: accept
@@ -70,7 +71,6 @@ table inet filter {
 		oifname "vmbr2" ip daddr 224.0.0.0/4 drop
 		oifname "vmbr2" ip daddr 240.0.0.0/4 drop
 		oifname "vmbr2" ip daddr 255.255.255.255 drop
-		oifname "vmbr2" ip daddr 160.22.180.0/23 accept
 	}
 }
 table ip nat {
