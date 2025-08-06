@@ -401,6 +401,32 @@
           "port": 9400
         }
       }
+    },
+    "eth-asset-hub-kusama": {
+      "type": "system-parachain",
+      "instances": {
+        "revive-rpc-01": {
+          "address": "192.168.121.11",
+          "port": 9450
+        },
+        "revive-rpc-02": {
+          "address": "192.168.122.11",
+          "port": 9450
+        }
+      }
+    },
+    "eth-passet-hub-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "revive-rpc-01": {
+          "address": "192.168.141.17",
+          "port": 9450
+        },
+        "revive-rpc-02": {
+          "address": "192.168.142.17",
+          "port": 9450
+        }
+      }
     }
   },
   "bootnodes": {
