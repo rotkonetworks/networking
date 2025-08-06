@@ -102,8 +102,13 @@ frontend http-frontend
     stick-table type ip size 1m expire 30s store http_req_rate(10s),http_req_cnt
     http-request track-sc0 src
     
+    # Let's Encrypt ACME challenge
+    acl letsencrypt-acl path_beg -i .well-known/acme-challenge/
+    
     # Redirect to HTTPS
-    redirect scheme https code 301 if !{ ssl_fc }
+    http-request redirect scheme https code 301 if !letsencrypt-acl
+
+    use_backend letsencrypt if letsencrypt-acl
 EOF
 }
 
@@ -154,6 +159,9 @@ frontend ssl-frontend
     # CORS preflight
     http-request return status 200 if is_options
     
+    # Let's Encrypt ACME challenge
+    acl letsencrypt-acl path_beg -i .well-known/acme-challenge/
+    use_backend letsencrypt if letsencrypt-acl
 EOF
 
   # Generate domain ACLs only for configured chains
@@ -224,6 +232,11 @@ generate_backends() {
 
   # Minimal deny backend
   cat <<'EOF'
+
+# Let's Encrypt backend
+backend letsencrypt
+    mode http
+    server certbot 127.0.0.1:8888
 
 # Deny backend
 backend no-access
