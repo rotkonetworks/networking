@@ -60,7 +60,7 @@
         }
       }
     },
-    "asset_hub_polkadot": {
+    "asset-hub-polkadot": {
       "type": "system-parachain",
       "aliases": ["statemint"],
       "instances": {
@@ -74,7 +74,7 @@
         }
       }
     },
-    "bridge_hub_polkadot": {
+    "bridge-hub-polkadot": {
       "type": "system-parachain",
       "aliases": ["bridgehubPolkadot"],
       "instances": {
@@ -88,7 +88,7 @@
         }
       }
     },
-    "collectives_polkadot": {
+    "collectives-polkadot": {
       "type": "system-parachain",
       "instances": {
         "rpc-collectives-polkadot-01": {
@@ -101,7 +101,7 @@
         }
       }
     },
-    "coretime_polkadot": {
+    "coretime-polkadot": {
       "type": "system-parachain",
       "instances": {
         "rpc-coretime-polkadot-01-bkk06": {
@@ -114,7 +114,7 @@
         }
       }
     },
-    "people_polkadot": {
+    "people-polkadot": {
       "type": "system-parachain",
       "instances": {
         "rpc-people-polkadot-01-bkk06": {
@@ -127,7 +127,7 @@
         }
       }
     },
-    "asset_hub_kusama": {
+    "asset-hub-kusama": {
       "type": "system-parachain",
       "aliases": ["statemine"],
       "instances": {
@@ -141,7 +141,7 @@
         }
       }
     },
-    "bridge_hub_kusama": {
+    "bridge-hub-kusama": {
       "type": "system-parachain",
       "instances": {
         "rpc-bridge-hub-kusama-01-bkk06": {
@@ -154,7 +154,7 @@
         }
       }
     },
-    "coretime_kusama": {
+    "coretime-kusama": {
       "type": "system-parachain",
       "instances": {
         "rpc-coretime-kusama-01-bkk06": {
@@ -167,7 +167,7 @@
         }
       }
     },
-    "people_kusama": {
+    "people-kusama": {
       "type": "system-parachain",
       "instances": {
         "rpc-people-kusama-01-bkk06": {
@@ -180,7 +180,7 @@
         }
       }
     },
-    "encointer_kusama": {
+    "encointer-kusama": {
       "type": "system-parachain",
       "instances": {
         "rpc-encointer-kusama-01-bkk06": {
@@ -189,6 +189,71 @@
         },
         "rpc-encointer-kusama-02-bkk07": {
           "address": "192.168.122.16",
+          "port": 9400
+        }
+      }
+    },
+    "asset-hub-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-asset-hub-paseo-01": {
+          "address": "192.168.141.11",
+          "port": 9400
+        },
+        "rpc-asset-hub-paseo-02": {
+          "address": "192.168.77.50",
+          "port": 9957
+        }
+      }
+    },
+    "passet-hub-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-passet-hub-paseo-01": {
+          "address": "192.168.141.17",
+          "port": 9400
+        },
+        "rpc-passet-hub-paseo-02": {
+          "address": "192.168.142.17",
+          "port": 9400
+        }
+      }
+    },
+    "bridge-hub-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-bridge-hub-paseo-01": {
+          "address": "192.168.76.60",
+          "port": 9966
+        },
+        "rpc-bridge-hub-paseo-02": {
+          "address": "192.168.77.60",
+          "port": 9967
+        }
+      }
+    },
+    "coretime-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-coretime-paseo-01": {
+          "address": "192.168.46.90",
+          "port": 9400
+        },
+        "rpc-coretime-paseo-02": {
+          "address": "192.168.47.90",
+          "port": 9400
+        }
+      }
+    },
+    "people-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-people-paseo-01": {
+          "address": "192.168.46.94",
+          "port": 9400
+        },
+        "rpc-people-paseo-02": {
+          "address": "192.168.47.94",
           "port": 9400
         }
       }
@@ -233,7 +298,7 @@
         }
       }
     },
-    "bifrost_polkadot": {
+    "bifrost-polkadot": {
       "type": "parachain",
       "instances": {
         "bifrost-polkadot-rpc-01": {
@@ -352,39 +417,76 @@
       }
     },
     "polkadot": {
-      "container": "192.xxx",
-      "type": "relay",
-      "ports": {
-        "p2p": 9400
-      }
+      "container": "192.168.111.10",
+      "type": "relay"
     },
-    "bridge-hub-polkadot": {
-      "container": "192.xxx",
-      "type": "parachain",
-      "ports": {
-        "p2p": 3021
-      }
-    },
-    "westend": {
-      "container": "192.xxx",
-      "type": "relay",
-      "ports": {
-        "p2p": 4530
-      }
-    },
-    "bridge-hub-westend": {
-      "container": "192.xxx",
-      "type": "parachain",
-      "ports": {
-        "p2p": 4560
-      }
+    "paseo": {
+      "container": "192.168.141.10",
+      "type": "relay"
     },
     "kusama": {
       "type": "relay",
-      "container": "192.xxx",
-      "ports": {
-        "p2p": 9320
-      }
+      "container": "192.168.121.10"
+    },
+    "asset-hub-polkadot": {
+      "type": "parachain",
+      "container": "192.168.111.11"
+    },
+    "asset-hub-kusama": {
+      "type": "parachain",
+      "container": "192.168.121.11"
+    },
+    "asset-hub-paseo": {
+      "type": "parachain",
+      "container": "192.168.141.11"
+    },
+    "passet-hub-paseo": {
+      "type": "parachain",
+      "container": "192.168.141.17"
+    },
+    "bridge-hub-polkadot": {
+      "type": "parachain",
+      "container": "192.168.111.12"
+    },
+    "bridge-hub-kusama": {
+      "type": "parachain",
+      "container": "192.168.121.12"
+    },
+    "bridge-hub-paseo": {
+      "type": "parachain",
+      "container": "192.168.76.60"
+    },
+    "collectives-polkadot": {
+      "type": "parachain",
+      "container": "192.168.111.13"
+    },
+    "people-polkadot": {
+      "type": "parachain",
+      "container": "192.168.76.18"
+    },
+    "people-kusama": {
+      "type": "parachain",
+      "container": "192.168.121.14"
+    },
+    "people-paseo": {
+      "type": "parachain",
+      "container": "192.168.46.94"
+    },
+    "coretime-polkadot": {
+      "type": "parachain",
+      "container": "192.168.176.16"
+    },
+    "coretime-kusama": {
+      "type": "parachain",
+      "container": "192.168.121.15"
+    },
+    "coretime-paseo": {
+      "type": "parachain",
+      "container": "192.168.46.90"
+    },
+    "encointer-kusama": {
+      "type": "parachain",
+      "container": "192.168.121.16"
     }
   }
 }
