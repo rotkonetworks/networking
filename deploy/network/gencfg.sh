@@ -418,41 +418,48 @@ COMMON_CONFIG
   cat <<COMMON_CONFIG
     # policy-based routing for public services
     # ensures traffic from public IPs uses BIRD routes (main table)
+    # anycast rules have higher priority to ensure proper routing
+COMMON_CONFIG
+
+  if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
+    echo "    post-up ip rule add from ${ANYCAST_LOCAL_V4} lookup anycast priority 48"
+  fi
+  if [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
+    echo "    post-up ip rule add from ${ANYCAST_GLOBAL_V4} lookup anycast priority 47"
+  fi
+
+  cat <<COMMON_CONFIG
+    post-up ip rule add from ${PUBLIC_V4} lookup anycast priority 49
     post-up ip rule add from ${PUBLIC_V4} lookup main priority 50
 COMMON_CONFIG
 
   if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
     echo "    post-up ip rule add from ${ANYCAST_LOCAL_V4} lookup main priority 51"
-    if [[ "$has_anycast" == "true" ]]; then
-      echo "    post-up ip rule add from ${ANYCAST_LOCAL_V4} table anycast priority 100"
-      echo "    post-up ip route add default table anycast nexthop via ${RR1_GW_V4} dev vmbr2 weight 1 nexthop via ${RR2_GW_V4} dev vmbr2 weight 1 2>/dev/null || true"
-    fi
   fi
   if [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
     echo "    post-up ip rule add from ${ANYCAST_GLOBAL_V4} lookup main priority 52"
-    if [[ "$has_anycast" == "true" ]]; then
-      echo "    post-up ip rule add from ${ANYCAST_GLOBAL_V4} table anycast priority 101"
-    fi
+  fi
+
+  # Add default route to anycast table once (not per IP)
+  if [[ "$has_anycast" == "true" ]]; then
+    echo "    post-up ip route add default table anycast nexthop via ${RR1_GW_V4} dev vmbr2 weight 1 nexthop via ${RR2_GW_V4} dev vmbr2 weight 1 2>/dev/null || true"
   fi
 
   cat <<COMMON_CONFIG
     # critical: ensure return traffic uses the same interface
     post-up ip rule add iif vmbr2 lookup main priority 60
     # cleanup on interface down
+    pre-down ip rule del from ${PUBLIC_V4} lookup anycast 2>/dev/null || true
     pre-down ip rule del from ${PUBLIC_V4} lookup main 2>/dev/null || true
 COMMON_CONFIG
 
   if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
+    echo "    pre-down ip rule del from ${ANYCAST_LOCAL_V4} lookup anycast priority 48 2>/dev/null || true"
     echo "    pre-down ip rule del from ${ANYCAST_LOCAL_V4} lookup main 2>/dev/null || true"
-    if [[ "$has_anycast" == "true" ]]; then
-      echo "    pre-down ip rule del from ${ANYCAST_LOCAL_V4} table anycast 2>/dev/null || true"
-    fi
   fi
   if [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
+    echo "    pre-down ip rule del from ${ANYCAST_GLOBAL_V4} lookup anycast priority 47 2>/dev/null || true"
     echo "    pre-down ip rule del from ${ANYCAST_GLOBAL_V4} lookup main 2>/dev/null || true"
-    if [[ "$has_anycast" == "true" ]]; then
-      echo "    pre-down ip rule del from ${ANYCAST_GLOBAL_V4} table anycast 2>/dev/null || true"
-    fi
   fi
   if [[ "$has_anycast" == "true" ]]; then
     echo "    pre-down ip route flush table anycast 2>/dev/null || true"
@@ -472,6 +479,18 @@ COMMON_CONFIG
   # Add IPv6 policy-based routing
   cat <<POLICY_V6
     # policy-based routing for IPv6 public services
+    # anycast rules have higher priority to ensure proper routing
+POLICY_V6
+
+  if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
+    echo "    post-up ip -6 rule add from ${ANYCAST_LOCAL_V6} lookup anycast priority 48"
+  fi
+  if [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    echo "    post-up ip -6 rule add from ${ANYCAST_GLOBAL_V6} lookup anycast priority 47"
+  fi
+
+  cat <<POLICY_V6
+    post-up ip -6 rule add from ${PUBLIC_V6} lookup anycast priority 49
     post-up ip -6 rule add from ${PUBLIC_V6} lookup main priority 50
 POLICY_V6
 
@@ -482,36 +501,31 @@ POLICY_V6
 
   if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
     echo "    post-up ip -6 rule add from ${ANYCAST_LOCAL_V6} lookup main priority 51"
-    if [[ "$has_anycast_v6" == "true" ]]; then
-      echo "    post-up ip -6 rule add from ${ANYCAST_LOCAL_V6} table anycast priority 100"
-      echo "    post-up ip -6 route add default table anycast nexthop via ${RR1_GW_V6} dev vmbr2 weight 1 nexthop via ${RR2_GW_V6} dev vmbr2 weight 1 2>/dev/null || true"
-    fi
   fi
   if [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
     echo "    post-up ip -6 rule add from ${ANYCAST_GLOBAL_V6} lookup main priority 52"
-    if [[ "$has_anycast_v6" == "true" ]]; then
-      echo "    post-up ip -6 rule add from ${ANYCAST_GLOBAL_V6} table anycast priority 101"
-    fi
+  fi
+
+  # Add default route to anycast table once (not per IP)
+  if [[ "$has_anycast_v6" == "true" ]]; then
+    echo "    post-up ip -6 route add default table anycast nexthop via ${RR1_GW_V6} dev vmbr2 weight 1 nexthop via ${RR2_GW_V6} dev vmbr2 weight 1 2>/dev/null || true"
   fi
 
   cat <<POLICY_V6
     # critical: ensure return traffic uses the same interface
     post-up ip -6 rule add iif vmbr2 lookup main priority 60
     # cleanup on interface down
+    pre-down ip -6 rule del from ${PUBLIC_V6} lookup anycast 2>/dev/null || true
     pre-down ip -6 rule del from ${PUBLIC_V6} lookup main 2>/dev/null || true
 POLICY_V6
 
   if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
+    echo "    pre-down ip -6 rule del from ${ANYCAST_LOCAL_V6} lookup anycast priority 48 2>/dev/null || true"
     echo "    pre-down ip -6 rule del from ${ANYCAST_LOCAL_V6} lookup main 2>/dev/null || true"
-    if [[ "$has_anycast_v6" == "true" ]]; then
-      echo "    pre-down ip -6 rule del from ${ANYCAST_LOCAL_V6} table anycast 2>/dev/null || true"
-    fi
   fi
   if [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    echo "    pre-down ip -6 rule del from ${ANYCAST_GLOBAL_V6} lookup anycast priority 47 2>/dev/null || true"
     echo "    pre-down ip -6 rule del from ${ANYCAST_GLOBAL_V6} lookup main 2>/dev/null || true"
-    if [[ "$has_anycast_v6" == "true" ]]; then
-      echo "    pre-down ip -6 rule del from ${ANYCAST_GLOBAL_V6} table anycast 2>/dev/null || true"
-    fi
   fi
   if [[ "$has_anycast_v6" == "true" ]]; then
     echo "    pre-down ip -6 route flush table anycast 2>/dev/null || true"
