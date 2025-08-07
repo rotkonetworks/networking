@@ -90,6 +90,7 @@ BONDED_VLANS=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.bonded_vlans //
 
 # global settings
 MGMT_GATEWAY="${MANAGEMENT_GW:-$(jq -r '.networks.management_gateway // "192.168.69.1"' "$CONFIG_FILE")}"
+MGMT_NETWORK=$(jq -r '.networks.management // "192.168.0.0/16"' "$CONFIG_FILE")
 QINQ_OUTER=$(jq -r '.networks.qinq_outer // 400' "$CONFIG_FILE")
 
 # bond configuration
@@ -196,6 +197,7 @@ iface vmbr0 inet static
     bridge-fd 0
     # management routing isolation
     post-up ip route add default via ${MGMT_GATEWAY} dev vmbr0 table mgmt
+    post-up ip route add ${MGMT_NETWORK} dev vmbr0 table mgmt
     post-up ip rule add from ${MANAGEMENT_IP%%/*} table mgmt priority 300
     post-up ip rule add to ${MANAGEMENT_IP%%/*} table mgmt priority 301
     post-up ip rule add iif vmbr0 table mgmt priority 310
