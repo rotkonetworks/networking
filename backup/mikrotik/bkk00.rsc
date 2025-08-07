@@ -1,4 +1,4 @@
-# 2025-08-06 14:16:10 by RouterOS 7.20beta7
+# 2025-08-07 14:16:18 by RouterOS 7.20beta7
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -220,6 +220,9 @@
 /ip firewall address-list add address=160.22.181.0/24 list=our-networks
 /ip firewall address-list add address=160.22.180.0/24 list=our-networks
 /ip firewall address-list add address=172.16.0.0/16 list=dns-clients
+/ip firewall address-list add address=10.155.206.0/24 list=ibgp-block-gw-v4
+/ip firewall address-list add address=10.155.207.0/24 list=ibgp-block-gw-v4
+/ip firewall address-list add address=10.155.208.0/24 list=ibgp-block-gw-v4
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
@@ -370,6 +373,9 @@
 /ipv6 firewall address-list add address=2001:7f8:1:0:a500:14:2108:1/128 comment="AMS-IX EU - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2402:b740:15:388:a500:14:2108:1/128 comment="AMS-IX BKK - exchange only" list=exchange-only-loopbacks
 /ipv6 firewall address-list add address=2001:df0:296:0:a500:14:2108:1/128 comment="AMS-IX HK - exchange only" list=exchange-only-loopbacks
+/ipv6 firewall address-list add address=fd00:155:206::/64 list=ibgp-block-gw-v6
+/ipv6 firewall address-list add address=fd00:155:207::/64 list=ibgp-block-gw-v6
+/ipv6 firewall address-list add address=fd00:155:208::/64 list=ibgp-block-gw-v6
 /ipv6 firewall raw
 # in/out-interface matcher not possible when interface (BKK10-LAG) is slave - use master instead (bridge_vlan)
 add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=BKK10-LAG
@@ -494,6 +500,7 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=AMSIX-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=AMSIX-OUT-v6 rule="if (not bgp-network) { reject; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
@@ -576,6 +583,7 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=RPKI-invalid rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=accept-all rule="accept;"
 /routing filter rule add chain=ROUTEVIEWS-IN-v6 comment=discard rule="reject;"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (gw in ibgp-block-gw-v6) { reject; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
@@ -594,14 +602,10 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
-/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan206 not on this router" rule="if (gw in 10.155.206.0/24) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan207 not on this router" rule="if (gw in 10.155.207.0/24) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v4 comment="vlan208 not on this router" rule="if (gw in 10.155.208.0/24) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
-/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan207 not in bkk00" rule="if (gw in fd00:155:207::/64) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan206 not in bkk00" rule="if (gw in fd00:155:206::/64) { reject; }"
-/routing filter rule add chain=RR-CLIENT-IN-v6 comment="vlan208 not in bkk00" rule="if (gw in fd00:155:208::/64) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (gw in ibgp-block-gw-v6) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::/128 passive
