@@ -41,14 +41,8 @@
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
         "management": "eno2",
-        "bond_members": [
-          "enp193s0f1np1",
-          "eno1"
-        ],
-        "unused": [
-          "enp193s0f0np0",
-          "enxbe3af2b6059f"
-        ],
+        "bond_members": ["enp193s0f1np1", "eno1"],
+        "unused": ["enp193s0f0np0", "enxbe3af2b6059f"],
         "bonded_vlans": true,
         "uplink_split": {
           "enp193s0f1np1": "bkk30",
@@ -74,14 +68,8 @@
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
         "management": "eno2",
-        "bond_members": [
-          "enp1s0f1np1",
-          "eno1"
-        ],
-        "unused": [
-          "enp1s0f0np0",
-          "enxbe3af2b6059f"
-        ],
+        "bond_members": ["enp1s0f1np1", "eno1"],
+        "unused": ["enp1s0f0np0", "enxbe3af2b6059f"],
         "bonded_vlans": true,
         "uplink_split": {
           "enp1s0f1np1": "bkk30",
@@ -102,19 +90,13 @@
       "management": "192.168.69.218/16",
       "management_gateway": "192.168.69.1",
       "anycast_local_v4": "160.22.181.81/32",
-      "anycast_local_v6": "2401:a860:1181::",
+      "anycast_local_v6": "2401:a860:1081::",
       "anycast_global_v4": "160.22.180.180/32",
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
         "management": "eno2",
-        "bond_members": [
-          "enp193s0f1np1",
-          "eno1"
-        ],
-        "unused": [
-          "enp193s0f0np0",
-          "enxb03af2b6059f"
-        ],
+        "bond_members": ["enp193s0f1np1", "eno1"],
+        "unused": ["enp193s0f0np0", "enxb03af2b6059f"],
         "bonded_vlans": true,
         "uplink_split": {
           "enp193s0f1np1": "bkk30",
@@ -191,11 +173,7 @@
       "192.168.0.0/16",
       "169.254.0.0/16"
     ],
-    "private_v6": [
-      "fd00::/8",
-      "fe80::/10",
-      "2401:a860::/32"
-    ],
+    "private_v6": ["fd00::/8", "fe80::/10", "2401:a860::/32"],
     "public_v4": "160.22.180.0/23",
     "public_v6": "2401:a860::/32",
     "anycast_v4": {
