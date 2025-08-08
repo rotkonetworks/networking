@@ -1,4 +1,4 @@
-# 2025-08-08 14:16:38 by RouterOS 7.20beta7
+# 2025-08-08 17:02:13 by RouterOS 7.20beta7
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
