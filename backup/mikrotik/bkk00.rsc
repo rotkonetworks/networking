@@ -1,4 +1,4 @@
-# 2025-08-07 14:16:18 by RouterOS 7.20beta7
+# 2025-08-08 14:16:39 by RouterOS 7.20beta7
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -292,7 +292,7 @@
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="ipv6 discard prefix rfc6666" distance=240 dst-address=100::/64
 /ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
-/ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
+/ipv6 route add blackhole comment=global_unicast_ipv6 disabled=no distance=240 dst-address=2401:a860:1000::/36
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
