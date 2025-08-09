@@ -19,11 +19,11 @@ CONFIG_FILE="${CONFIG_FILE:-$DEFAULT_CONFIG}"
 # Parse options
 while getopts ':c:' opt; do
   case "$opt" in
-  c) CONFIG_FILE="$OPTARG" ;;
-  *)
-    echo "Usage: $0 [-c <config-file>] <site>" >&2
-    exit 1
-    ;;
+    c) CONFIG_FILE="$OPTARG" ;;
+    *)
+      echo "Usage: $0 [-c <config-file>] <site>" >&2
+      exit 1
+      ;;
   esac
 done
 shift $((OPTIND - 1))
@@ -82,35 +82,35 @@ AS_NUMBER=$(jq -r '.as_number' "$CONFIG_FILE")
 # generate bird configuration
 generate_bird_config() {
   cat <<BIRD
-# BIRD 2.x configuration for ${SITE^^}
-# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-# Config hash: $(echo -n "$SITE_CONFIG" | sha256sum | cut -d' ' -f1)
+  # BIRD 2.x configuration for ${SITE^^}
+  # Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+  # Config hash: $(echo -n "$SITE_CONFIG" | sha256sum | cut -d' ' -f1)
 
-$(generate_constants)
+  $(generate_constants)
 
-$(generate_logging)
+  $(generate_logging)
 
-$(generate_templates)
+  $(generate_templates)
 
-$(generate_kernel_protocols)
+  $(generate_kernel_protocols)
 
-$(generate_basic_protocols)
+  $(generate_basic_protocols)
 
-$(generate_static_routes)
+  $(generate_static_routes)
 
-$(generate_bfd)
+  $(generate_bfd)
 
-$(generate_bgp_sessions)
+  $(generate_bgp_sessions)
 BIRD
 }
 
 # generate constants section
 generate_constants() {
   cat <<CONSTANTS
-#
-# Router Identity and Constants
-#
-router id ${ROUTER_ID};
+  #
+  # Router Identity and Constants
+  #
+  router id ${ROUTER_ID};
 
 # AS Numbers
 define LOCAL_AS = ${AS_NUMBER};
@@ -163,7 +163,7 @@ CONSTANTS_END
 
   # Generate local IPs for each RR
   jq -r --arg site "$SITE" '.route_reflectors | keys[]' "$CONFIG_FILE" | while read -r rr_key; do
-    rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
+  rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
 
     # Try to get per-RR local IPs first, fallback to general ones
     local_v4=$(echo "$SITE_CONFIG" | jq -r ".bgp_local_${rr_key}_v4 // .bgp_local_v4")
@@ -194,30 +194,30 @@ PREFERENCES
 # generate logging configuration
 generate_logging() {
   cat <<'LOGGING'
-#
-# Logging Configuration
-#
-log syslog all;
-log "/var/log/bird.log" all;
+  #
+  # Logging Configuration
+  #
+  log syslog all;
+  log "/var/log/bird.log" all;
 
-timeformat base iso long;
-timeformat log iso long;
-timeformat protocol iso long;
-timeformat route iso long;
-LOGGING
+  timeformat base iso long;
+  timeformat log iso long;
+  timeformat protocol iso long;
+  timeformat route iso long;
+  LOGGING
 }
 
 # generate bgp templates
 generate_templates() {
   local bgp_iface=$(jq -r '.interfaces.bgp_vlan // "vmbr2"' "$CONFIG_FILE")
   cat <<TEMPLATES
-#
-# BGP Templates
-#
-template bgp BGP_COMMON {
-    local as LOCAL_AS;
-    # Direct connection over ${bgp_iface}
-    direct;
+  #
+  # BGP Templates
+  #
+  template bgp BGP_COMMON {
+  local as LOCAL_AS;
+  # Direct connection over ${bgp_iface}
+  direct;
 
     # Faster convergence
     hold time BGP_HOLD_TIME;
@@ -229,43 +229,43 @@ template bgp BGP_COMMON {
     # Graceful restart
     graceful restart on;
     graceful restart time 120;
-}
+  }
 TEMPLATES
 }
 
 # generate kernel protocols
 generate_kernel_protocols() {
   cat <<'KERNEL'
-#
-# Kernel Protocols
-#
-protocol kernel kernel4 {
-    ipv4 {
-        export filter {
-            # Don't export kernel routes back
-            if source = RTS_DEVICE then reject;
-            if source = RTS_STATIC then reject;
-            accept;
-        };
-        import all;
+  #
+  # Kernel Protocols
+  #
+  protocol kernel kernel4 {
+  ipv4 {
+  export filter {
+  # Don't export kernel routes back
+  if source = RTS_DEVICE then reject;
+    if source = RTS_STATIC then reject;
+      accept;
     };
-    learn;
-    scan time SCAN_TIME;
-    merge paths on;
+    import all;
+  };
+  learn;
+  scan time SCAN_TIME;
+  merge paths on;
 }
 
 protocol kernel kernel6 {
-    ipv6 {
-        export filter {
-            if source = RTS_DEVICE then reject;
-            if source = RTS_STATIC then reject;
-            accept;
-        };
-        import all;
-    };
-    learn;
-    scan time SCAN_TIME;
-    merge paths on;
+ipv6 {
+export filter {
+if source = RTS_DEVICE then reject;
+  if source = RTS_STATIC then reject;
+    accept;
+  };
+  import all;
+};
+learn;
+scan time SCAN_TIME;
+merge paths on;
 }
 KERNEL
 }
@@ -274,17 +274,17 @@ KERNEL
 generate_basic_protocols() {
   local bgp_iface=$(jq -r '.interfaces.bgp_vlan // "vmbr2"' "$CONFIG_FILE")
   cat <<BASIC
-#
-# Basic Protocols
-#
-protocol device {
-    scan time SCAN_TIME;
+  #
+  # Basic Protocols
+  #
+  protocol device {
+  scan time SCAN_TIME;
 }
 
 protocol direct {
-    ipv4;
-    ipv6;
-    interface "vmbr*", "lo", "${bgp_iface}";
+ipv4;
+ipv6;
+interface "vmbr*", "lo", "${bgp_iface}";
 }
 BASIC
 }
@@ -292,13 +292,13 @@ BASIC
 # generate static routes
 generate_static_routes() {
   cat <<'STATIC'
-#
-# Static Routes
-#
-protocol static static4 {
-    ipv4;
-    route PUBLIC_NET4 unreachable;
-STATIC
+  #
+  # Static Routes
+  #
+  protocol static static4 {
+  ipv4;
+  route PUBLIC_NET4 unreachable;
+  STATIC
 
   # Add IPv4 anycast routes - all three tiers
   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    route ${ANYCAST_LOCAL_V4}/32 unreachable;  # ULA - internal only"
@@ -306,12 +306,12 @@ STATIC
   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "    route ${ANYCAST_GLOBAL_V4}/32 unreachable;  # Global multi-site"
 
   cat <<'STATIC_CONT'
-    route INTERNAL_NET4 unreachable;
+  route INTERNAL_NET4 unreachable;
 }
 
 protocol static static6 {
-    ipv6;
-    route PUBLIC_NET6 unreachable;
+ipv6;
+route PUBLIC_NET6 unreachable;
 STATIC_CONT
 
   # Add IPv6 anycast routes - all three tiers with both /128 and prefix routes
@@ -320,7 +320,7 @@ STATIC_CONT
     echo "    route ${ANYCAST_LOCAL_V6}/128 unreachable;"
     [[ -n "$ANYCAST_LOCAL_V6_PREFIX" ]] && echo "    route ${ANYCAST_LOCAL_V6_PREFIX} unreachable;"
   fi
-  
+
   if [[ -n "$ANYCAST_SITE_V6" ]]; then
     echo "    # Site anycast (GUA) - Bangkok only"
     echo "    route ${ANYCAST_SITE_V6}/128 unreachable;"
@@ -334,7 +334,7 @@ STATIC_CONT
   fi
 
   cat <<'STATIC_V6_CONT'
-    route INTERNAL_NET6 unreachable;
+  route INTERNAL_NET6 unreachable;
 }
 STATIC_V6_CONT
 }
@@ -343,15 +343,15 @@ STATIC_V6_CONT
 generate_bfd() {
   local bgp_iface=$(jq -r '.interfaces.bgp_vlan // "vmbr2"' "$CONFIG_FILE")
   cat <<BFD
-#
-# BFD Protocol
-#
-protocol bfd {
-    interface "${bgp_iface}" {
-        min rx interval BFD_MIN_RX ms;
-        min tx interval BFD_MIN_TX ms;
-        multiplier BFD_MULTIPLIER;
-    };
+  #
+  # BFD Protocol
+  #
+  protocol bfd {
+  interface "${bgp_iface}" {
+  min rx interval BFD_MIN_RX ms;
+  min tx interval BFD_MIN_TX ms;
+  multiplier BFD_MULTIPLIER;
+};
 }
 BFD
 }
@@ -364,42 +364,42 @@ generate_bgp_sessions() {
 
   # generate sessions for each RR
   jq -r '.route_reflectors | keys[]' "$CONFIG_FILE" | while read -r rr_key; do
-    rr_name=$(jq -r ".route_reflectors.$rr_key.name" "$CONFIG_FILE")
-    rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
+  rr_name=$(jq -r ".route_reflectors.$rr_key.name" "$CONFIG_FILE")
+  rr_key_upper=$(echo "$rr_key" | tr '[:lower:]' '[:upper:]')
 
     # IPv6 session
     cat <<BGP_V6
 
-protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
+    protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
     description "Route Reflector - ${rr_name} IPv6";
     neighbor ${rr_key_upper}_IP6 as LOCAL_AS;
     source address LOCAL_IP6_${rr_key_upper};
 
     ipv6 {
-        next hop self;
-        import filter {
-            # Prefer IPv6 routes
-            preference = PREF_IPV6;
+    next hop self;
+    import filter {
+    # Prefer IPv6 routes
+    preference = PREF_IPV6;
 
             # Accept default route
             if net = ::/0 then {
-                bgp_local_pref = LOCAL_PREF_PRIMARY;
-                accept;
+              bgp_local_pref = LOCAL_PREF_PRIMARY;
+              accept;
             }
 
             # Accept all other routes
             accept;
-        };
-        export filter {
-            # Export our unicast
-            if net = PUBLIC_NET6 then accept;
-            
+          };
+          export filter {
+          # Export our unicast
+          if net = PUBLIC_NET6 then accept;
+
             # Export GUA anycast prefixes for external BGP
             # Site-local /48 - Bangkok only services
             if net = ANYCAST_SITE_V6_PREFIX then accept;
-            # Global /36 - worldwide services
-            if net = ANYCAST_GLOBAL_V6_PREFIX then accept;
-            
+              # Global /36 - worldwide services
+              if net = ANYCAST_GLOBAL_V6_PREFIX then accept;
+
             # ULA anycast stays internal only (not exported to eBGP)
             # But we can export to iBGP for internal routing
             if net = ANYCAST_LOCAL_V6_PREFIX then accept;
@@ -409,47 +409,47 @@ protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
 
             # Don't export learned routes
             reject;
+          };
         };
-    };
-}
+      }
 BGP_V6
 
     # IPv4 session
     cat <<BGP_V4
 
-protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
+    protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
     description "Route Reflector - ${rr_name} IPv4";
     neighbor ${rr_key_upper}_IP4 as LOCAL_AS;
     source address LOCAL_IP4_${rr_key_upper};
 
     ipv4 {
-        next hop self;
-        import filter {
-            # Lower preference for IPv4
-            preference = PREF_IPV4;
+    next hop self;
+    import filter {
+    # Lower preference for IPv4
+    preference = PREF_IPV4;
 
             # Accept default
             if net = 0.0.0.0/0 then {
-                bgp_local_pref = LOCAL_PREF_BACKUP;
-                accept;
+              bgp_local_pref = LOCAL_PREF_BACKUP;
+              accept;
             }
             accept;
-        };
-        export filter {
-            if net = PUBLIC_NET4 then accept;
-            
+          };
+          export filter {
+          if net = PUBLIC_NET4 then accept;
+
             # Export all anycast /32 addresses
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
-            if net = ANYCAST_SITE_V4 then accept;   # Bangkok only
-            if net = ANYCAST_GLOBAL_V4 then accept; # Global
-            
-            if net ~ INTERNAL_NET4 then accept;
-            reject;
-        };
-    };
-}
+              if net = ANYCAST_SITE_V4 then accept;   # Bangkok only
+                if net = ANYCAST_GLOBAL_V4 then accept; # Global
+
+                  if net ~ INTERNAL_NET4 then accept;
+                    reject;
+                  };
+                };
+              }
 BGP_V4
-  done
+done
 }
 
 # main execution

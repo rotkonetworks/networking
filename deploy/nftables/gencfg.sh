@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# nftables config generator with modular structure
+# nftables config generator with three-tier anycast support
 set -euo pipefail
 
 # Get script directory
@@ -11,11 +11,11 @@ SERVICES_FILE="${CONFIG_DIR}/services.json"
 # Parse arguments
 while getopts ':c:' opt; do
   case "$opt" in
-  c) CONFIG_FILE="$OPTARG" ;;
-  *)
-    echo "Usage: $0 [-c <config-file>] <site>" >&2
-    exit 1
-    ;;
+    c) CONFIG_FILE="$OPTARG" ;;
+    *)
+      echo "Usage: $0 [-c <config-file>] <site>" >&2
+      exit 1
+      ;;
   esac
 done
 shift $((OPTIND - 1))
@@ -52,42 +52,70 @@ PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_V4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
 INTERNAL_V6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
 
+# Extract anycast IPs - all three tiers
+ANYCAST_LOCAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v4 // empty' | sed 's|/32||')
+ANYCAST_LOCAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v6 // empty' | sed 's|/128||')
+ANYCAST_SITE_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v4 // empty' | sed 's|/32||')
+ANYCAST_SITE_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v6 // empty' | sed 's|/128||')
+ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' | sed 's|/32||')
+ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | sed 's|/128||')
+
 # Generate nftables configuration
 generate_nftables_config() {
   cat <<NFT
-#!/usr/sbin/nft -f
-# nftables configuration for ${SITE^^}
-# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+  #!/usr/sbin/nft -f
+  # nftables configuration for ${SITE^^}
+  # Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+  # Three-tier anycast: local (ULA), site (Bangkok), global (worldwide)
 
-flush ruleset
+  flush ruleset
 
-$(generate_variables)
+  $(generate_variables)
 
-$(generate_filter_table)
+  $(generate_filter_table)
 
-$(generate_nat_table)
+  $(generate_nat_table)
 NFT
 }
 
 # Generate variables section
 generate_variables() {
   cat <<VARS
-# Variables from central config
-define PUBLIC_IP4 = ${PUBLIC_IP4}
-define PUBLIC_IP6 = ${PUBLIC_IP6}
+  # Variables from central config
+  define PUBLIC_IP4 = ${PUBLIC_IP4}
+  define PUBLIC_IP6 = ${PUBLIC_IP6}
 
-define INTERNAL4 = ${INTERNAL_V4}
-define INTERNAL6 = ${INTERNAL_V6}
+  define INTERNAL4 = ${INTERNAL_V4}
+  define INTERNAL6 = ${INTERNAL_V6}
 
-define MGMT_NET = $(jq -r '.networks.management' "$CONFIG_FILE")
+  define MGMT_NET = $(jq -r '.networks.management' "$CONFIG_FILE")
 VARS
 
-  # Add BGP peers - extract site-specific IPs for current site
-  local bgp_peers_v6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v6) | join(", ")' "$CONFIG_FILE")
-  local bgp_peers_v4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v4) | join(", ")' "$CONFIG_FILE")
+ # Define anycast IPs if present - all three tiers
+ if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
+   echo ""
+   echo "# Anycast IPv4 addresses"
+   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "define ANYCAST_LOCAL_V4 = ${ANYCAST_LOCAL_V4}  # ULA - internal only"
+   [[ -n "$ANYCAST_SITE_V4" ]] && echo "define ANYCAST_SITE_V4 = ${ANYCAST_SITE_V4}    # Bangkok site-local"
+   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "define ANYCAST_GLOBAL_V4 = ${ANYCAST_GLOBAL_V4} # Global multi-site"
+ fi
 
-  echo "define BGP_PEERS_V6 = { $bgp_peers_v6 }"
-  echo "define BGP_PEERS_V4 = { $bgp_peers_v4 }"
+ if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_SITE_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+   echo ""
+   echo "# Anycast IPv6 addresses"
+   [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "define ANYCAST_LOCAL_V6 = ${ANYCAST_LOCAL_V6}  # ULA - internal"
+   [[ -n "$ANYCAST_SITE_V6" ]] && echo "define ANYCAST_SITE_V6 = ${ANYCAST_SITE_V6}    # GUA - Bangkok"
+   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6 = ${ANYCAST_GLOBAL_V6} # GUA - global"
+ fi
+
+ # Add BGP peers - extract site-specific IPs for current site
+ local bgp_peers_v6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v6) | join(", ")' "$CONFIG_FILE")
+ local bgp_peers_v4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v4) | join(", ")' "$CONFIG_FILE")
+
+ echo ""
+ echo "# BGP peers"
+ echo "define BGP_PEERS_V6 = { $bgp_peers_v6 }"
+ echo "define BGP_PEERS_V4 = { $bgp_peers_v4 }"
 }
 
 # Generate filter table
@@ -97,41 +125,41 @@ generate_filter_table() {
 # Main filter table - IPv6 and IPv4 combined
 table inet filter {
 FILTER
-  generate_sets
-  generate_input_chain
-  generate_forward_chain
-  generate_output_chain
-  echo "}"
+generate_sets
+generate_input_chain
+generate_forward_chain
+generate_output_chain
+echo "}"
 }
 
 # Generate sets
 generate_sets() {
   cat <<'SETS'
-    set allowed_ssh {
-        type ipv4_addr
-        flags interval
-        elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 }
-    }
+  set allowed_ssh {
+  type ipv4_addr
+  flags interval
+  elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 }
+}
 
-    set allowed_ssh_v6 {
-        type ipv6_addr
-        flags interval
-        elements = { fd00::/8, 2401:a860::/32 }
-    }
+set allowed_ssh_v6 {
+type ipv6_addr
+flags interval
+elements = { fd00::/8, 2401:a860::/32 }
+}
 
-    set rate_limit_ssh {
-        type ipv4_addr
-        size 65535
-        flags dynamic,timeout
-        timeout 60s
-    }
+set rate_limit_ssh {
+type ipv4_addr
+size 65535
+flags dynamic,timeout
+timeout 60s
+}
 
-    set rate_limit_ssh_v6 {
-        type ipv6_addr
-        size 65535
-        flags dynamic,timeout
-        timeout 60s
-    }
+set rate_limit_ssh_v6 {
+type ipv6_addr
+size 65535
+flags dynamic,timeout
+timeout 60s
+}
 SETS
 }
 
@@ -139,75 +167,76 @@ SETS
 generate_input_chain() {
   cat <<'INPUT'
 
-    chain input {
-        type filter hook input priority filter; policy drop;
+  chain input {
+  type filter hook input priority filter; policy drop;
 
-        # Connection tracking
-        ct state established,related accept
-        ct state invalid drop
+       # Connection tracking
+       ct state established,related accept
+       ct state invalid drop
 
-        # Loopback
-        iif "lo" accept
+       # Loopback - critical for anycast addresses on lo interface
+       iif "lo" accept
 
-INPUT
-  generate_icmp_rules
-  generate_routing_protocols
-  generate_management_services
-  generate_public_services
-  cat <<'INPUT_END'
+       INPUT
+       generate_icmp_rules
+       generate_routing_protocols
+       generate_management_services
+       generate_anycast_services
+       generate_public_services
+       cat <<'INPUT_END'
 
-        # Log drops (rate limited)
-        limit rate 5/minute log prefix "[DROP-IN] "
-    }
-INPUT_END
-}
+       # Log drops (rate limited)
+       limit rate 5/minute log prefix "[DROP-IN] "
+     }
+     INPUT_END
+   }
 
 # Generate ICMP rules
 generate_icmp_rules() {
   cat <<'ICMP'
-        # ICMPv6 (required for IPv6)
-        ip6 nexthdr icmpv6 icmpv6 type {
-            destination-unreachable,
-            packet-too-big,
-            time-exceeded,
-            parameter-problem,
-            echo-request,
-            echo-reply,
-            nd-router-solicit,
-            nd-router-advert,
-            nd-neighbor-solicit,
-            nd-neighbor-advert,
-            mld-listener-query,
-            mld-listener-report,
-            mld-listener-done,
-            mld2-listener-report
-        } accept
+  # ICMPv6 (required for IPv6)
+  ip6 nexthdr icmpv6 icmpv6 type {
+  destination-unreachable,
+  packet-too-big,
+  time-exceeded,
+  parameter-problem,
+  echo-request,
+  echo-reply,
+  nd-router-solicit,
+  nd-router-advert,
+  nd-neighbor-solicit,
+  nd-neighbor-advert,
+  mld-listener-query,
+  mld-listener-report,
+  mld-listener-done,
+  mld2-listener-report
+} accept
 
-        # ICMPv4 rate limited
-        ip protocol icmp icmp type {
-            destination-unreachable,
-            time-exceeded,
-            parameter-problem,
-            echo-request
-        } limit rate 10/second accept
-ICMP
-}
+       # ICMPv4 rate limited
+       ip protocol icmp icmp type {
+       destination-unreachable,
+       time-exceeded,
+       parameter-problem,
+       echo-request
+     } limit rate 10/second accept
+     ICMP
+   }
 
 # Generate routing protocol rules
 generate_routing_protocols() {
   cat <<ROUTING
 
-        # BGP from configured peers only
-        tcp dport 179 ip6 saddr @BGP_PEERS_V6 accept
-        tcp dport 179 ip saddr @BGP_PEERS_V4 accept
+       # BGP from configured peers only
+       tcp dport 179 ip6 saddr @BGP_PEERS_V6 accept
+       tcp dport 179 ip saddr @BGP_PEERS_V4 accept
 
-        # BFD for fast failover
-        udp dport { 3784, 4784 } ip6 saddr @BGP_PEERS_V6 accept
-        udp dport { 3784, 4784 } ip saddr @BGP_PEERS_V4 accept
+       # BFD for fast failover
+       udp dport { 3784, 4784 } ip6 saddr @BGP_PEERS_V6 accept
+       udp dport { 3784, 4784 } ip saddr @BGP_PEERS_V4 accept
 
-        # OSPF (if used internally)
-        ip protocol 89 accept
-        ip6 nexthdr 89 accept
+       # OSPF (if used internally)
+       ip protocol 89 accept
+       ip6 nexthdr 89 accept
 ROUTING
 }
 
@@ -219,64 +248,110 @@ generate_management_services() {
 
   cat <<MGMT
 
-        # SSH with rate limiting (3 attempts per minute)
-        tcp dport 22 ct state new add @rate_limit_ssh { ip saddr limit rate 3/minute } accept
-        tcp dport 22 ct state new add @rate_limit_ssh_v6 { ip6 saddr limit rate 3/minute } accept
-        tcp dport 22 ip saddr @rate_limit_ssh drop
-        tcp dport 22 ip6 saddr @rate_limit_ssh_v6 drop
-        tcp dport 22 ip6 saddr @allowed_ssh_v6 accept
-        tcp dport 22 ip saddr @allowed_ssh accept
+       # SSH with rate limiting (3 attempts per minute)
+       tcp dport 22 ct state new add @rate_limit_ssh { ip saddr limit rate 3/minute } accept
+       tcp dport 22 ct state new add @rate_limit_ssh_v6 { ip6 saddr limit rate 3/minute } accept
+       tcp dport 22 ip saddr @rate_limit_ssh drop
+       tcp dport 22 ip6 saddr @rate_limit_ssh_v6 drop
+       tcp dport 22 ip6 saddr @allowed_ssh_v6 accept
+       tcp dport 22 ip saddr @allowed_ssh accept
 
-        # Proxmox services from management network only
-        iifname "${mgmt_iface}" tcp dport { 8006, 3128, 111, 2049 } accept
-        iifname "${mgmt_iface}" udp dport { 111, 5405-5412 } accept
+       # Proxmox services from management network only
+       iifname "${mgmt_iface}" tcp dport { 8006, 3128, 111, 2049 } accept
+       iifname "${mgmt_iface}" udp dport { 111, 5405-5412 } accept
 
-        # DNS for local networks only
-        iifname "${internal_iface}" udp dport 53 accept
-        iifname "${internal_iface}" tcp dport 53 accept
-        iifname "${mgmt_iface}" udp dport 53 accept
-        iifname "${mgmt_iface}" tcp dport 53 accept
+       # DNS for local networks only
+       iifname "${internal_iface}" udp dport 53 accept
+       iifname "${internal_iface}" tcp dport 53 accept
+       iifname "${mgmt_iface}" udp dport 53 accept
+       iifname "${mgmt_iface}" tcp dport 53 accept
 
-        # Ceph from storage network
-        iifname "${storage_iface}" tcp dport { 3300, 6789, 6800-7300 } accept
+       # Ceph from storage network
+       iifname "${storage_iface}" tcp dport { 3300, 6789, 6800-7300 } accept
 MGMT
+}
+
+# Generate anycast-specific services
+generate_anycast_services() {
+  # Only generate if we have anycast IPs configured
+  if [[ -z "$ANYCAST_LOCAL_V4" && -z "$ANYCAST_LOCAL_V6" && \
+    -z "$ANYCAST_SITE_V4" && -z "$ANYCAST_SITE_V6" && \
+    -z "$ANYCAST_GLOBAL_V4" && -z "$ANYCAST_GLOBAL_V6" ]]; then
+      return
+  fi
+
+  echo ""
+  echo "        # Anycast services"
+
+ # Local anycast (ULA) - internal services only
+ if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_LOCAL_V6" ]]; then
+   echo "        # Local anycast (internal services)"
+   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 tcp dport { 53, 853 } accept  # DNS"
+   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 udp dport 53 accept"
+   [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 tcp dport { 53, 853 } accept"
+   [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 udp dport 53 accept"
+ fi
+
+ # Site anycast (Bangkok GUA) - public services for Bangkok
+ if [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_SITE_V6" ]]; then
+   echo "        # Site anycast (Bangkok-only services)"
+   [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 tcp dport { 80, 443 } accept  # HTTP/HTTPS"
+   [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 tcp dport { 53, 853 } accept  # DNS"
+   [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 udp dport 53 accept"
+   [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 tcp dport { 80, 443 } accept"
+   [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 tcp dport { 53, 853 } accept"
+   [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 udp dport 53 accept"
+ fi
+
+ # Global anycast (worldwide GUA) - global services
+ if [[ -n "$ANYCAST_GLOBAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+   echo "        # Global anycast (worldwide services)"
+   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 tcp dport { 80, 443 } accept  # HTTP/HTTPS"
+   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 tcp dport { 53, 853 } accept  # DNS"
+   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 udp dport 53 accept"
+   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 tcp dport { 80, 443 } accept"
+   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 tcp dport { 53, 853 } accept"
+   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 udp dport 53 accept"
+ fi
 }
 
 # Generate public services (HAProxy)
 generate_public_services() {
   cat <<PUBLIC
 
-        # HAProxy (HTTP/HTTPS)
-        tcp dport { 80, 443 } accept
+       # Public services on unicast IPs
+       # HAProxy (HTTP/HTTPS)
+       ip daddr \$PUBLIC_IP4 tcp dport { 80, 443 } accept
+       ip6 daddr \$PUBLIC_IP6 tcp dport { 80, 443 } accept
 
-        # HAProxy stats (localhost only)
-        iif "lo" tcp dport 8404 accept
+       # HAProxy stats (localhost only)
+       iif "lo" tcp dport 8404 accept
 
-        # Bootnode P2P ports
+       # Bootnode P2P ports
 PUBLIC
 
-  # collect all p2p ports (always defined)
-  local p2p_ports
-  p2p_ports=$(jq -r '.bootnodes[].ports.p2p' "$SERVICES_FILE" |
-    sort -u |
-    tr '\n' ',' |
-    sed 's/,$//')
+ # collect all p2p ports (always defined)
+ local p2p_ports
+ p2p_ports=$(jq -r '.bootnodes[].ports.p2p' "$SERVICES_FILE" |
+   sort -u |
+   tr '\n' ',' |
+   sed 's/,$//')
 
-  # collect only non-null websocket ports
-  local p2p_wss_ports
-  p2p_wss_ports=$(jq -r '.bootnodes[].ports.p2p_wss? // empty' "$SERVICES_FILE" |
-    sort -u |
-    tr '\n' ',' |
-    sed 's/,$//')
+ # collect only non-null websocket ports
+ local p2p_wss_ports
+ p2p_wss_ports=$(jq -r '.bootnodes[].ports.p2p_wss? // empty' "$SERVICES_FILE" |
+   sort -u |
+   tr '\n' ',' |
+   sed 's/,$//')
 
-  # emit IPv4 rules
-  echo "        tcp dport { ${p2p_ports} } accept"
-  echo "        udp dport { ${p2p_ports} } accept"
+ # emit IPv4 rules
+ echo "        tcp dport { ${p2p_ports} } accept"
+ echo "        udp dport { ${p2p_ports} } accept"
 
-  # only emit WS rule if there’s at least one port
-  if [[ -n "$p2p_wss_ports" ]]; then
-    echo "        tcp dport { ${p2p_wss_ports} } accept"
-  fi
+ # only emit WS rule if there's at least one port
+ if [[ -n "$p2p_wss_ports" ]]; then
+   echo "        tcp dport { ${p2p_wss_ports} } accept"
+ fi
 }
 
 # Generate forward chain
@@ -286,23 +361,23 @@ generate_forward_chain() {
 
   cat <<FORWARD
 
-    chain forward {
-        type filter hook forward priority filter; policy drop;
+  chain forward {
+  type filter hook forward priority filter; policy drop;
 
-        # Connection tracking
-        ct state established,related accept
-        ct state invalid drop
+       # Connection tracking
+       ct state established,related accept
+       ct state invalid drop
 
-        # Allow from internal networks
-        iifname "${internal_iface}" accept
-        iifname "${mgmt_iface}" oifname "${internal_iface}" accept
+       # Allow from internal networks
+       iifname "${internal_iface}" accept
+       iifname "${mgmt_iface}" oifname "${internal_iface}" accept
 
-        # Allow forwarded traffic that's been DNATed
-        ct status dnat accept
+       # Allow forwarded traffic that's been DNATed
+       ct status dnat accept
 
-        # Log drops
-        limit rate 5/minute log prefix "[DROP-FWD] "
-    }
+       # Log drops
+       limit rate 5/minute log prefix "[DROP-FWD] "
+     }
 FORWARD
 }
 
@@ -310,13 +385,13 @@ FORWARD
 generate_output_chain() {
   cat <<'OUTPUT'
 
-    chain output {
-        type filter hook output priority filter; policy accept;
-        
-        # We trust our own output, but you could add restrictions here
-    }
-OUTPUT
-}
+  chain output {
+  type filter hook output priority filter; policy accept;
+
+       # We trust our own output, but you could add restrictions here
+     }
+     OUTPUT
+   }
 
 # Generate NAT table
 generate_nat_table() {
@@ -326,31 +401,47 @@ generate_nat_table() {
 
 # NAT table - IPv4 only (IPv6 doesn't need NAT)
 table ip nat {
-    chain prerouting {
-        type nat hook prerouting priority dstnat; policy accept;
+chain prerouting {
+type nat hook prerouting priority dstnat; policy accept;
 
 NAT
 
-  # Generate bootnode port mappings
-  generate_bootnode_mappings
+ # Generate bootnode port mappings
+ generate_bootnode_mappings
 
-  cat <<NAT_POST
-    }
+ # Add anycast DNAT if needed
+ if [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
+   echo ""
+   echo "        # Anycast DNAT rules (if services are on different containers)"
+   echo "        # Add specific DNAT rules here if anycast services aren't local"
+   fi
 
-    chain postrouting {
-        type nat hook postrouting priority srcnat; policy accept;
+   cat <<NAT_POST
+ }
 
-        # SNAT for internal networks going out
-        ip saddr \$INTERNAL4 oifname "${public_iface}" snat to \$PUBLIC_IP4
-        ip saddr \$MGMT_NET oifname "${public_iface}" snat to \$PUBLIC_IP4
-    }
+ chain postrouting {
+ type nat hook postrouting priority srcnat; policy accept;
+
+       # SNAT for internal networks going out
+       ip saddr \$INTERNAL4 oifname "${public_iface}" snat to \$PUBLIC_IP4
+       ip saddr \$MGMT_NET oifname "${public_iface}" snat to \$PUBLIC_IP4
+NAT_POST
+
+ # Add SNAT for anycast source addresses if needed
+ if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
+   echo "        # Ensure local anycast doesn't leak to public"
+   echo "        ip saddr \$ANYCAST_LOCAL_V4 oifname \"${public_iface}\" drop"
+ fi
+
+ cat <<NAT_END
+}
 }
 
 # IPv6 doesn't need NAT - we have real addresses
 table ip6 nat {
-    # Empty - IPv6 uses direct routing
+# Empty - IPv6 uses direct routing
 }
-NAT_POST
+NAT_END
 }
 
 # Generate bootnode port mappings
@@ -359,27 +450,27 @@ generate_bootnode_mappings() {
   # Read bootnodes from services.json
 
   jq -r --arg site "$SITE" '
-    .bootnodes
-    | to_entries[]
-    | (
-        .key as $chain
-        | (
-            .value.container
-            | if type=="object" then .[$site] else . end
-          ) as $container
-        | .value.ports.p2p as $p2p
-        | (.value.ports.p2p_wss // "") as $p2p_wss
-        | "\($chain) \($container) \($p2p) \($p2p_wss)"
-      )
-  ' "$SERVICES_FILE" | while read -r chain container p2p p2p_wss; do
-    echo "        # ${chain}"
-    echo "        tcp dport ${p2p} dnat to ${container}:${p2p}"
-    echo "        udp dport ${p2p} dnat to ${container}:${p2p}"
-    if [[ -n "$p2p_wss" ]]; then
-      echo "        tcp dport ${p2p_wss} dnat to ${container}:${p2p_wss}"
-    fi
-    echo
-  done
+  .bootnodes
+  | to_entries[]
+  | (
+  .key as $chain
+  | (
+  .value.container
+  | if type=="object" then .[$site] else . end
+  ) as $container
+  | .value.ports.p2p as $p2p
+  | (.value.ports.p2p_wss // "") as $p2p_wss
+  | "\($chain) \($container) \($p2p) \($p2p_wss)"
+)
+' "$SERVICES_FILE" | while read -r chain container p2p p2p_wss; do
+echo "        # ${chain}"
+echo "        tcp dport ${p2p} dnat to ${container}:${p2p}"
+echo "        udp dport ${p2p} dnat to ${container}:${p2p}"
+if [[ -n "$p2p_wss" ]]; then
+  echo "        tcp dport ${p2p_wss} dnat to ${container}:${p2p_wss}"
+fi
+echo
+done
 }
 
 # Main execution
