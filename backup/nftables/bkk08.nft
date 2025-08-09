@@ -16,8 +16,7 @@ table inet filter {
 		size 65535
 		flags dynamic,timeout
 		timeout 1m
-		elements = { 68.220.59.210 limit rate 3/minute timeout 1m expires 43s151ms, 103.160.132.4 limit rate 3/minute timeout 1m expires 39s395ms,
-			     185.156.73.233 limit rate 3/minute timeout 1m expires 51s363ms }
+		elements = { 52.159.243.16 limit rate 3/minute timeout 1m expires 43s22ms, 152.70.42.65 limit rate 3/minute timeout 1m expires 2s722ms }
 	}
 
 	set rate_limit_ssh_v6 {
