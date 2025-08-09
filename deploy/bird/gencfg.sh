@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
-# bird config generator with full anycast support
+# bird config generator with three-tier anycast support
+# - local (ULA) for internal services
+# - site (GUA) for Bangkok-only services  
+# - global (GUA) for worldwide services
 set -euo pipefail
 
-# load config
-CONFIG_FILE="${CONFIG_FILE:-../config/network.json}"
+# Find script directory and config file
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_CONFIG="${SCRIPT_DIR}/../config/network.json"
+
+# If no config dir exists at parent level, try current dir
+if [[ ! -f "$DEFAULT_CONFIG" ]] && [[ -f "${SCRIPT_DIR}/config/network.json" ]]; then
+  DEFAULT_CONFIG="${SCRIPT_DIR}/config/network.json"
+fi
+
+CONFIG_FILE="${CONFIG_FILE:-$DEFAULT_CONFIG}"
+
+# Parse options
 while getopts ':c:' opt; do
   case "$opt" in
   c) CONFIG_FILE="$OPTARG" ;;
@@ -17,6 +30,8 @@ shift $((OPTIND - 1))
 
 if [[ ! -f "$CONFIG_FILE" ]]; then
   echo "error: config file not found: $CONFIG_FILE" >&2
+  echo "tried: $CONFIG_FILE" >&2
+  echo "you can specify config with: $0 -c /path/to/config.json <site>" >&2
   exit 1
 fi
 
@@ -24,7 +39,7 @@ fi
 readonly SITE="${1:-}"
 SITE_UPPER="$(echo "$SITE" | tr '[:lower:]' '[:upper:]')"
 if [[ -z "$SITE" ]]; then
-  echo "usage: $0 <site>" >&2
+  echo "usage: $0 [-c config.json] <site>" >&2
   echo "valid sites: $(jq -r '.sites | keys[]' "$CONFIG_FILE" | tr '\n' ' ')" >&2
   exit 1
 fi
@@ -43,11 +58,23 @@ PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_NET6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
 INTERNAL_NET4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
 
-# extract all anycast IPs if present
+# extract all three anycast tiers if present
+# Local (ULA) - internal only
 ANYCAST_LOCAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v4 // empty' 2>/dev/null | sed 's|/32||')
 ANYCAST_LOCAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v6 // empty' 2>/dev/null)
+
+# Site (GUA) - Bangkok only
+ANYCAST_SITE_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v4 // empty' 2>/dev/null | sed 's|/32||')
+ANYCAST_SITE_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v6 // empty' 2>/dev/null)
+
+# Global (GUA) - worldwide
 ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' 2>/dev/null | sed 's|/32||')
 ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' 2>/dev/null)
+
+# extract anycast network prefixes from global config
+ANYCAST_LOCAL_V6_PREFIX=$(jq -r '.networks.anycast_v6.local // empty' "$CONFIG_FILE")
+ANYCAST_SITE_V6_PREFIX=$(jq -r '.networks.anycast_v6.site // empty' "$CONFIG_FILE")
+ANYCAST_GLOBAL_V6_PREFIX=$(jq -r '.networks.anycast_v6.global // empty' "$CONFIG_FILE")
 
 # extract global config
 AS_NUMBER=$(jq -r '.as_number' "$CONFIG_FILE")
@@ -99,17 +126,27 @@ define INTERNAL_NET4 = ${INTERNAL_NET4};
 define INTERNAL_NET6 = ${INTERNAL_NET6};
 CONSTANTS
 
-  # Add anycast constants if present
-  if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
+  # Add anycast constants - all three tiers
+  if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
     echo ""
-    echo "# Anycast IPs"
-    [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "define ANYCAST_LOCAL_V4 = ${ANYCAST_LOCAL_V4}/32;"
-    [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "define ANYCAST_GLOBAL_V4 = ${ANYCAST_GLOBAL_V4}/32;"
+    echo "# Anycast IPv4 addresses (/32)"
+    [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "define ANYCAST_LOCAL_V4 = ${ANYCAST_LOCAL_V4}/32;  # ULA - internal only"
+    [[ -n "$ANYCAST_SITE_V4" ]] && echo "define ANYCAST_SITE_V4 = ${ANYCAST_SITE_V4}/32;    # Bangkok site-local"
+    [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "define ANYCAST_GLOBAL_V4 = ${ANYCAST_GLOBAL_V4}/32; # Global multi-site"
   fi
 
-  if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
-    [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "define ANYCAST_LOCAL_V6 = ${ANYCAST_LOCAL_V6}/128;"
-    [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6 = ${ANYCAST_GLOBAL_V6}/128;"
+  if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_SITE_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    echo ""
+    echo "# Anycast IPv6 host addresses (/128 - for loopback)"
+    [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "define ANYCAST_LOCAL_V6_HOST = ${ANYCAST_LOCAL_V6}/128;  # ULA - internal"
+    [[ -n "$ANYCAST_SITE_V6" ]] && echo "define ANYCAST_SITE_V6_HOST = ${ANYCAST_SITE_V6}/128;    # GUA - Bangkok"
+    [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6_HOST = ${ANYCAST_GLOBAL_V6}/128; # GUA - global"
+
+    echo ""
+    echo "# Anycast IPv6 network prefixes (for BGP announcement)"
+    [[ -n "$ANYCAST_LOCAL_V6_PREFIX" ]] && echo "define ANYCAST_LOCAL_V6_PREFIX = ${ANYCAST_LOCAL_V6_PREFIX};  # ULA /48 - internal only"
+    [[ -n "$ANYCAST_SITE_V6_PREFIX" ]] && echo "define ANYCAST_SITE_V6_PREFIX = ${ANYCAST_SITE_V6_PREFIX};    # GUA /48 - Bangkok"
+    [[ -n "$ANYCAST_GLOBAL_V6_PREFIX" ]] && echo "define ANYCAST_GLOBAL_V6_PREFIX = ${ANYCAST_GLOBAL_V6_PREFIX}; # GUA /36 - global"
   fi
 
   echo ""
@@ -172,7 +209,7 @@ LOGGING
 
 # generate bgp templates
 generate_templates() {
-  local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+  local bgp_iface=$(jq -r '.interfaces.bgp_vlan // "vmbr2"' "$CONFIG_FILE")
   cat <<TEMPLATES
 #
 # BGP Templates
@@ -235,7 +272,7 @@ KERNEL
 
 # generate basic protocols
 generate_basic_protocols() {
-  local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+  local bgp_iface=$(jq -r '.interfaces.bgp_vlan // "vmbr2"' "$CONFIG_FILE")
   cat <<BASIC
 #
 # Basic Protocols
@@ -263,9 +300,10 @@ protocol static static4 {
     route PUBLIC_NET4 unreachable;
 STATIC
 
-  # Add anycast routes if present
-  [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    route ${ANYCAST_LOCAL_V4}/32 unreachable;"
-  [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "    route ${ANYCAST_GLOBAL_V4}/32 unreachable;"
+  # Add IPv4 anycast routes - all three tiers
+  [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    route ${ANYCAST_LOCAL_V4}/32 unreachable;  # ULA - internal only"
+  [[ -n "$ANYCAST_SITE_V4" ]] && echo "    route ${ANYCAST_SITE_V4}/32 unreachable;    # Bangkok site-local"
+  [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "    route ${ANYCAST_GLOBAL_V4}/32 unreachable;  # Global multi-site"
 
   cat <<'STATIC_CONT'
     route INTERNAL_NET4 unreachable;
@@ -276,9 +314,24 @@ protocol static static6 {
     route PUBLIC_NET6 unreachable;
 STATIC_CONT
 
-  # Add IPv6 anycast routes if present
-  [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "    route ${ANYCAST_LOCAL_V6}/128 unreachable;"
-  [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "    route ${ANYCAST_GLOBAL_V6}/128 unreachable;"
+  # Add IPv6 anycast routes - all three tiers with both /128 and prefix routes
+  if [[ -n "$ANYCAST_LOCAL_V6" ]]; then
+    echo "    # Local anycast (ULA) - internal use only"
+    echo "    route ${ANYCAST_LOCAL_V6}/128 unreachable;"
+    [[ -n "$ANYCAST_LOCAL_V6_PREFIX" ]] && echo "    route ${ANYCAST_LOCAL_V6_PREFIX} unreachable;"
+  fi
+  
+  if [[ -n "$ANYCAST_SITE_V6" ]]; then
+    echo "    # Site anycast (GUA) - Bangkok only"
+    echo "    route ${ANYCAST_SITE_V6}/128 unreachable;"
+    [[ -n "$ANYCAST_SITE_V6_PREFIX" ]] && echo "    route ${ANYCAST_SITE_V6_PREFIX} unreachable;"
+  fi
+
+  if [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    echo "    # Global anycast (GUA) - multi-site"
+    echo "    route ${ANYCAST_GLOBAL_V6}/128 unreachable;"
+    [[ -n "$ANYCAST_GLOBAL_V6_PREFIX" ]] && echo "    route ${ANYCAST_GLOBAL_V6_PREFIX} unreachable;"
+  fi
 
   cat <<'STATIC_V6_CONT'
     route INTERNAL_NET6 unreachable;
@@ -288,7 +341,7 @@ STATIC_V6_CONT
 
 # generate bfd protocol
 generate_bfd() {
-  local bgp_iface=$(jq -r '.interfaces.bgp_vlan' "$CONFIG_FILE")
+  local bgp_iface=$(jq -r '.interfaces.bgp_vlan // "vmbr2"' "$CONFIG_FILE")
   cat <<BFD
 #
 # BFD Protocol
@@ -338,26 +391,30 @@ protocol bgp ${rr_key_upper}_v6 from BGP_COMMON {
             accept;
         };
         export filter {
-            # Export our networks
+            # Export our unicast
             if net = PUBLIC_NET6 then accept;
-BGP_V6
+            
+            # Export GUA anycast prefixes for external BGP
+            # Site-local /48 - Bangkok only services
+            if net = ANYCAST_SITE_V6_PREFIX then accept;
+            # Global /36 - worldwide services
+            if net = ANYCAST_GLOBAL_V6_PREFIX then accept;
+            
+            # ULA anycast stays internal only (not exported to eBGP)
+            # But we can export to iBGP for internal routing
+            if net = ANYCAST_LOCAL_V6_PREFIX then accept;
 
-    # Add IPv6 anycast exports if present
-    if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
-        [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "            if net = ANYCAST_LOCAL_V6 then accept;"
-        [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "            if net = ANYCAST_GLOBAL_V6 then accept;"
-    fi
-
-    cat <<BGP_V6_CONT
+            # Internal networks
             if net ~ INTERNAL_NET6 then accept;
+
             # Don't export learned routes
             reject;
         };
     };
 }
-BGP_V6_CONT
+BGP_V6
 
-    # IPv4 session with anycast support
+    # IPv4 session
     cat <<BGP_V4
 
 protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
@@ -380,21 +437,18 @@ protocol bgp ${rr_key_upper}_v4 from BGP_COMMON {
         };
         export filter {
             if net = PUBLIC_NET4 then accept;
-BGP_V4
-
-    # Add IPv4 anycast exports if present
-    if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
-        [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "            if net = ANYCAST_LOCAL_V4 then accept;"
-        [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "            if net = ANYCAST_GLOBAL_V4 then accept;"
-    fi
-
-    cat <<BGP_V4_CONT
+            
+            # Export all anycast /32 addresses
+            if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
+            if net = ANYCAST_SITE_V4 then accept;   # Bangkok only
+            if net = ANYCAST_GLOBAL_V4 then accept; # Global
+            
             if net ~ INTERNAL_NET4 then accept;
             reject;
         };
     };
 }
-BGP_V4_CONT
+BGP_V4
   done
 }
 

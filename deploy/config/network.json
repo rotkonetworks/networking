@@ -35,8 +35,10 @@
       "management_gateway": "192.168.69.1",
       "management_v6": "2401:a860:1181::76/64",
       "management_v6_gateway": "2401:a860:1181::1",
-      "anycast_local_v4": "160.22.181.81/32",
-      "anycast_local_v6": "2401:a860:1081::",
+      "anycast_local_v4": "10.155.181.81/32",
+      "anycast_local_v6": "fd00:a860:1081::",
+      "anycast_site_v4": "160.22.181.81/32",
+      "anycast_site_v6": "2401:a860:1081::",
       "anycast_global_v4": "160.22.180.180/32",
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
@@ -62,8 +64,10 @@
       "internal_v6": "2401:a860:1007::/48",
       "management": "192.168.77.1/16",
       "management_gateway": "192.168.69.1",
-      "anycast_local_v4": "160.22.181.81/32",
-      "anycast_local_v6": "2401:a860:1081::",
+      "anycast_local_v4": "10.155.181.81/32",
+      "anycast_local_v6": "fd00:a860:1081::",
+      "anycast_site_v4": "160.22.181.81/32",
+      "anycast_site_v6": "2401:a860:1081::",
       "anycast_global_v4": "160.22.180.180/32",
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
@@ -89,8 +93,10 @@
       "internal_v6": "2401:a860:1008::/48",
       "management": "192.168.69.218/16",
       "management_gateway": "192.168.69.1",
-      "anycast_local_v4": "160.22.181.81/32",
-      "anycast_local_v6": "2401:a860:1081::",
+      "anycast_local_v4": "10.155.181.81/32",
+      "anycast_local_v6": "fd00:a860:1081::",
+      "anycast_site_v4": "160.22.181.81/32",
+      "anycast_site_v6": "2401:a860:1081::",
       "anycast_global_v4": "160.22.180.180/32",
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
@@ -177,12 +183,19 @@
     "public_v4": "160.22.180.0/23",
     "public_v6": "2401:a860::/32",
     "anycast_v4": {
-      "local": "160.22.181.0/24",
-      "global": "160.22.180.0/24"
+      "local": "10.155.181.81/32",
+      "site": "160.22.181.81/32",
+      "global": "160.22.180.180/32"
     },
     "anycast_v6": {
-      "local": "2401:a860:1081::/48",
+      "local": "fd00:a860:1081::/48",
+      "site": "2401:a860:1081::/48",
       "global": "2401:a860::/36"
+    },
+    "anycast_description": {
+      "local": "Internal ULA anycast - for internal services only",
+      "site": "Bangkok site-local GUA anycast - announced only from TH",
+      "global": "Multi-site global GUA anycast - announced from multiple PoPs"
     }
   },
   "bond_config": {
