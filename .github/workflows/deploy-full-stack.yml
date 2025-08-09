@@ -37,7 +37,7 @@ jobs:
       
       - name: Setup SSH
         env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KEY: ${{ secrets.INTERFACE_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
