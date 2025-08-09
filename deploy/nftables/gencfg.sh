@@ -111,17 +111,17 @@ VARS
    [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "define ANYCAST_GLOBAL_V4 = ${ANYCAST_GLOBAL_V4} # Global multi-site"
  fi
 
- if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_SITE_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
-   echo ""
-   echo "# Anycast IPv6 addresses"
-   [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "define ANYCAST_LOCAL_V6 = ${ANYCAST_LOCAL_V6}  # ULA - internal"
-   [[ -n "$ANYCAST_SITE_V6" ]] && echo "define ANYCAST_SITE_V6 = ${ANYCAST_SITE_V6}    # GUA - Bangkok"
-   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6 = ${ANYCAST_GLOBAL_V6} # GUA - global"
- fi
+  if [[ -n "$ANYCAST_LOCAL_V6" ]] || [[ -n "$ANYCAST_SITE_V6" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    echo ""
+    echo "# Anycast IPv6 addresses"
+    [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "define ANYCAST_LOCAL_V6 = ${ANYCAST_LOCAL_V6}  # ULA - internal"
+    [[ -n "$ANYCAST_SITE_V6" ]] && echo "define ANYCAST_SITE_V6 = ${ANYCAST_SITE_V6}    # GUA - Bangkok"
+    [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6 = ${ANYCAST_GLOBAL_V6} # GUA - global"
+  fi
 
- # Add BGP peers - extract site-specific IPs for current site
- local bgp_peers_v6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v6) | join(", ")' "$CONFIG_FILE")
- local bgp_peers_v4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v4) | join(", ")' "$CONFIG_FILE")
+  # Add BGP peers - extract site-specific IPs for current site
+  local bgp_peers_v6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v6) | join(", ")' "$CONFIG_FILE")
+  local bgp_peers_v4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v4) | join(", ")' "$CONFIG_FILE")
 
  echo ""
  echo "# BGP peers"
@@ -175,12 +175,12 @@ generate_input_chain() {
        # Management network bypass (optional - uncomment if needed)
        # iifname $MGMT ip saddr $MGMT_NET accept
 
-       # Connection tracking
-       ct state established,related accept
-       ct state invalid drop
+        # Connection tracking
+        ct state established,related accept
+        ct state invalid drop
 
-       # Loopback - critical for anycast addresses on lo interface
-       iif "lo" accept
+        # Loopback - critical for anycast addresses on lo interface
+        iif "lo" accept
 
 INPUT
  generate_icmp_rules
@@ -283,36 +283,36 @@ generate_anycast_services() {
  echo ""
  echo "        # Anycast services"
 
- # Local anycast (ULA) - internal services only
- if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_LOCAL_V6" ]]; then
-   echo "        # Local anycast (internal services)"
-   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 tcp dport { 53, 853 } accept  # DNS"
-   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 udp dport 53 accept"
-   [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 tcp dport { 53, 853 } accept"
-   [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 udp dport 53 accept"
- fi
+  # Local anycast (ULA) - internal services only
+  if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_LOCAL_V6" ]]; then
+    echo "        # Local anycast (internal services)"
+    [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 tcp dport { 53, 853 } accept  # DNS"
+    [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 udp dport 53 accept"
+    [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 tcp dport { 53, 853 } accept"
+    [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 udp dport 53 accept"
+  fi
 
- # Site anycast (Bangkok GUA) - public services for Bangkok
- if [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_SITE_V6" ]]; then
-   echo "        # Site anycast (Bangkok-only services)"
-   [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 tcp dport { 80, 443 } accept  # HTTP/HTTPS"
-   [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 tcp dport { 53, 853 } accept  # DNS"
-   [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 udp dport 53 accept"
-   [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 tcp dport { 80, 443 } accept"
-   [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 tcp dport { 53, 853 } accept"
-   [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 udp dport 53 accept"
- fi
+  # Site anycast (Bangkok GUA) - public services for Bangkok
+  if [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_SITE_V6" ]]; then
+    echo "        # Site anycast (Bangkok-only services)"
+    [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 tcp dport { 80, 443 } accept  # HTTP/HTTPS"
+    [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 tcp dport { 53, 853 } accept  # DNS"
+    [[ -n "$ANYCAST_SITE_V4" ]] && echo "        ip daddr \$ANYCAST_SITE_V4 udp dport 53 accept"
+    [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 tcp dport { 80, 443 } accept"
+    [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 tcp dport { 53, 853 } accept"
+    [[ -n "$ANYCAST_SITE_V6" ]] && echo "        ip6 daddr \$ANYCAST_SITE_V6 udp dport 53 accept"
+  fi
 
- # Global anycast (worldwide GUA) - global services
- if [[ -n "$ANYCAST_GLOBAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
-   echo "        # Global anycast (worldwide services)"
-   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 tcp dport { 80, 443 } accept  # HTTP/HTTPS"
-   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 tcp dport { 53, 853 } accept  # DNS"
-   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 udp dport 53 accept"
-   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 tcp dport { 80, 443 } accept"
-   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 tcp dport { 53, 853 } accept"
-   [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 udp dport 53 accept"
- fi
+  # Global anycast (worldwide GUA) - global services
+  if [[ -n "$ANYCAST_GLOBAL_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V6" ]]; then
+    echo "        # Global anycast (worldwide services)"
+    [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 tcp dport { 80, 443 } accept  # HTTP/HTTPS"
+    [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 tcp dport { 53, 853 } accept  # DNS"
+    [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "        ip daddr \$ANYCAST_GLOBAL_V4 udp dport 53 accept"
+    [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 tcp dport { 80, 443 } accept"
+    [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 tcp dport { 53, 853 } accept"
+    [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_GLOBAL_V6 udp dport 53 accept"
+  fi
 }
 
 # Generate public services (HAProxy)
@@ -323,10 +323,10 @@ generate_public_services() {
        # HAProxy (HTTP/HTTPS)
        tcp dport { 80, 443 } accept
 
-       # HAProxy stats (localhost only)
-       iif "lo" tcp dport 8404 accept
+        # HAProxy stats (localhost only)
+        iif "lo" tcp dport 8404 accept
 
-       # Bootnode P2P ports
+        # Bootnode P2P ports
 PUBLIC
 
  # collect all p2p ports (filter out null/empty)
@@ -349,10 +349,10 @@ PUBLIC
    echo "        udp dport { ${p2p_ports} } accept"
  fi
 
- # only emit WS rule if there's at least one port
- if [[ -n "$p2p_wss_ports" ]]; then
-   echo "        tcp dport { ${p2p_wss_ports} } accept"
- fi
+  # only emit WS rule if there's at least one port
+  if [[ -n "$p2p_wss_ports" ]]; then
+    echo "        tcp dport { ${p2p_wss_ports} } accept"
+  fi
 }
 
 # Generate forward chain
@@ -362,16 +362,15 @@ generate_forward_chain() {
    chain forward {
        type filter hook forward priority filter; policy drop;
 
-       # Connection tracking
-       ct state established,related accept
-       ct state invalid drop
+        # Connection tracking
+        ct state established,related accept
+        ct state invalid drop
 
        # Allow from internal networks
        iifname $INTERNAL accept
        iifname $MGMT accept
-
-       # Allow forwarded traffic that's been DNATed
-       ct status dnat accept
+        # Allow forwarded traffic that's been DNATed
+        ct status dnat accept
 
        # Allow forwarding from NAT network
        ip saddr $MGMT_NET accept
@@ -414,8 +413,8 @@ table ip nat {
 
 NAT
 
- # Generate bootnode port mappings
- generate_bootnode_mappings
+  # Generate bootnode port mappings
+  generate_bootnode_mappings
 
  # Add anycast DNAT if needed
  if [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
