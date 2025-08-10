@@ -1,4 +1,4 @@
-# 2025-08-09 14:09:08 by RouterOS 7.20beta7
+# 2025-08-10 14:08:47 by RouterOS 7.20beta7
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -38,15 +38,15 @@
 /port set 0 name=serial0
 /routing bgp instance add as=142108 name=bgp-instance-1 router-id=10.155.255.4 vrf=main
 /routing id add id=10.155.255.4 name=main select-dynamic-id=only-static select-from-vrf=main
-/routing ospf instance add disabled=no name=ospf-instance-v2 originate-default=always router-id=10.155.255.4
-/routing ospf instance add disabled=no name=ospf-instance-v3 originate-default=always router-id=10.155.255.4 version=3
+/routing ospf instance add disabled=no name=ospf-instance-v2 originate-default=if-installed router-id=10.155.255.4
+/routing ospf instance add disabled=no name=ospf-instance-v3 originate-default=if-installed router-id=10.155.255.4 version=3
 /routing ospf instance add disabled=no name=default redistribute=connected router-id=10.155.255.4
 /routing ospf area add disabled=no instance=ospf-instance-v2 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
 /routing table add fib name=rt_latency
 /routing bgp template add afi=ipv6 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=BKNIX-IN-v4 name=BKNIX-v4 output.as-override=no .filter-chain=BKNIX-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
-/routing bgp template add afi=ipv6 disabled=no input.filter=BKNIX-IN-v6 name=BKNIX-v6 output.as-override=no .filter-chain=BKNIX-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
+/routing bgp template add afi=ipv6 disabled=no input.filter=BKNIX-IN-v6 name=BKNIX-v6 nexthop-choice=default output.as-override=no .filter-chain=BKNIX-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=HGC-HK-IN-v4 multihop=yes name=IPTX-HGC-HK-v4 output.as-override=no .filter-chain=HGC-HK-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ipv6 disabled=no input.filter=HGC-HK-IN-v6 multihop=yes name=IPTX-HGC-HK-v6 output.as-override=no .filter-chain=HGC-HK-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=AMSIX-IN-v4 name=AMSIX-v4 output.as-override=no .filter-chain=AMSIX-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
@@ -434,8 +434,8 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /routing bgp connection add afi=ipv6 comment="iBGP peer BKK20 IPv6" disabled=no input.filter=IBGP-IN-v6 .limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 output.filter-chain=IBGP-OUT-v6 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::20 .as=142108 templates=IBGP-ROTKO-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=BKNIX-RS0-v4 remote.address=203.159.68.68 .as=63529 templates=BKNIX-v4
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=BKNIX-RS1-v4 remote.address=203.159.68.69 .as=63529 templates=BKNIX-v4
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=100000 instance=bgp-instance-1 keepalive-time=1m local.address=2001:df5:b881::168 .role=ebgp name=BKNIX-RS0-v6 remote.address=2001:df5:b881::68 .as=63529 templates=BKNIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=100000 instance=bgp-instance-1 keepalive-time=1m local.address=2001:df5:b881::168 .role=ebgp name=BKNIX-RS1-v6 remote.address=2001:df5:b881::69 .as=63529 templates=BKNIX-v6
+/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=100000 instance=bgp-instance-1 keepalive-time=1m local.address=2001:df5:b881::168 .role=ebgp name=BKNIX-RS0-v6 nexthop-choice=default remote.address=2001:df5:b881::68 .as=63529 templates=BKNIX-v6
+/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=100000 instance=bgp-instance-1 keepalive-time=1m local.address=2001:df5:b881::168 .role=ebgp name=BKNIX-RS1-v6 nexthop-choice=default remote.address=2001:df5:b881::69 .as=63529 templates=BKNIX-v6
 /routing bgp connection add disabled=no hold-time=3m input.filter=ROUTEVIEWS-IN-v4 .limit-process-routes-ipv4=10 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=RouteViews-BKNIX-v4 output.filter-chain=ROUTEVIEWS-OUT-v4 remote.address=203.159.68.20 .as=6447 templates=BKNIX-v4
 /routing bgp connection add disabled=no hold-time=3m input.filter=ROUTEVIEWS-IN-v6 .limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=RouteViews-BKNIX-v6 output.filter-chain=ROUTEVIEWS-OUT-v6 remote.address=2001:df5:b881::20 .as=6447 templates=BKNIX-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=210000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=HE-BKNIX-v4 remote.address=203.159.68.135 .as=6939 templates=BKNIX-v4
