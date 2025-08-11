@@ -1,4 +1,4 @@
-# 2025-08-10 14:08:47 by RouterOS 7.20beta7
+# 2025-08-11 14:16:06 by RouterOS 7.20beta7
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -431,7 +431,7 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /ipv6 nd set [ find default=yes ] ra-lifetime=none
 /ipv6 nd add disabled=yes interface=AMSIX-LAG
 /routing bgp connection add comment="iBGP peer BKK20" input.filter=IBGP-IN-v4 .limit-process-routes-ipv4=2000000 instance=bgp-instance-1 local.address=10.155.255.4 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v4 output.filter-chain=IBGP-OUT-v4 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=10.155.255.2 templates=IBGP-ROTKO-v4
-/routing bgp connection add afi=ipv6 comment="iBGP peer BKK20 IPv6" disabled=no input.filter=IBGP-IN-v6 .limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 output.filter-chain=IBGP-OUT-v6 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::20 .as=142108 templates=IBGP-ROTKO-v6
+/routing bgp connection add afi=ipv6 comment="iBGP peer BKK20 IPv6" disabled=no input.filter=IBGP-IN-v6 .limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 nexthop-choice=default output.filter-chain=IBGP-OUT-v6 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::20 .as=142108 templates=IBGP-ROTKO-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=BKNIX-RS0-v4 remote.address=203.159.68.68 .as=63529 templates=BKNIX-v4
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=200000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=BKNIX-RS1-v4 remote.address=203.159.68.69 .as=63529 templates=BKNIX-v4
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=100000 instance=bgp-instance-1 keepalive-time=1m local.address=2001:df5:b881::168 .role=ebgp name=BKNIX-RS0-v6 nexthop-choice=default remote.address=2001:df5:b881::68 .as=63529 templates=BKNIX-v6
