@@ -1,4 +1,4 @@
-# 2025-08-11 23:07:23 by RouterOS 7.20beta2
+# 2025-08-12 23:08:00 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -106,11 +106,12 @@
 /ip dhcp-server lease add address=192.168.69.218 comment="bkk08 machine" mac-address=3C:EC:EF:73:2F:7B server=dhcp1
 /ip dhcp-server lease add address=192.168.69.216 client-id=1:9c:6b:0:84:cf:63 comment="bkk13 ipmi" mac-address=9C:6B:00:84:CF:63 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.217 client-id=1:9c:6b:0:84:cf:85 comment="bkk11 ipmi" mac-address=9C:6B:00:84:CF:85 server=dhcp1
-/ip dhcp-server lease add address=192.168.69.214 mac-address=9C:6B:00:84:CD:B4 server=dhcp1
+/ip dhcp-server lease add address=192.168.69.214 disabled=yes mac-address=9C:6B:00:84:CD:B4 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.212 client-id=ff:fc:e3:ea:9a:0:2:0:0:ab:11:83:cc:34:84:60:61:8d:22 mac-address=3E:80:02:B7:1E:5A server=dhcp1
 /ip dhcp-server lease add address=192.168.69.210 comment=val-paseo-bkk13-01 mac-address=52:54:00:DD:41:AE server=dhcp1
 /ip dhcp-server lease add address=192.168.69.219 client-id=ff:0:dd:1e:d8:0:1:0:1:2f:8f:7a:95:52:54:0:dd:1e:d8 comment=val-paseo-bkk13-02 mac-address=52:54:00:DD:1E:D8 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.222 client-id=ff:0:96:39:9c:0:1:0:1:2f:8f:96:fb:52:54:0:96:39:9c comment=val-kusama-bkk13-01 mac-address=52:54:00:96:39:9C server=dhcp1
+/ip dhcp-server lease add address=192.168.69.215 client-id=1:9c:6b:0:9f:f5:57 mac-address=9C:6B:00:9F:F5:57 server=dhcp1
 /ip dhcp-server network add address=10.69.169.0/24 dns-server=9.9.9.9 gateway=10.69.169.1
 /ip dhcp-server network add address=192.168.0.0/16 dns-server=9.9.9.9 gateway=192.168.69.1
 /ip dns set cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4
@@ -884,7 +885,8 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22798 protocol=tcp to-addresses=192.168.69.208 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=22789 protocol=tcp to-addresses=192.168.69.109 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22789 protocol=tcp to-addresses=192.168.69.230 to-ports=22
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22801 protocol=tcp to-addresses=192.168.69.214 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22801 protocol=tcp to-addresses=192.168.69.201 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22802 protocol=tcp to-addresses=192.168.69.202 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22803 protocol=tcp to-addresses=192.168.69.212 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22682 protocol=tcp to-addresses=192.168.72.1 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=60601 protocol=tcp to-addresses=192.168.69.2 to-ports=22
