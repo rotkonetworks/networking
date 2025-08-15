@@ -1,4 +1,4 @@
-# 2025-08-15 14:11:05 by RouterOS 7.20beta7
+# 2025-08-15 16:08:04 by RouterOS 7.20beta7
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -646,8 +646,8 @@ add action=accept chain=prerouting comment="TEMP-DEBUG BKK10-LAG" in-interface=B
 /system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:46:00
 /system scheduler add name=bcp214-block on-event="/system script run bcp214-block" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:46:10
 /system scheduler add name=bcp214-restore on-event="/system script run bcp214-restore" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:52:00
-/system scheduler add disabled=yes name=bcp214-upgrade on-event="/system script run bcp214-upgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:28:00
-/system scheduler add name=reboot on-event="/system script run bcp214-reboot" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:47:00
+/system scheduler add disabled=yes name=reboot on-event="/system script run bcp214-reboot" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:47:00
+/system scheduler add name=bcp214-downgrade on-event="/system script run bcp214-downgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-10-13 start-time=17:47:00
 /system script add dont-require-permissions=no name=bcp214-start owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
     \n:foreach ruleId in=[/routing filter rule find] do={\
     \n    :local chainName [/routing filter rule get \$ruleId chain]\

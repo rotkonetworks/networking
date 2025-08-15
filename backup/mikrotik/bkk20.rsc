@@ -1,4 +1,4 @@
-# 2025-08-15 14:11:05 by RouterOS 7.20beta7
+# 2025-08-15 16:08:04 by RouterOS 7.20beta7
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -609,10 +609,10 @@
 /system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
 /system scheduler add interval=1h name=sync-ntp-list on-event="/system script run \"update-ntp-clients\"" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-06-02 start-time=17:50:20
-/system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=16:55:00
-/system scheduler add name=bcp214-block on-event="/system script run bcp214-block" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:00:00
-/system scheduler add name=bcp214-restore on-event="/system script run bcp214-restore" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:15:00
-/system scheduler add name=bcp214-upgrade on-event="/system script run bcp214-upgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:01:00
+/system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:00:00
+/system scheduler add name=bcp214-block on-event="/system script run bcp214-block" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:00:10
+/system scheduler add disabled=yes name=bcp214-restore on-event="/system script run bcp214-restore" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:15:00
+/system scheduler add name=bcp214-downgrade on-event="/system script run bcp214-downgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:01:00
 /system script add dont-require-permissions=no name=bcp214-start owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
     \n:foreach ruleId in=[/routing filter rule find] do={\
     \n    :local chainName [/routing filter rule get \$ruleId chain]\
