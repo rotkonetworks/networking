@@ -1,4 +1,4 @@
-# 2025-07-27 02:10:24 by RouterOS 7.20beta4
+# 2025-08-16 14:08:12 by RouterOS 7.20beta4
 # software id = VMHP-N1T8
 #
 # model = CRS504-4XQ
@@ -50,7 +50,7 @@
 /ip service set api-ssl disabled=yes
 /ipv6 address add address=fd12:3456:abcd:255::30 advertise=no interface=ceph_untagged
 /ipv6 address add address=2401:a860:1181::30 interface=ether1
-/system clock set time-zone-name=America/Chicago
+/system clock set time-zone-name=Asia/Bangkok
 /system identity set name=bkk30
 /system package update set channel=testing
 /system routerboard settings set auto-upgrade=yes enter-setup-on=delete-key
