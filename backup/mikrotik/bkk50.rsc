@@ -1,4 +1,4 @@
-# 2025-08-15 23:04:23 by RouterOS 7.20beta2
+# 2025-08-17 23:10:10 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -23,7 +23,7 @@
 /ip dhcp-server add address-pool=saxbkk interface=SAX-BKK-01-KVM name=saxemberg-kvm
 /port set 0 name=serial0
 /routing bgp instance add as=142108 name=bgp-instance-1 router-id=10.155.255.3
-/routing bgp template add afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=iBGP-v4 nexthop-choice=default output.filter-chain=iBGP-OUT-v4
+/routing bgp template add add-path-out=all afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=iBGP-v4 nexthop-choice=default output.filter-chain=iBGP-OUT-v4
 /routing bgp template add afi=ipv6 as=142108 input.filter=iBGP-IN-v6 multihop=yes name=iBGP-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6
 /routing id add id=10.155.255.3 name=main select-dynamic-id=only-static select-from-vrf=main
 /routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never router-id=10.155.255.3
@@ -1552,12 +1552,14 @@
 /ipv6 nd add interface=bridge_local ra-lifetime=10m
 /ipv6 nd add interface=SAX-BKK-01 ra-lifetime=10m
 /ipv6 nd add interface=SAX-BKK-01-KVM ra-lifetime=10m
-/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.255.3 .role=ibgp name=ibgp-bkk00-v4 output.redistribute=connected remote.address=10.155.255.4 .as=142108 templates=iBGP-v4
-/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.255.3 .role=ibgp name=ibgp-bkk20-v4 output.redistribute=connected remote.address=10.155.255.2 .as=142108 templates=iBGP-v4
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.255.3 .role=ibgp multihop=yes name=ibgp-bkk00-v4 output.redistribute=connected remote.address=10.155.255.4 .as=142108 templates=iBGP-v4
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.255.3 .role=ibgp multihop=yes name=ibgp-bkk20-v4 output.redistribute=connected remote.address=10.155.255.2 .as=142108 templates=iBGP-v4
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:dead:beef::50 .role=ibgp name=ibgp-bkk00-v6 output.redistribute=connected remote.address=fd00:dead:beef::100 .as=142108 templates=iBGP-v6
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:dead:beef::50 .role=ibgp name=ibgp-bkk20-v6 output.redistribute=connected remote.address=fd00:dead:beef::20 .as=142108 templates=iBGP-v6
+/routing filter rule add chain=iBGP-IN-v4 comment="Set BGP distance to 100" rule="set distance 100"
 /routing filter rule add chain=iBGP-IN-v4 comment="Accept all from iBGP" rule=accept
 /routing filter rule add chain=iBGP-IN-v6 comment="Accept all from iBGP" rule=accept
+/routing filter rule add chain=iBGP-IN-v6 comment="Set BGP distance to 100" rule="set distance 100"
 /routing filter rule add chain=iBGP-OUT-v4 comment="Local IBP network" rule="if (dst in 160.22.181.176/28 && protocol connected) { accept }"
 /routing filter rule add chain=iBGP-OUT-v4 comment="SAX network" rule="if (dst in 160.22.181.169/29 && protocol connected) { accept }"
 /routing filter rule add chain=iBGP-OUT-v4 comment="Public loopback" rule="if (dst in 160.22.181.181/32 && protocol connected) { accept }"

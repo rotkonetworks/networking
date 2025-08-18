@@ -1,4 +1,4 @@
-# 2025-08-17 14:08:39 by RouterOS 7.19.4
+# 2025-08-18 14:14:14 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -33,7 +33,8 @@
 /interface list add name=LAN
 /interface list add name=WAN
 /port set 0 name=serial0
-/routing bgp template add afi=ipv6 as=142108 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=force-self output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected router-id=10.155.255.2
+/routing bgp template set default as=142108 router-id=10.155.255.2
+/routing bgp template add afi=ipv6 as=142108 input.filter=iBGP-IN-v6 multihop=yes name=IBGP-ROTKO-v6 nexthop-choice=force-self output.filter-chain=iBGP-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.2
 /routing id add id=10.155.255.2 name=main select-dynamic-id=only-static select-from-vrf=main
 /routing ospf instance add comment="originate-default=always configured since we receive full BGP tables not default routes from transit/IXPs" disabled=no name=ospf-instance-v2 originate-default=if-installed router-id=10.155.255.2
 /routing ospf instance add comment="originate-default=always configured since we receive full BGP tables not default routes from transit/IXPs" disabled=no name=ospf-instance-v3 originate-default=if-installed router-id=10.155.255.2 version=3
@@ -425,8 +426,8 @@
 /routing bgp connection add afi=ipv6 disabled=no local.address=fd00:155:206:: .role=ibgp-rr name=rr-client-bkk06-v6 remote.address=fd00:155:206::1 .as=142108 templates=RR-CLIENTS-v6
 /routing bgp connection add afi=ipv6 disabled=no local.address=fd00:155:207:: .role=ibgp-rr name=rr-client-bkk07-v6 remote.address=fd00:155:207::1 .as=142108 templates=RR-CLIENTS-v6
 /routing bgp connection add afi=ipv6 disabled=no local.address=fd00:155:208:: .role=ibgp-rr name=rr-client-bkk08-v6 remote.address=fd00:155:208::1 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add afi=ip input.filter=IBGP-IN-v4 local.address=10.155.255.2 .role=ibgp multihop=yes name=ibgp-bkk50-v4 output.filter-chain=IBGP-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.255.3 .as=142108 templates=IBGP-ROTKO-v4
-/routing bgp connection add afi=ipv6 input.filter=IBGP-IN-v6 local.address=fd00:dead:beef::20 .role=ibgp multihop=yes name=ibgp-bkk50-v6 output.filter-chain=IBGP-OUT-v6 .redistribute=connected,static,bgp remote.address=fd00:dead:beef::50 .as=142108 templates=IBGP-ROTKO-v6
+/routing bgp connection add afi=ip input.filter=IBGP-IN-v4 local.address=10.155.255.2 .role=ibgp multihop=yes name=ibgp-bkk50-v4 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.255.3 .as=142108 templates=IBGP-ROTKO-v4
+/routing bgp connection add afi=ipv6 input.filter=IBGP-IN-v6 local.address=fd00:dead:beef::20 .role=ibgp multihop=yes name=ibgp-bkk50-v6 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v6 .redistribute=connected,static,bgp remote.address=fd00:dead:beef::50 .as=142108 templates=IBGP-ROTKO-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
