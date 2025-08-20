@@ -130,7 +130,9 @@ VARS
  
  echo ""
  echo "# SSH access control (customize as needed)"
- echo "define ssh_allowed_v4 = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 }"
+ # echo "define ssh_allowed_v4 = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 }"
+ #NOTE: accept all for now, so wedont get locked out
+ echo "define ssh_allowed_v4 = { 0.0.0.0/0 }"
  echo "define ssh_allowed_v6 = { fd00::/8, 2401:a860::/32 }"
 }
 
