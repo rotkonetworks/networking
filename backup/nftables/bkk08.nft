@@ -2,61 +2,58 @@ table inet filter {
 	set allowed_ssh {
 		type ipv4_addr
 		flags interval
-		elements = { 0.0.0.0/0 }
+		elements = { 10.0.0.0/8, 172.16.0.0/12,
+			     192.168.0.0/16 }
 	}
 
 	set allowed_ssh_v6 {
 		type ipv6_addr
 		flags interval
-		elements = { ::/0 }
-	}
-
-	set rate_limit_ssh {
-		type ipv4_addr
-		size 65535
-		flags dynamic,timeout
-		timeout 1m
-		elements = { 135.119.38.38 limit rate 3/minute timeout 1m expires 42s566ms }
-	}
-
-	set rate_limit_ssh_v6 {
-		type ipv6_addr
-		size 65535
-		flags dynamic,timeout
-		timeout 1m
+		elements = { 2401:a860::/32,
+			     fd00::/8 }
 	}
 
 	chain input {
 		type filter hook input priority filter; policy drop;
-		iifname "vmbr0" ip saddr 192.168.0.0/16 accept
 		ct state established,related accept
 		ct state invalid drop
 		iif "lo" accept
-		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, mld-listener-query, mld-listener-report, mld-listener-done, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert, mld2-listener-report } accept
+		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
 		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10/second accept
-		tcp dport 179 ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
 		tcp dport 179 ip saddr { 10.155.108.0, 10.155.208.0 } accept
-		udp dport { 3784, 4784 } ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
+		tcp dport 179 ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
 		udp dport { 3784, 4784 } ip saddr { 10.155.108.0, 10.155.208.0 } accept
+		udp dport { 3784, 4784 } ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
 		ip protocol ospf accept
 		ip6 nexthdr ospf accept
-		tcp dport 22 ct state new add @rate_limit_ssh { ip saddr limit rate 3/minute } accept
-		tcp dport 22 ct state new add @rate_limit_ssh_v6 { ip6 saddr limit rate 3/minute } accept
-		tcp dport 22 ip saddr @rate_limit_ssh drop
-		tcp dport 22 ip6 saddr @rate_limit_ssh_v6 drop
-		tcp dport 22 ip6 saddr @allowed_ssh_v6 accept
-		tcp dport 22 ip saddr @allowed_ssh accept
+		tcp dport 22 ip saddr 0.0.0.0/0 accept
+		tcp dport 22 ip6 saddr { 2401:a860::/32, fd00::/8 } accept
 		iifname "vmbr0" tcp dport { 111, 2049, 3128, 8006 } accept
 		iifname "vmbr0" udp dport { 111, 5405-5412 } accept
 		iifname "vmbr1" udp dport 53 accept
 		iifname "vmbr1" tcp dport 53 accept
 		iifname "vmbr0" udp dport 53 accept
 		iifname "vmbr0" tcp dport 53 accept
-		iifname "null" tcp dport { 3300, 6789, 6800-7300 } accept
+		ip daddr 10.155.181.81 tcp dport { 53, 853 } accept
+		ip daddr 10.155.181.81 udp dport 53 accept
+		ip6 daddr fd00:a860:1081:: tcp dport { 53, 853 } accept
+		ip6 daddr fd00:a860:1081:: udp dport 53 accept
+		ip daddr 160.22.181.81 tcp dport { 80, 443 } accept
+		ip daddr 160.22.181.81 tcp dport { 53, 853 } accept
+		ip daddr 160.22.181.81 udp dport 53 accept
+		ip6 daddr 2401:a860:1081:: tcp dport { 80, 443 } accept
+		ip6 daddr 2401:a860:1081:: tcp dport { 53, 853 } accept
+		ip6 daddr 2401:a860:1081:: udp dport 53 accept
+		ip daddr 160.22.180.180 tcp dport { 80, 443 } accept
+		ip daddr 160.22.180.180 tcp dport { 53, 853 } accept
+		ip daddr 160.22.180.180 udp dport 53 accept
+		ip6 daddr 2401:a860:: tcp dport { 80, 443 } accept
+		ip6 daddr 2401:a860:: tcp dport { 53, 853 } accept
+		ip6 daddr 2401:a860:: udp dport 53 accept
 		tcp dport { 80, 443 } accept
 		iif "lo" tcp dport 8404 accept
-		tcp dport { 9, 30335 } accept
-		udp dport { 9, 30335 } accept
+		tcp dport 30335 accept
+		udp dport 30335 accept
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
 	}
@@ -66,8 +63,9 @@ table inet filter {
 		ct state established,related accept
 		ct state invalid drop
 		iifname "vmbr1" accept
-		iifname "vmbr0" oifname "vmbr1" accept
+		iifname "vmbr0" accept
 		ct status dnat accept
+		ip saddr 192.168.0.0/16 accept
 		limit rate 5/minute log prefix "[DROP-FWD] "
 	}
 
@@ -81,42 +79,6 @@ table ip nat {
 		tcp dport 30335 dnat to 192.168.78.91:30335
 		udp dport 30335 dnat to 192.168.78.91:30335
 		tcp dport 30435 dnat to 192.168.78.91:30435
-		tcp dport 9 dnat to 192.168.111.10:9
-		udp dport 9 dnat to 192.168.111.10:9
-		tcp dport 9 dnat to 192.168.141.10:9
-		udp dport 9 dnat to 192.168.141.10:9
-		tcp dport 9 dnat to 192.168.121.10:9
-		udp dport 9 dnat to 192.168.121.10:9
-		tcp dport 9 dnat to 192.168.111.11:9
-		udp dport 9 dnat to 192.168.111.11:9
-		tcp dport 9 dnat to 192.168.121.11:9
-		udp dport 9 dnat to 192.168.121.11:9
-		tcp dport 9 dnat to 192.168.141.11:9
-		udp dport 9 dnat to 192.168.141.11:9
-		tcp dport 9 dnat to 192.168.141.17:9
-		udp dport 9 dnat to 192.168.141.17:9
-		tcp dport 9 dnat to 192.168.111.12:9
-		udp dport 9 dnat to 192.168.111.12:9
-		tcp dport 9 dnat to 192.168.121.12:9
-		udp dport 9 dnat to 192.168.121.12:9
-		tcp dport 9 dnat to 192.168.76.60:9
-		udp dport 9 dnat to 192.168.76.60:9
-		tcp dport 9 dnat to 192.168.111.13:9
-		udp dport 9 dnat to 192.168.111.13:9
-		tcp dport 9 dnat to 192.168.76.18:9
-		udp dport 9 dnat to 192.168.76.18:9
-		tcp dport 9 dnat to 192.168.121.14:9
-		udp dport 9 dnat to 192.168.121.14:9
-		tcp dport 9 dnat to 192.168.46.94:9
-		udp dport 9 dnat to 192.168.46.94:9
-		tcp dport 9 dnat to 192.168.176.16:9
-		udp dport 9 dnat to 192.168.176.16:9
-		tcp dport 9 dnat to 192.168.121.15:9
-		udp dport 9 dnat to 192.168.121.15:9
-		tcp dport 9 dnat to 192.168.46.90:9
-		udp dport 9 dnat to 192.168.46.90:9
-		tcp dport 9 dnat to 192.168.121.16:9
-		udp dport 9 dnat to 192.168.121.16:9
 	}
 
 	chain postrouting {
