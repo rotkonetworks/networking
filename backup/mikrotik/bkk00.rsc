@@ -1,4 +1,4 @@
-# 2025-08-23 14:08:09 by RouterOS 7.19.4
+# 2025-08-24 14:08:23 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -12,7 +12,7 @@
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=BKK10-LAG
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface vlan add interface=bridge_vlan name=vlan400-bgp vlan-id=400
+/interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
 /interface bonding add comment=WAN mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk10-sfp28-5 lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=100G-EDGE-TO-BKK20 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
@@ -22,12 +22,14 @@
 /interface vlan add interface=AMSIX-LAG name=EU-AMS-IX-vlan3995 vlan-id=3995
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-vlan2519 vlan-id=2519
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-backup-vlan2518 vlan-id=2518
-/interface vlan add interface=vlan400-bgp name=qnq-400-106 vlan-id=106
-/interface vlan add interface=vlan400-bgp name=qnq-400-107 vlan-id=107
-/interface vlan add interface=vlan400-bgp name=qnq-400-108 vlan-id=108
-/interface vlan add interface=vlan400-bgp name=qnq-400-116 vlan-id=116
-/interface vlan add interface=vlan400-bgp name=qnq-400-117 vlan-id=117
-/interface vlan add interface=vlan400-bgp name=qnq-400-118 vlan-id=118
+/interface vlan add interface=vlan-400 name=qnq-400-100 vlan-id=100
+/interface vlan add interface=vlan-400 name=qnq-400-106 vlan-id=106
+/interface vlan add interface=vlan-400 name=qnq-400-107 vlan-id=107
+/interface vlan add interface=vlan-400 name=qnq-400-108 vlan-id=108
+/interface vlan add interface=vlan-400 name=qnq-400-116 vlan-id=116
+/interface vlan add interface=vlan-400 name=qnq-400-117 vlan-id=117
+/interface vlan add interface=vlan-400 name=qnq-400-118 vlan-id=118
+/interface vlan add interface=vlan-400 name=qnq-400-200 vlan-id=200
 /interface bonding add mode=active-backup name=BKK06-LAG slaves=qnq-400-106,qnq-400-116
 /interface bonding add mode=active-backup name=BKK07-LAG slaves=qnq-400-107,qnq-400-117
 /interface bonding add mode=active-backup name=BKK08-LAG slaves=qnq-400-108,qnq-400-118
@@ -111,7 +113,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /interface list member add interface=BKK20-LAG list=LAN
 /interface list member add interface=qsfp28-1-1 list=LAN
 /interface list member add interface=qsfp28-2-1 list=LAN
-/interface list member add interface=vlan400-bgp list=LAN
+/interface list member add interface=vlan-400 list=LAN
 /interface list member add interface=qnq-400-106 list=LAN
 /interface list member add interface=qnq-400-107 list=LAN
 /interface list member add interface=qnq-400-108 list=LAN
@@ -132,7 +134,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip address add address=172.16.10.1/30 interface=BKK50-LAG network=172.16.10.0
 /ip address add address=172.31.0.100/16 interface=wg_rotko network=172.31.0.0
 /ip address add address=172.16.50.0/31 interface=BKK50-LAG network=172.16.50.0
-/ip address add address=10.155.254.100/24 comment="BGP RR VLAN" interface=vlan400-bgp network=10.155.254.0
+/ip address add address=10.155.254.100/24 comment="BGP RR VLAN" interface=vlan-400 network=10.155.254.0
 /ip address add address=10.155.254.100 interface=lo network=10.155.254.100
 /ip address add address=10.155.108.0/31 interface=BKK08-LAG network=10.155.108.0
 /ip address add address=10.155.106.0/31 interface=BKK06-LAG network=10.155.106.0
@@ -329,7 +331,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 address add address=2401:a860:1181:2050::1/127 advertise=no comment="Global P2P to BKK20" interface=BKK20-LAG
 /ipv6 address add address=2401:a860:1181:10::/127 advertise=no comment="Global P2P to BKK10" interface=bridge_vlan
 /ipv6 address add address=2401:a860:1181:50::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
-/ipv6 address add address=fd00:155:254::100 advertise=no comment="BGP RR VLAN IPv6" interface=vlan400-bgp
+/ipv6 address add address=fd00:155:254::100 advertise=no comment="BGP RR VLAN IPv6" interface=vlan-400
 /ipv6 address add address=fd00:155:108::/127 advertise=no interface=BKK08-LAG
 /ipv6 address add address=fd00:155:107::/127 advertise=no interface=BKK07-LAG
 /ipv6 address add address=fd00:155:106::/127 advertise=no interface=BKK06-LAG

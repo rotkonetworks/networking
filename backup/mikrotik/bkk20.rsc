@@ -1,4 +1,4 @@
-# 2025-08-23 14:08:09 by RouterOS 7.19.4
+# 2025-08-24 14:08:23 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -11,7 +11,7 @@
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface vlan add interface=bridge_vlan name=vlan400-bgp vlan-id=400
+/interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
 /interface bonding add arp-timeout=4h comment=WAN-LAG-sfp2 lacp-rate=1sec mode=802.3ad name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk10-sfp5-gw lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
@@ -21,12 +21,14 @@
 /interface vlan add interface=AMSIX-LAG name=HK-AMS-IX-vlan3994 vlan-id=3994
 /interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-backup-vlan2517 vlan-id=2517
 /interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-vlan2520 vlan-id=2520
-/interface vlan add interface=vlan400-bgp name=qnq-400-206 vlan-id=206
-/interface vlan add interface=vlan400-bgp name=qnq-400-207 vlan-id=207
-/interface vlan add interface=vlan400-bgp name=qnq-400-208 vlan-id=208
-/interface vlan add interface=vlan400-bgp name=qnq-400-216 vlan-id=216
-/interface vlan add interface=vlan400-bgp name=qnq-400-217 vlan-id=217
-/interface vlan add interface=vlan400-bgp name=qnq-400-218 vlan-id=218
+/interface vlan add interface=vlan-400 name=qnq-400-100 vlan-id=100
+/interface vlan add interface=vlan-400 name=qnq-400-200 vlan-id=200
+/interface vlan add interface=vlan-400 name=qnq-400-206 vlan-id=206
+/interface vlan add interface=vlan-400 name=qnq-400-207 vlan-id=207
+/interface vlan add interface=vlan-400 name=qnq-400-208 vlan-id=208
+/interface vlan add interface=vlan-400 name=qnq-400-216 vlan-id=216
+/interface vlan add interface=vlan-400 name=qnq-400-217 vlan-id=217
+/interface vlan add interface=vlan-400 name=qnq-400-218 vlan-id=218
 /interface bonding add mode=active-backup name=BKK06-LAG primary=qnq-400-206 slaves=qnq-400-206,qnq-400-216 transmit-hash-policy=layer-3-and-4
 /interface bonding add mode=active-backup name=BKK07-LAG primary=qnq-400-207 slaves=qnq-400-207,qnq-400-217 transmit-hash-policy=layer-3-and-4
 /interface bonding add mode=active-backup name=BKK08-LAG primary=qnq-400-208 slaves=qnq-400-208,qnq-400-218 transmit-hash-policy=layer-3-and-4
@@ -91,7 +93,7 @@
 /interface list member add interface=qnq-400-207 list=LAN
 /interface list member add interface=qnq-400-208 list=LAN
 /interface list member add interface=*6D list=LAN
-/interface list member add interface=vlan400-bgp list=LAN
+/interface list member add interface=vlan-400 list=LAN
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.10/32 interface=wg_rotko name=bkk10 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
@@ -108,7 +110,7 @@
 /ip address add address=172.16.30.2/30 interface=BKK00-LAG network=172.16.30.0
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
-/ip address add address=10.155.254.200/24 interface=vlan400-bgp network=10.155.254.0
+/ip address add address=10.155.254.200/24 interface=vlan-400 network=10.155.254.0
 /ip address add address=10.155.208.0/31 interface=BKK08-LAG network=10.155.208.0
 /ip address add address=10.155.206.0/31 interface=BKK06-LAG network=10.155.206.0
 /ip address add address=10.155.207.0/31 interface=BKK07-LAG network=10.155.207.0
@@ -589,13 +591,14 @@
 /routing ospf interface-template add area=backbone comment=GW-BKK50-LAG-v4 disabled=no networks=172.16.20.0/30
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-LAG-v6 disabled=no networks=fd00:dead:beef:30::2/126
 /routing ospf interface-template add area=backbone comment=EDGE-BKK00-LAG-v4 disabled=no networks=172.16.30.0/30
-/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no interfaces=*6D networks=fd00:dead:beef:1020::1/127
-/routing ospf interface-template add area=backbone comment=GW-BKK10-LAG-v4 disabled=no interfaces=*6D networks=172.16.210.0/31
+/routing ospf interface-template add area=backbone-v6 comment=GW-BKK10-LAG-v6 disabled=no networks=fd00:dead:beef:1020::1/127
+/routing ospf interface-template add area=backbone comment=GW-BKK10-LAG-v4 disabled=no networks=172.16.210.0/31
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-v6 disabled=no networks=fd00:dead:beef::/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
+/routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::20/128 passive
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
