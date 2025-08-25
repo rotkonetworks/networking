@@ -6,6 +6,8 @@
       "public_v4": "160.22.181.180",
       "public_v6": "2401:a860:181::100",
       "management": "192.168.88.100/24",
+      "bgp_rr_v4": "10.155.100.1",
+      "bgp_rr_v6": "fd00:155:100::1",
       "role": "route_reflector",
       "physical_interfaces": {
         "management": "ether1"
@@ -16,6 +18,8 @@
       "public_v4": "160.22.181.178",
       "public_v6": "2401:a860:181::20",
       "management": "192.168.88.20/24",
+      "bgp_rr_v4": "10.155.100.2",
+      "bgp_rr_v6": "fd00:155:100::2",
       "role": "route_reflector",
       "physical_interfaces": {
         "management": "ether1"
@@ -23,18 +27,14 @@
     },
     "bkk06": {
       "router_id": "10.155.255.6",
-      "bgp_local_rr1_v4": "10.155.106.1",
-      "bgp_local_rr1_v6": "fd00:155:106::1",
-      "bgp_local_rr2_v4": "10.155.206.1",
-      "bgp_local_rr2_v6": "fd00:155:206::1",
+      "bgp_rr_v4": "10.155.100.6",
+      "bgp_rr_v6": "fd00:155:100::6",
       "public_v4": "160.22.181.6",
       "public_v6": "2401:a860:1006::",
       "internal_v4": "10.6.0.0/16",
       "internal_v6": "2401:a860:1006::/48",
       "management": "192.168.76.1/16",
       "management_gateway": "192.168.69.1",
-      "management_v6": "2401:a860:1181::76/64",
-      "management_v6_gateway": "2401:a860:1181::1",
       "anycast_local_v4": "10.155.181.81/32",
       "anycast_local_v6": "fd00:a860:1081::",
       "anycast_site_v4": "160.22.181.81/32",
@@ -54,10 +54,8 @@
     },
     "bkk07": {
       "router_id": "10.155.255.7",
-      "bgp_local_rr1_v4": "10.155.107.1",
-      "bgp_local_rr1_v6": "fd00:155:107::1",
-      "bgp_local_rr2_v4": "10.155.207.1",
-      "bgp_local_rr2_v6": "fd00:155:207::1",
+      "bgp_rr_v4": "10.155.100.7",
+      "bgp_rr_v6": "fd00:155:100::7",
       "public_v4": "160.22.181.7",
       "public_v6": "2401:a860:1007::",
       "internal_v4": "10.7.0.0/16",
@@ -83,10 +81,8 @@
     },
     "bkk08": {
       "router_id": "10.155.255.8",
-      "bgp_local_rr1_v4": "10.155.108.1",
-      "bgp_local_rr1_v6": "fd00:155:108::1",
-      "bgp_local_rr2_v4": "10.155.208.1",
-      "bgp_local_rr2_v6": "fd00:155:208::1",
+      "bgp_rr_v4": "10.155.100.8",
+      "bgp_rr_v6": "fd00:155:100::8",
       "public_v4": "160.22.181.8",
       "public_v6": "2401:a860:1008::",
       "internal_v4": "10.8.0.0/16",
@@ -135,44 +131,24 @@
       }
     }
   },
-  "route_reflectors": {
-    "rr1": {
-      "name": "bkk00",
-      "router_id": "10.155.255.4",
-      "BKK06": {
-        "v4": "10.155.106.0",
-        "v6": "fd00:155:106::"
-      },
-      "BKK07": {
-        "v4": "10.155.107.0",
-        "v6": "fd00:155:107::"
-      },
-      "BKK08": {
-        "v4": "10.155.108.0",
-        "v6": "fd00:155:108::"
-      }
-    },
-    "rr2": {
-      "name": "bkk20",
-      "router_id": "10.155.255.2",
-      "BKK06": {
-        "v4": "10.155.206.0",
-        "v6": "fd00:155:206::"
-      },
-      "BKK07": {
-        "v4": "10.155.207.0",
-        "v6": "fd00:155:207::"
-      },
-      "BKK08": {
-        "v4": "10.155.208.0",
-        "v6": "fd00:155:208::"
-      }
-    }
-  },
   "networks": {
     "management": "192.168.0.0/16",
     "management_gateway": "192.168.69.1",
     "qinq_outer": 400,
+    "bgp_rr_network": {
+      "v4": "10.155.100.0/24",
+      "v6": "fd00:155:100::/64",
+      "vlan": 100,
+      "description": "Unified BGP Route Reflector network"
+    },
+    "service_vlans": {
+      "100": "BGP Route Reflector network",
+      "101": "Ceph cluster network (private replication)",
+      "102": "Ceph public network (client access)",
+      "103": "Management and monitoring",
+      "104": "VM migration network",
+      "105": "Reserved for future use"
+    },
     "private_v4": [
       "10.0.0.0/8",
       "172.16.0.0/12",
@@ -191,11 +167,6 @@
       "local": "fd00:a860:1081::/48",
       "site": "2401:a860:1081::/48",
       "global": "2401:a860::/36"
-    },
-    "anycast_description": {
-      "local": "Internal ULA anycast - for internal services only",
-      "site": "Bangkok site-local GUA anycast - announced only from TH",
-      "global": "Multi-site global GUA anycast - announced from multiple PoPs"
     }
   },
   "bond_config": {
@@ -203,12 +174,6 @@
     "miimon": 100,
     "lacp_rate": "fast",
     "mtu": 9000
-  },
-  "vlan_scheme": {
-    "direct_to_rr1": "1XX",
-    "direct_to_rr2": "2XX",
-    "via_bkk10_to_rr1": "11X",
-    "via_bkk10_to_rr2": "21X"
   },
   "interfaces": {
     "management": "vmbr0",

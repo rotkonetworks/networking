@@ -8,11 +8,11 @@ CONFIG_FILE="${CONFIG_FILE:-${SCRIPT_DIR}/../config/network.json}"
 # Parse options
 while getopts ':c:' opt; do
   case "$opt" in
-  c) CONFIG_FILE="$OPTARG" ;;
-  *)
-    echo "Usage: $0 [-c <config-file>] <site>" >&2
-    exit 1
-    ;;
+    c) CONFIG_FILE="$OPTARG" ;;
+    *)
+      echo "Usage: $0 [-c <config-file>] <site>" >&2
+      exit 1
+      ;;
   esac
 done
 shift $((OPTIND - 1))
@@ -27,27 +27,27 @@ readonly SITE="${1:-}"
 SITE_UPPER="$(echo "$SITE" | tr '[:lower:]' '[:upper:]')"
 if [[ -z "$SITE" ]]; then
   echo "usage: $0 <site>" >&2
-  echo "valid sites: $(jq -r '.sites | to_entries[] | select(.value.bgp_local_rr1_v4 != null) | .key' "$CONFIG_FILE" | tr '\n' ' ')" >&2
+  echo "valid sites: $(jq -r '.sites | to_entries[] | select(.value.bgp_rr_v4 != null) | .key' "$CONFIG_FILE" | tr '\n' ' ')" >&2
   exit 1
 fi
 
 # validate site exists
 if ! jq -e ".sites.$SITE" "$CONFIG_FILE" >/dev/null 2>&1; then
   echo "error: invalid site: $SITE" >&2
-  echo "valid sites: $(jq -r '.sites | to_entries[] | select(.value.bgp_local_rr1_v4 != null) | .key' "$CONFIG_FILE" | tr '\n' ' ')" >&2
+  echo "valid sites: $(jq -r '.sites | to_entries[] | select(.value.bgp_rr_v4 != null) | .key' "$CONFIG_FILE" | tr '\n' ' ')" >&2
   exit 1
 fi
 
-# Only allow generation for BIRD client sites
-SITE_ROLE=$(jq -r ".sites.$SITE.role // \"client\"" "$CONFIG_FILE")
-if [[ "$SITE_ROLE" != "client" ]] && [[ -z "$(jq -r ".sites.$SITE.bgp_local_rr1_v4 // empty" "$CONFIG_FILE")" ]]; then
-  echo "error: site $SITE is not a BIRD client (role: $SITE_ROLE)" >&2
+# Only allow generation for sites with BGP configuration
+SITE_CONFIG=$(jq -r ".sites.$SITE" "$CONFIG_FILE")
+BGP_RR_V4=$(echo "$SITE_CONFIG" | jq -r '.bgp_rr_v4 // empty')
+if [[ -z "$BGP_RR_V4" ]]; then
+  echo "error: site $SITE does not have BGP configuration" >&2
   echo "this generator only works for sites with BGP configuration" >&2
   exit 1
 fi
 
 # extract site config
-SITE_CONFIG=$(jq -r ".sites.$SITE" "$CONFIG_FILE")
 SITE_NUM="${SITE#bkk}"   # extract number from site name
 SITE_NUM="${SITE_NUM#0}" # remove leading zero if present
 
@@ -62,17 +62,20 @@ PUBLIC_V6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_V4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
 INTERNAL_V6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
 
-# BGP addresses
-BGP_RR1_V4=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_rr1_v4')
-BGP_RR1_V6=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_rr1_v6')
-BGP_RR2_V4=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_rr2_v4')
-BGP_RR2_V6=$(echo "$SITE_CONFIG" | jq -r '.bgp_local_rr2_v6')
+# BGP RR network addresses
+BGP_RR_V4=$(echo "$SITE_CONFIG" | jq -r '.bgp_rr_v4')
+BGP_RR_V6=$(echo "$SITE_CONFIG" | jq -r '.bgp_rr_v6')
 
-# route reflector gateways
-RR1_GW_V4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors.rr1[$site].v4' "$CONFIG_FILE")
-RR2_GW_V4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors.rr2[$site].v4' "$CONFIG_FILE")
-RR1_GW_V6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors.rr1[$site].v6' "$CONFIG_FILE")
-RR2_GW_V6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors.rr2[$site].v6' "$CONFIG_FILE")
+# Get BGP network configuration
+BGP_NETWORK_V4=$(jq -r '.networks.bgp_rr_network.v4' "$CONFIG_FILE")
+BGP_NETWORK_V6=$(jq -r '.networks.bgp_rr_network.v6' "$CONFIG_FILE")
+BGP_RR_VLAN=$(jq -r '.networks.bgp_rr_network.vlan' "$CONFIG_FILE")
+
+# Get RR gateway IPs (for routing tables)
+RR1_GW_V4=$(jq -r '.sites.bkk00.bgp_rr_v4' "$CONFIG_FILE")
+RR2_GW_V4=$(jq -r '.sites.bkk20.bgp_rr_v4' "$CONFIG_FILE")
+RR1_GW_V6=$(jq -r '.sites.bkk00.bgp_rr_v6' "$CONFIG_FILE")
+RR2_GW_V6=$(jq -r '.sites.bkk20.bgp_rr_v6' "$CONFIG_FILE")
 
 # anycast addresses - all three tiers
 ANYCAST_LOCAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_local_v4 // empty' | sed 's|/32||')
@@ -99,12 +102,6 @@ BOND_MIIMON=$(jq -r '.bond_config.miimon // 100' "$CONFIG_FILE")
 BOND_LACP_RATE=$(jq -r '.bond_config.lacp_rate // "fast"' "$CONFIG_FILE")
 BOND_MTU=$(jq -r '.bond_config.mtu // 9000' "$CONFIG_FILE")
 
-# VLAN IDs based on site number (pad to 2 digits)
-VLAN_RR1_DIRECT="1$(printf "%02d" "$SITE_NUM")"
-VLAN_RR2_DIRECT="2$(printf "%02d" "$SITE_NUM")"
-VLAN_RR1_VIA_BKK10="11${SITE_NUM}"
-VLAN_RR2_VIA_BKK10="21${SITE_NUM}"
-
 # fix IPv6 addresses to ensure no extra colons
 INTERNAL_V6_PREFIX="${INTERNAL_V6%%/*}"
 while [[ "$INTERNAL_V6_PREFIX" == *: ]]; do
@@ -128,6 +125,8 @@ generate_interfaces() {
 #   Main table (254) - Managed by BIRD, contains full BGP routes
 #   Table 102 (mgmt) - Management traffic isolation
 #   Table 100 (anycast) - Anycast source routing
+#
+# Using unified BGP RR network on VLAN ${QINQ_OUTER}.${BGP_RR_VLAN}
 #
 # Three-tier anycast:
 #   - Local (ULA): Internal services only
@@ -221,9 +220,26 @@ INTERFACES
     # Split uplink configuration
     UPLINK1=$(echo "$BOND_MEMBERS" | awk '{print $1}')
     UPLINK2=$(echo "$BOND_MEMBERS" | awk '{print $2}')
-    UP1_BASE=$(printf "%s" "$UPLINK1" | sed 's/^.*\(..\)$/\1/')
-    UP1_BASE="100${UP1_BASE}"
-    UP2_BASE=$(printf "%s" "$UPLINK2" | sed 's/^.*\(..\)$/\1/')
+    
+    # Generate interface identifiers based on the uplink names
+    # This is a simplified approach - adjust based on your naming convention
+    UP1_BASE="${UPLINK1%np*}"  # Remove np* suffix if present
+    UP1_BASE="${UP1_BASE#enp}"  # Remove enp prefix
+    UP1_BASE="${UP1_BASE#en}"   # Remove en prefix
+    if [[ "$UP1_BASE" == "o1" ]]; then
+      UP1_BASE="o1"
+    else
+      UP1_BASE="100p1"
+    fi
+    
+    UP2_BASE="${UPLINK2%np*}"
+    UP2_BASE="${UP2_BASE#enp}"
+    UP2_BASE="${UP2_BASE#en}"
+    if [[ "$UP2_BASE" == "o1" ]]; then
+      UP2_BASE="o1"
+    else
+      UP2_BASE="100p2"
+    fi
 
     cat <<BONDED_CONFIG
 
@@ -256,49 +272,25 @@ iface ${UP2_BASE}.${QINQ_OUTER} inet manual
     vlan-id ${QINQ_OUTER}
     mtu ${BOND_MTU}
 
-# Q-in-Q inner VLANs on first interface (via bkk30)
-auto vlan${VLAN_RR1_DIRECT}
-iface vlan${VLAN_RR1_DIRECT} inet manual
+# Q-in-Q VLAN ${QINQ_OUTER}.${BGP_RR_VLAN} - Unified BGP RR network
+auto vlan${BGP_RR_VLAN}-p1
+iface vlan${BGP_RR_VLAN}-p1 inet manual
     vlan-raw-device ${UP1_BASE}.${QINQ_OUTER}
-    vlan-id ${VLAN_RR1_DIRECT}
+    vlan-id ${BGP_RR_VLAN}
     mtu 1500
 
-auto vlan${VLAN_RR2_DIRECT}
-iface vlan${VLAN_RR2_DIRECT} inet manual
-    vlan-raw-device ${UP1_BASE}.${QINQ_OUTER}
-    vlan-id ${VLAN_RR2_DIRECT}
-    mtu 1500
-
-# Q-in-Q inner VLANs on second interface (via bkk10)
-auto vlan${VLAN_RR1_VIA_BKK10}
-iface vlan${VLAN_RR1_VIA_BKK10} inet manual
+auto vlan${BGP_RR_VLAN}-p2
+iface vlan${BGP_RR_VLAN}-p2 inet manual
     vlan-raw-device ${UP2_BASE}.${QINQ_OUTER}
-    vlan-id ${VLAN_RR1_VIA_BKK10}
+    vlan-id ${BGP_RR_VLAN}
     mtu 1500
 
-auto vlan${VLAN_RR2_VIA_BKK10}
-iface vlan${VLAN_RR2_VIA_BKK10} inet manual
-    vlan-raw-device ${UP2_BASE}.${QINQ_OUTER}
-    vlan-id ${VLAN_RR2_VIA_BKK10}
-    mtu 1500
-
-# Bond to bkk00 (direct + via bkk10)
-auto bond-bkk00
-iface bond-bkk00 inet manual
-    bond-slaves vlan${VLAN_RR1_DIRECT} vlan${VLAN_RR1_VIA_BKK10}
+# Bond for BGP RR connectivity
+auto bond-bgp
+iface bond-bgp inet manual
+    bond-slaves vlan${BGP_RR_VLAN}-p1 vlan${BGP_RR_VLAN}-p2
     bond-mode ${BOND_MODE}
-    bond-primary vlan${VLAN_RR1_DIRECT}
-    bond-miimon ${BOND_MIIMON}
-    bond-lacp-rate ${BOND_LACP_RATE}
-    bond-xmit-hash-policy layer3+4
-    mtu 1500
-
-# Bond to bkk20 (direct + via bkk10)
-auto bond-bkk20
-iface bond-bkk20 inet manual
-    bond-slaves vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR2_VIA_BKK10}
-    bond-mode ${BOND_MODE}
-    bond-primary vlan${VLAN_RR2_DIRECT}
+    bond-primary vlan${BGP_RR_VLAN}-p1
     bond-miimon ${BOND_MIIMON}
     bond-lacp-rate ${BOND_LACP_RATE}
     bond-xmit-hash-policy layer3+4
@@ -323,22 +315,13 @@ iface vmbr1 inet6 static
     accept_ra 0
     autoconf 0
 
-# public services bridge
+# public services bridge (BGP RR network)
 auto vmbr2
 iface vmbr2 inet static
-COMMON_CONFIG
-
-  if [[ "$BONDED_VLANS" == "true" ]]; then
-    echo "    bridge-ports bond-bkk00 bond-bkk20"
-  else
-    echo "    bridge-ports vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR1_DIRECT}"
-  fi
-
-  cat <<COMMON_CONFIG
+    bridge-ports bond-bgp
     bridge-stp off
     bridge-fd 0
-    address ${BGP_RR1_V4}/31
-    address ${BGP_RR2_V4}/31
+    address ${BGP_RR_V4}/${BGP_NETWORK_V4##*/}
     mtu 1500
     # policy-based routing for public services
     # ensures traffic from public IPs uses BIRD routes (main table)
@@ -403,8 +386,7 @@ COMMON_CONFIG
   cat <<COMMON_CONFIG
 
 iface vmbr2 inet6 static
-    address ${BGP_RR1_V6}/127
-    address ${BGP_RR2_V6}/127
+    address ${BGP_RR_V6}/${BGP_NETWORK_V6##*/}
     accept_ra 0
     autoconf 0
     # policy-based routing for IPv6 public services
