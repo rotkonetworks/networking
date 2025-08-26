@@ -100,6 +100,7 @@ BOND_LACP_RATE=$(jq -r '.bond_config.lacp_rate // "fast"' "$CONFIG_FILE")
 BOND_MTU=$(jq -r '.bond_config.mtu // 9000' "$CONFIG_FILE")
 
 # VLAN IDs based on site number (pad to 2 digits)
+VLAN_100="100"
 VLAN_RR1_DIRECT="1$(printf "%02d" "$SITE_NUM")"
 VLAN_RR2_DIRECT="2$(printf "%02d" "$SITE_NUM")"
 VLAN_RR1_VIA_BKK10="11${SITE_NUM}"
@@ -221,9 +222,8 @@ INTERFACES
     # Split uplink configuration
     UPLINK1=$(echo "$BOND_MEMBERS" | awk '{print $1}')
     UPLINK2=$(echo "$BOND_MEMBERS" | awk '{print $2}')
-    UP1_BASE=$(printf "%s" "$UPLINK1" | sed 's/^.*\(..\)$/\1/')
-    UP1_BASE="100${UP1_BASE}"
-    UP2_BASE=$(printf "%s" "$UPLINK2" | sed 's/^.*\(..\)$/\1/')
+    UP1_BASE=$(printf "%s" "$UPLINK1" | sed 's/^\(...\).*/\1/')
+    UP2_BASE=$(printf "%s" "$UPLINK2" | sed 's/^\(...\).*/\1/')
 
     cat <<BONDED_CONFIG
 
@@ -269,6 +269,13 @@ iface vlan${VLAN_RR2_DIRECT} inet manual
     vlan-id ${VLAN_RR2_DIRECT}
     mtu 1500
 
+# Q-in-Q inner VLANs via bkk30 for /16 network
+auto ${UP1_BASE}-vlan${VLAN_100}
+iface ${UP1_BASE}-vlan${VLAN_100} inet manual
+    vlan-raw-device ${UP1_BASE}.${QINQ_OUTER}
+    vlan-id ${VLAN_100}
+    mtu 1500
+
 # Q-in-Q inner VLANs on second interface (via bkk10)
 auto vlan${VLAN_RR1_VIA_BKK10}
 iface vlan${VLAN_RR1_VIA_BKK10} inet manual
@@ -280,6 +287,13 @@ auto vlan${VLAN_RR2_VIA_BKK10}
 iface vlan${VLAN_RR2_VIA_BKK10} inet manual
     vlan-raw-device ${UP2_BASE}.${QINQ_OUTER}
     vlan-id ${VLAN_RR2_VIA_BKK10}
+    mtu 1500
+
+# Q-in-Q inner VLANs via bkk10 for /32 network
+auto ${UP2_BASE}-vlan${VLAN_100}
+iface ${UP2_BASE}-vlan${VLAN_100} inet manual
+    vlan-raw-device ${UP2_BASE}.${QINQ_OUTER}
+    vlan-id ${VLAN_100}
     mtu 1500
 
 # Bond to bkk00 (direct + via bkk10)
@@ -299,6 +313,17 @@ iface bond-bkk20 inet manual
     bond-slaves vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR2_VIA_BKK10}
     bond-mode ${BOND_MODE}
     bond-primary vlan${VLAN_RR2_DIRECT}
+    bond-miimon ${BOND_MIIMON}
+    bond-lacp-rate ${BOND_LACP_RATE}
+    bond-xmit-hash-policy layer3+4
+    mtu 1500
+    
+# vlan100 bond (direct + via bkk10)
+auto bond-vlan100
+iface bond-vlan100 inet manual
+    bond-slaves ${UP1_BASE}-vlan${VLAN_100} ${UP2_BASE}-vlan${VLAN_100}
+    bond-mode ${BOND_MODE}
+    bond-primary ${UP1_BASE}-vlan${VLAN_100}
     bond-miimon ${BOND_MIIMON}
     bond-lacp-rate ${BOND_LACP_RATE}
     bond-xmit-hash-policy layer3+4
@@ -329,7 +354,8 @@ iface vmbr2 inet static
 COMMON_CONFIG
 
   if [[ "$BONDED_VLANS" == "true" ]]; then
-    echo "    bridge-ports bond-bkk00 bond-bkk20"
+    echo "    #bridge-ports bond-bkk00 bond-bkk20"
+    echo "    bridge-ports bond-vlan100"
   else
     echo "    bridge-ports vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR1_DIRECT}"
   fi
@@ -337,8 +363,7 @@ COMMON_CONFIG
   cat <<COMMON_CONFIG
     bridge-stp off
     bridge-fd 0
-    address ${BGP_RR1_V4}/31
-    address ${BGP_RR2_V4}/31
+    address ${BGP_RR1_V4}/16
     mtu 1500
     # policy-based routing for public services
     # ensures traffic from public IPs uses BIRD routes (main table)
@@ -399,12 +424,16 @@ COMMON_CONFIG
 
   echo "    pre-down ip route flush table anycast 2>/dev/null || true"
   echo "    pre-down ip rule del iif vmbr2 lookup main 2>/dev/null || true"
+  cat <<COMMON_CONFIG
+
+iface vmbr2:1 inet static
+    address ${BGP_RR2_V4}/16
+COMMON_CONFIG
 
   cat <<COMMON_CONFIG
 
 iface vmbr2 inet6 static
-    address ${BGP_RR1_V6}/127
-    address ${BGP_RR2_V6}/127
+    address ${BGP_RR1_V6}/32
     accept_ra 0
     autoconf 0
     # policy-based routing for IPv6 public services
@@ -463,6 +492,12 @@ POLICY_V6
 
   echo "    pre-down ip -6 route flush table anycast 2>/dev/null || true"
   echo "    pre-down ip -6 rule del iif vmbr2 lookup main 2>/dev/null || true"
+
+  cat <<COMMON_CONFIG
+
+iface vmbr2:1 inet6 static
+    address ${BGP_RR2_V6}/32
+COMMON_CONFIG
 }
 
 # main execution
