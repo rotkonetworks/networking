@@ -1,4 +1,4 @@
-# 2025-08-23 23:04:20 by RouterOS 7.20beta2
+# 2025-08-25 23:05:55 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -114,7 +114,7 @@
 /ip dhcp-server lease add address=192.168.69.210 comment=val-paseo-bkk13-01 mac-address=52:54:00:DD:41:AE server=dhcp1
 /ip dhcp-server lease add address=192.168.69.219 client-id=ff:0:dd:1e:d8:0:1:0:1:2f:8f:7a:95:52:54:0:dd:1e:d8 comment=val-paseo-bkk13-02 mac-address=52:54:00:DD:1E:D8 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.222 client-id=ff:0:96:39:9c:0:1:0:1:2f:8f:96:fb:52:54:0:96:39:9c comment=val-kusama-bkk13-01 mac-address=52:54:00:96:39:9C server=dhcp1
-/ip dhcp-server lease add address=192.168.69.215 client-id=1:9c:6b:0:9f:f5:57 mac-address=9C:6B:00:9F:F5:57 server=dhcp1
+/ip dhcp-server lease add address=192.168.69.215 client-id=1:9c:6b:0:9f:f5:57 comment="bkk12 ipmi" mac-address=9C:6B:00:9F:F5:57 server=dhcp1
 /ip dhcp-server network add address=10.69.169.0/24 dns-server=9.9.9.9 gateway=10.69.169.1
 /ip dhcp-server network add address=192.168.0.0/16 dns-server=9.9.9.9 gateway=192.168.69.1
 /ip dns set cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4

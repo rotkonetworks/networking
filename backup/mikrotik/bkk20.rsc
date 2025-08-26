@@ -1,4 +1,4 @@
-# 2025-08-25 14:10:41 by RouterOS 7.19.4
+# 2025-08-26 14:09:58 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -111,10 +111,14 @@
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
 /ip address add address=10.155.254.200/24 interface=vlan-400 network=10.155.254.0
-/ip address add address=10.155.208.0/31 interface=BKK08-LAG network=10.155.208.0
+/ip address add address=10.155.208.0/31 disabled=yes interface=BKK08-LAG network=10.155.208.0
 /ip address add address=10.155.206.0/31 interface=BKK06-LAG network=10.155.206.0
 /ip address add address=10.155.207.0/31 interface=BKK07-LAG network=10.155.207.0
 /ip address add address=172.16.210.0/31 interface=BKK10-LAG network=172.16.210.0
+/ip address add address=10.155.120.1/16 interface=qnq-400-100 network=10.155.0.0
+/ip address add address=10.155.208.0/16 interface=qnq-400-100 network=10.155.0.0
+/ip address add address=10.155.206.0/16 interface=qnq-400-100 network=10.155.0.0
+/ip address add address=10.155.207.0/16 interface=qnq-400-100 network=10.155.0.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
@@ -263,7 +267,10 @@
 /ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=fd00:155:206::/127 advertise=no interface=BKK06-LAG
 /ipv6 address add address=fd00:155:207::/127 advertise=no interface=BKK07-LAG
-/ipv6 address add address=fd00:155:208::/127 advertise=no interface=BKK08-LAG
+/ipv6 address add address=fd00:155:208::/127 advertise=no disabled=yes interface=BKK08-LAG
+/ipv6 address add address=fd00:155:208::100/56 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:207::/56 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:206::/56 advertise=no interface=qnq-400-100
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons
@@ -575,10 +582,10 @@
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
-/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (gw in ibgp-block-gw-v4) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 disabled=yes rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
-/routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (gw in ibgp-block-gw-v6) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 disabled=yes rule="if (gw in ibgp-block-gw-v6) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in 10.155.0.0/17) { reject;} "
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
