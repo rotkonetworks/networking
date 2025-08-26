@@ -156,7 +156,7 @@ generate_sets() {
    set allowed_ssh {
        type ipv4_addr
        flags interval
-       elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 }
+       elements = { 0.0.0.0/0 }
    }
 
    set allowed_ssh_v6 {

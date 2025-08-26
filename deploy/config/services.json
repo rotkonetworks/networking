@@ -444,75 +444,129 @@
     },
     "polkadot": {
       "container": "192.168.111.10",
-      "type": "relay"
+      "type": "relay",
+      "ports": {
+        "p2p": 31001
+      }
     },
     "paseo": {
       "container": "192.168.141.10",
-      "type": "relay"
+      "type": "relay",
+      "ports": {
+        "p2p": 34001
+      }
     },
     "kusama": {
       "type": "relay",
-      "container": "192.168.121.10"
+      "container": "192.168.121.10",
+      "ports": {
+        "p2p": 32001
+      }
     },
     "asset-hub-polkadot": {
       "type": "parachain",
-      "container": "192.168.111.11"
+      "container": "192.168.111.11",
+      "ports": {
+        "p2p": 31001
+      }
     },
     "asset-hub-kusama": {
       "type": "parachain",
-      "container": "192.168.121.11"
+      "container": "192.168.121.11",
+      "ports": {
+        "p2p": 32001
+      }
     },
     "asset-hub-paseo": {
       "type": "parachain",
-      "container": "192.168.141.11"
+      "container": "192.168.141.11",
+      "ports": {
+        "p2p": 34001
+      }
     },
     "passet-hub-paseo": {
       "type": "parachain",
-      "container": "192.168.141.17"
+      "container": "192.168.141.17",
+      "ports": {
+        "p2p": 34071
+      }
     },
     "bridge-hub-polkadot": {
       "type": "parachain",
-      "container": "192.168.111.12"
+      "container": "192.168.111.12",
+      "ports": {
+        "p2p": 31021
+      }
     },
     "bridge-hub-kusama": {
       "type": "parachain",
-      "container": "192.168.121.12"
+      "container": "192.168.121.12",
+      "ports": {
+        "p2p": 32021
+      }
     },
     "bridge-hub-paseo": {
       "type": "parachain",
-      "container": "192.168.76.60"
+      "container": "192.168.76.60",
+      "ports": {
+        "p2p": 34021
+      }
     },
     "collectives-polkadot": {
       "type": "parachain",
-      "container": "192.168.111.13"
+      "container": "192.168.111.13",
+      "ports": {
+        "p2p": 31031
+      }
     },
     "people-polkadot": {
       "type": "parachain",
-      "container": "192.168.76.18"
+      "container": "192.168.76.18",
+      "ports": {
+        "p2p": 31041
+      }
     },
     "people-kusama": {
       "type": "parachain",
-      "container": "192.168.121.14"
+      "container": "192.168.121.14",
+      "ports": {
+        "p2p": 32041
+      }
     },
     "people-paseo": {
       "type": "parachain",
-      "container": "192.168.46.94"
+      "container": "192.168.46.94",
+      "ports": {
+        "p2p": 34041
+      }
     },
     "coretime-polkadot": {
       "type": "parachain",
-      "container": "192.168.176.16"
+      "container": "192.168.176.16",
+      "ports": {
+        "p2p": 31051
+      }
     },
     "coretime-kusama": {
       "type": "parachain",
-      "container": "192.168.121.15"
+      "container": "192.168.121.15",
+      "ports": {
+        "p2p": 32051
+      }
     },
     "coretime-paseo": {
       "type": "parachain",
-      "container": "192.168.46.90"
+      "container": "192.168.46.90",
+      "ports": {
+        "p2p": 34051
+      }
     },
     "encointer-kusama": {
       "type": "parachain",
-      "container": "192.168.121.16"
+      "container": "192.168.121.16",
+      "ports": {
+        "p2p": 32061
+      }
     }
   }
 }
