@@ -1,4 +1,4 @@
-# 2025-08-26 14:09:58 by RouterOS 7.19.4
+# 2025-08-27 14:09:19 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -137,8 +137,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip address add address=10.155.254.100/24 comment="BGP RR VLAN" interface=vlan-400 network=10.155.254.0
 /ip address add address=10.155.254.100 interface=lo network=10.155.254.100
 /ip address add address=10.155.108.0/31 disabled=yes interface=BKK08-LAG network=10.155.108.0
-/ip address add address=10.155.106.0/31 interface=BKK06-LAG network=10.155.106.0
-/ip address add address=10.155.107.0/31 interface=BKK07-LAG network=10.155.107.0
+/ip address add address=10.155.106.0/31 disabled=yes interface=BKK06-LAG network=10.155.106.0
+/ip address add address=10.155.107.0/31 disabled=yes interface=BKK07-LAG network=10.155.107.0
 /ip address add address=172.16.110.0/31 interface=BKK10-LAG network=172.16.110.0
 /ip address add address=10.155.108.0/16 interface=qnq-400-100 network=10.155.0.0
 /ip address add address=10.155.100.1/16 interface=qnq-400-100 network=10.155.0.0
@@ -337,11 +337,12 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 address add address=2401:a860:1181:50::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=fd00:155:254::100 advertise=no comment="BGP RR VLAN IPv6" interface=vlan-400
 /ipv6 address add address=fd00:155:108::/127 advertise=no disabled=yes interface=BKK08-LAG
-/ipv6 address add address=fd00:155:107::/127 advertise=no interface=BKK07-LAG
-/ipv6 address add address=fd00:155:106::/127 advertise=no interface=BKK06-LAG
-/ipv6 address add address=fd00:155:108::100/56 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155:107::/56 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155:106::/56 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:107::/127 advertise=no disabled=yes interface=BKK07-LAG
+/ipv6 address add address=fd00:155:106::/127 advertise=no disabled=yes interface=BKK06-LAG
+/ipv6 address add address=fd00:155:108::/32 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:107::/32 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:106::/32 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155::100/32 advertise=no interface=qnq-400-100
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
