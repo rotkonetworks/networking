@@ -1,4 +1,4 @@
-# 2025-09-04 14:09:08 by RouterOS 7.19.4
+# 2025-09-05 14:09:23 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -58,7 +58,7 @@
 /routing bgp template add afi=ip as=142108 input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS-v4 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ipv6 as=142108 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
-/user group add name=mktxp_group policy=ssh,read,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
+/user group add name=mktxp_group policy=ssh,read,winbox,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -316,8 +316,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
 /ip service set www address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set www-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16
-/ip service set winbox address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
-/ip service set api address=160.22.181.181/32 disabled=yes
+/ip service set winbox address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16,104.28.213.0/24 disabled=yes
+/ip service set api address=160.22.181.181/32
 /ip service set api-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
 /ip smb shares set [ find default=yes ] directory=/pub
 /ipv6 address add address=fd00:dead:beef:30::1/126 advertise=no interface=BKK20-LAG
