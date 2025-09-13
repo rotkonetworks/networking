@@ -1,4 +1,4 @@
-# 2025-09-11 23:04:41 by RouterOS 7.20beta2
+# 2025-09-12 23:03:17 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1486,6 +1486,7 @@
 /ip firewall nat add action=masquerade chain=srcnat comment="Hairpin NAT - masquerade internal traffic accessing public services to enable loopback" out-interface=bridge_local src-address=192.168.0.0/16
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34008 protocol=tcp to-addresses=192.168.69.201 to-ports=34008
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34009 protocol=tcp to-addresses=192.168.69.201 to-ports=34009
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32506 protocol=tcp to-addresses=192.168.69.202 to-ports=32506
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
