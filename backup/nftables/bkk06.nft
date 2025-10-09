@@ -51,8 +51,8 @@ table inet filter {
 		ip6 daddr 2401:a860:: udp dport 53 accept
 		tcp dport { 80, 443 } accept
 		iif "lo" tcp dport 8404 accept
-		tcp dport { 30335, 31001, 31021, 31031, 31041, 31051, 32001, 32021, 32041, 32051, 32061, 34001, 34021, 34041, 34051, 34071 } accept
-		udp dport { 30335, 31001, 31021, 31031, 31041, 31051, 32001, 32021, 32041, 32051, 32061, 34001, 34021, 34041, 34051, 34071 } accept
+		tcp dport { 30335, 31001, 31021, 31031, 31041, 31051, 31201, 31211, 31231, 31241, 31251, 31261, 31271, 31281, 31291, 31312, 31321, 32001, 32021, 32041, 32051, 32061, 34001, 34021, 34041, 34051, 34071 } accept
+		udp dport { 30335, 31001, 31021, 31031, 31041, 31051, 31201, 31211, 31231, 31241, 31251, 31261, 31271, 31281, 31291, 31312, 31321, 32001, 32021, 32041, 32051, 32061, 34001, 34021, 34041, 34051, 34071 } accept
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
 	}
@@ -114,6 +114,28 @@ table ip nat {
 		udp dport 34051 dnat to 192.168.46.90:34051
 		tcp dport 32061 dnat to 192.168.121.16:32061
 		udp dport 32061 dnat to 192.168.121.16:32061
+		tcp dport 31231 dnat to 10.6.111.33:31231
+		udp dport 31231 dnat to 10.6.111.33:31231
+		tcp dport 31271 dnat to 10.6.111.37:31271
+		udp dport 31271 dnat to 10.6.111.37:31271
+		tcp dport 31261 dnat to 10.6.111.36:31261
+		udp dport 31261 dnat to 10.6.111.36:31261
+		tcp dport 31251 dnat to 10.6.111.35:31251
+		udp dport 31251 dnat to 10.6.111.35:31251
+		tcp dport 31201 dnat to 10.6.111.30:31201
+		udp dport 31201 dnat to 10.6.111.30:31201
+		tcp dport 31321 dnat to 10.6.111.42:31321
+		udp dport 31321 dnat to 10.6.111.42:31321
+		tcp dport 31211 dnat to 10.6.111.31:31211
+		udp dport 31211 dnat to 10.6.111.31:31211
+		tcp dport 31281 dnat to 10.6.111.38:31281
+		udp dport 31281 dnat to 10.6.111.38:31281
+		tcp dport 31291 dnat to 10.6.111.39:31291
+		udp dport 31291 dnat to 10.6.111.39:31291
+		tcp dport 31312 dnat to 10.6.112.41:31312
+		udp dport 31312 dnat to 10.6.112.41:31312
+		tcp dport 31241 dnat to 10.6.111.34:31241
+		udp dport 31241 dnat to 10.6.111.34:31241
 	}
 
 	chain postrouting {
