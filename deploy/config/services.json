@@ -429,6 +429,17 @@
       }
     }
   },
+  "port_forwards": {
+    "bkk07": [
+      {
+        "name": "ibp-th-collective-runner-01-ssh",
+        "external_port": 25001,
+        "internal_ip": "10.7.0.100",
+        "internal_port": 22,
+        "protocol": "tcp"
+      }
+    ]
+  },
   "bootnodes": {
     "global-haproxy": {
       "type": "haproxy",

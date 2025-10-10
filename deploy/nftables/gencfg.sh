@@ -415,6 +415,9 @@ table ip nat {
 
 NAT
 
+  # Generate port forwards for VMs and services
+  generate_port_forwards
+
   # Generate bootnode port mappings
   generate_bootnode_mappings
 
@@ -442,6 +445,25 @@ table ip6 nat {
    # Empty - IPv6 uses direct routing
 }
 NAT_POST
+}
+
+# Generate port forwards for VMs and services
+generate_port_forwards() {
+ echo "        # VM and service port forwards"
+
+ # Read port forwards from services.json for current site
+ if jq -e ".port_forwards.\"$SITE\"" "$SERVICES_FILE" >/dev/null 2>&1; then
+   jq -r --arg site "$SITE" '
+     .port_forwards[$site][]
+     | "\(.name) \(.external_port) \(.internal_ip) \(.internal_port) \(.protocol)"
+   ' "$SERVICES_FILE" | while read -r name ext_port int_ip int_port protocol; do
+     if [[ -n "$ext_port" && "$ext_port" != "null" ]]; then
+       echo "        # ${name}"
+       echo "        ${protocol} dport ${ext_port} dnat to ${int_ip}:${int_port}"
+       echo
+     fi
+   done
+ fi
 }
 
 # Generate bootnode port mappings
