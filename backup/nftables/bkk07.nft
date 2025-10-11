@@ -55,6 +55,8 @@ table inet filter {
 		udp dport { 30335, 31001, 31021, 31031, 31041, 31051, 32001, 32021, 32041, 32051, 32061, 34001, 34021, 34041, 34051, 34071 } accept
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
+		tcp dport 25001 accept
+		tcp dport 25001 counter packets 0 bytes 0 accept
 	}
 
 	chain forward {
@@ -114,6 +116,8 @@ table ip nat {
 		udp dport 34051 dnat to 192.168.46.90:34051
 		tcp dport 32061 dnat to 192.168.121.16:32061
 		udp dport 32061 dnat to 192.168.121.16:32061
+		tcp dport 25001 dnat to 10.7.0.100:22
+		tcp dport 25001 counter packets 0 bytes 0 dnat to 10.7.0.100:22
 	}
 
 	chain postrouting {

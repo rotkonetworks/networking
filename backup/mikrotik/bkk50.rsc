@@ -1,4 +1,4 @@
-# 2025-10-09 23:05:10 by RouterOS 7.20beta2
+# 2025-10-10 23:03:11 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1499,6 +1499,7 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34031 protocol=tcp to-addresses=192.168.141.13 to-ports=34031
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32302 protocol=tcp to-addresses=192.168.69.201 to-ports=32302
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32301 protocol=tcp to-addresses=192.168.69.202 to-ports=32301
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=31101 protocol=tcp to-addresses=192.168.67.101 to-ports=22
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
