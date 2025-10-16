@@ -1,4 +1,4 @@
-# 2025-10-15 14:09:50 by RouterOS 7.19.4
+# 2025-10-16 14:09:52 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -305,6 +305,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no distance=240 dst-address=255.255.255.255/32
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.181.0/24
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
+/ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.10.2
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10

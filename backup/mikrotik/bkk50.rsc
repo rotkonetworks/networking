@@ -1,4 +1,4 @@
-# 2025-10-14 23:05:44 by RouterOS 7.20beta2
+# 2025-10-15 23:05:46 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -29,7 +29,7 @@
 /routing bgp template add add-path-out=all afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=iBGP-v4 nexthop-choice=default output.filter-chain=iBGP-OUT-v4
 /routing bgp template add afi=ipv6 as=142108 input.filter=iBGP-IN-v6 multihop=yes name=iBGP-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6
 /routing id add id=10.155.255.3 name=main select-dynamic-id=only-static select-from-vrf=main
-/routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never router-id=10.155.255.3
+/routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never redistribute=static router-id=10.155.255.3
 /routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.3 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
@@ -196,6 +196,18 @@
 /ip firewall filter add action=accept chain=forward dst-port=3341 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10971 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=34071 protocol=tcp
+/ip firewall filter add action=drop chain=input comment="Block VM to router 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=input comment="Block VM to router 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=input comment="Block VM to router 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="Block VM to 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 192.168" dst-address=192.168.0.0/16 src-address=100.64.0.0/24
+/ip firewall filter add action=drop chain=forward comment="Block VM to 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 10.x" dst-address=10.0.0.0/8 src-address=100.64.0.0/24
+/ip firewall filter add action=drop chain=forward comment="Block VM to 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 172.16-31" dst-address=172.16.0.0/12 src-address=100.64.0.0/24
+/ip firewall filter add action=accept chain=forward comment="Allow VM to internet" src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="Block local to CGNAT" dst-address=100.64.0.0/24 src-address=192.168.0.0/16
+/ip firewall filter add action=drop chain=forward comment="Block local to CGNAT" dst-address=100.64.0.0/24 src-address=10.0.0.0/8
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
 /ip firewall filter add action=accept chain=forward dst-port=3142 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10972 protocol=tcp
@@ -827,11 +839,6 @@
 /ip firewall filter add action=accept chain=forward dst-port=2103 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10103 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=33103 protocol=tcp
-/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 192.168" dst-address=192.168.0.0/16 src-address=100.64.0.0/24
-/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 10.x" dst-address=10.0.0.0/8 src-address=100.64.0.0/24
-/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 172.16-31" dst-address=172.16.0.0/12 src-address=100.64.0.0/24
-/ip firewall filter add action=drop chain=forward comment="Block local to CGNAT" dst-address=100.64.0.0/24 src-address=192.168.0.0/16
-/ip firewall filter add action=drop chain=forward comment="Block local to CGNAT" dst-address=100.64.0.0/24 src-address=10.0.0.0/8
 /ip firewall filter add action=accept chain=forward dst-port=28006 protocol=tcp
 /ip firewall filter add action=accept chain=input dst-port=20780 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=20780-20820 protocol=tcp
@@ -1539,7 +1546,7 @@
 /ip route add distance=220 gateway=BKK00-LAG
 /ip route add blackhole distance=220 dst-address=160.22.181.169/29
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
-/ip route add disabled=yes dst-address=160.22.181.254/32 gateway=100.64.0.2
+/ip route add disabled=no dst-address=160.22.181.254/32 gateway=100.64.0.2
 /ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32

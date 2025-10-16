@@ -1,4 +1,4 @@
-# 2025-10-15 14:09:50 by RouterOS 7.19.4
+# 2025-10-16 14:09:53 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -239,6 +239,7 @@
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" dst-address=240.0.0.0/4
 /ip route add disabled=yes distance=150 dst-address=160.22.181.81 gateway=10.155.208.1
+/ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.20.2
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
