@@ -1,4 +1,4 @@
-# 2025-10-22 23:05:42 by RouterOS 7.20beta2
+# 2025-10-23 23:05:10 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
