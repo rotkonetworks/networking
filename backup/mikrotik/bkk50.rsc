@@ -1,4 +1,4 @@
-# 2025-10-28 23:05:52 by RouterOS 7.20beta2
+# 2025-10-29 23:05:17 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -196,18 +196,18 @@
 /ip firewall filter add action=accept chain=forward dst-port=3341 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10971 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=34071 protocol=tcp
-/ip firewall filter add action=drop chain=input comment="Block VM to router 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
-/ip firewall filter add action=drop chain=input comment="Block VM to router 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
-/ip firewall filter add action=drop chain=input comment="Block VM to router 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
-/ip firewall filter add action=drop chain=forward comment="Block VM to 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
-/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 192.168" dst-address=192.168.0.0/16 src-address=100.64.0.0/24
-/ip firewall filter add action=drop chain=forward comment="Block VM to 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
-/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 10.x" dst-address=10.0.0.0/8 src-address=100.64.0.0/24
-/ip firewall filter add action=drop chain=forward comment="Block VM to 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
-/ip firewall filter add action=drop chain=forward comment="Block CGNAT to local 172.16-31" dst-address=172.16.0.0/12 src-address=100.64.0.0/24
-/ip firewall filter add action=accept chain=forward comment="Allow VM to internet" src-address=160.22.181.254
-/ip firewall filter add action=drop chain=forward comment="Block local to CGNAT" dst-address=100.64.0.0/24 src-address=192.168.0.0/16
-/ip firewall filter add action=drop chain=forward comment="Block local to CGNAT" dst-address=100.64.0.0/24 src-address=10.0.0.0/8
+/ip firewall filter add action=drop chain=input comment="ephemerals runner - Block VM to router 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=input comment="ephemerals runner - Block VM to router 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=input comment="ephemerals runner - Block VM to router 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block VM to 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block CGNAT to local 192.168" dst-address=192.168.0.0/16 src-address=100.64.0.0/24
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block VM to 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block CGNAT to local 10.x" dst-address=10.0.0.0/8 src-address=100.64.0.0/24
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block VM to 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block CGNAT to local 172.16-31" dst-address=172.16.0.0/12 src-address=100.64.0.0/24
+/ip firewall filter add action=accept chain=forward comment="ephemerals runner - Allow VM to internet" src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block local to CGNAT" dst-address=100.64.0.0/24 src-address=192.168.0.0/16
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block local to CGNAT" dst-address=100.64.0.0/24 src-address=10.0.0.0/8
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
 /ip firewall filter add action=accept chain=forward dst-port=3142 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10972 protocol=tcp
@@ -1627,6 +1627,7 @@
 /routing ospf interface-template add area=backbone-v6 comment=anycast-v6 disabled=no networks=2401:a860::/48 passive
 /routing ospf interface-template add area=backbone-v6 comment=ibp-unicast-v6 disabled=no networks=2401:a860:1181::/48 passive
 /routing ospf interface-template add area=backbone comment=ibp-runner-001 disabled=no networks=160.22.181.254/32 passive
+/routing ospf interface-template add area=backbone-v6 comment=sax-v6 disabled=no networks=2401:a860:169::/64 passive
 /snmp set enabled=yes trap-version=3
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk50
