@@ -204,7 +204,7 @@ generate_logging() {
   timeformat log iso long;
   timeformat protocol iso long;
   timeformat route iso long;
-  LOGGING
+LOGGING
 }
 
 # generate bgp templates
@@ -298,7 +298,7 @@ generate_static_routes() {
   protocol static static4 {
   ipv4;
   route PUBLIC_NET4 unreachable;
-  STATIC
+STATIC
 
   # Add IPv4 anycast routes - all three tiers
   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    route ${ANYCAST_LOCAL_V4}/32 unreachable;  # ULA - internal only"
@@ -393,6 +393,10 @@ generate_bgp_sessions() {
           export filter {
           # Export our unicast
           if net = PUBLIC_NET6 then accept;
+
+            # Export anycast /128 host addresses
+            if net = ANYCAST_SITE_V6_HOST then accept;
+            if net = ANYCAST_GLOBAL_V6_HOST then accept;
 
             # Export GUA anycast prefixes for external BGP
             # Site-local /48 - Bangkok only services
