@@ -290,7 +290,7 @@ EOF
   echo
 
   # per-chain ACLs (parachain)
-  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" |
+  jq -r 'to_entries[] | select(.value.type=="parachain" or .value.type=="system-parachain") | .key' <<<"$bootchains_json" |
     while read -r chain; do
       printf "    acl domain-match-%s req_ssl_sni -i %s.boot.rotko.net" "$chain" "$chain"
       echo
@@ -298,14 +298,14 @@ EOF
   echo
 
   # per-chain routing (parachain)
-  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" |
+  jq -r 'to_entries[] | select(.value.type=="parachain" or .value.type=="system-parachain") | .key' <<<"$bootchains_json" |
     while read -r chain; do
       printf "    use_backend %s-p2p-wss-backend if domain-match-%s\n" "$chain" "$chain"
     done
   echo
 }
 
-# Generate P2P WSS backends
+# Generate P2P WSS backends - use "haproxy" container key for centralized routing
 generate_wss_backends() {
   local bootchains_json="$1"
 
@@ -314,22 +314,52 @@ generate_wss_backends() {
 # P2P WSS Backends
 EOF
 
-  # for each relay or parachain bootnode, pick its scalar container and static port
+  # Process each bootnode - use "haproxy" container address for centralized HAProxy routing
   echo "$bootchains_json" |
     jq -r 'to_entries[]
-             | select(.value.type=="relay" or .value.type=="parachain")
-             | [.key, .value.type, .value.container]
-             | @tsv' |
-    while IFS=$'\t' read -r chain ctype container; do
-      # static port: 30335 for relay, 30435 for parachain
-      if [[ "$ctype" == "relay" ]]; then
+           | select(.value.type=="relay" or .value.type=="parachain" or .value.type=="system-parachain")
+           | select(.value.container != null)
+           | {
+               chain: .key,
+               type: .value.type,
+               container: (
+                 .value.container 
+                 | if type == "object" then
+                     .haproxy // empty
+                   else 
+                     .
+                   end
+               ),
+               p2p_wss_port: (
+                 (.value.ports.p2p_wss // null)
+                 | if type == "object" then
+                     .haproxy // null
+                   else
+                     .
+                   end
+               )
+             }
+           | select(.container != null and .container != "")
+           | "\(.chain)|\(.type)|\(.container)|\(.p2p_wss_port)"' |
+    while IFS='|' read -r chain ctype container p2p_wss_port; do
+      
+      # Skip if no container
+      if [[ -z "$container" || "$container" == "null" ]]; then
+        continue
+      fi
+      
+      echo "backend ${chain}-p2p-wss-backend"
+      echo "    mode tcp"
+      
+      # Use custom p2p_wss port if available, otherwise fall back to standard ports
+      if [[ -n "$p2p_wss_port" && "$p2p_wss_port" != "null" ]]; then
+        port="$p2p_wss_port"
+      elif [[ "$ctype" == "relay" ]]; then
         port=30335
       else
         port=30435
       fi
-
-      echo "backend ${chain}-p2p-wss-backend"
-      echo "    mode tcp"
+      
       echo "    server ${chain} ${container}:${port} check"
       echo
     done
