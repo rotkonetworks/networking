@@ -454,129 +454,271 @@
       }
     },
     "polkadot": {
-      "container": "192.168.111.10",
       "type": "relay",
+      "container": {
+        "haproxy": "192.168.111.10",
+        "bkk06": "10.6.111.10",
+        "bkk07": "10.7.112.10",
+        "bkk08": "10.8.113.10"
+      },
       "ports": {
-        "p2p": 31001
+        "p2p": {
+          "bkk06": 31001,
+          "bkk07": 33312,
+          "bkk08": 31003
+        }
       }
     },
     "paseo": {
-      "container": "192.168.141.10",
       "type": "relay",
+      "container": {
+        "haproxy": "192.168.141.10",
+        "bkk06": "10.6.141.10",
+        "bkk07": "10.7.142.10"
+      },
       "ports": {
-        "p2p": 34001
+        "p2p": {
+          "bkk06": 34001,
+          "bkk07": 33342
+        }
       }
     },
     "kusama": {
       "type": "relay",
-      "container": "192.168.121.10",
+      "container": {
+        "haproxy": "192.168.121.10",
+        "bkk06": "10.6.121.10",
+        "bkk07": "10.7.122.10"
+      },
       "ports": {
-        "p2p": 32001
+        "p2p": {
+          "bkk06": 32001,
+          "bkk07": 33322
+        }
       }
     },
     "asset-hub-polkadot": {
       "type": "parachain",
-      "container": "192.168.111.11",
+      "container": {
+        "haproxy": "192.168.111.11",
+        "bkk06": "10.6.111.11",
+        "bkk07": "10.7.112.11"
+      },
       "ports": {
-        "p2p": 31001
+        "p2p": {
+          "bkk06": 31011,
+          "bkk07": 31012
+        }
       }
     },
     "asset-hub-kusama": {
       "type": "parachain",
-      "container": "192.168.121.11",
+      "container": {
+        "haproxy": "192.168.121.11",
+        "bkk06": "10.6.121.11",
+        "bkk07": "10.7.122.11"
+      },
       "ports": {
-        "p2p": 32001
+        "p2p": {
+          "bkk06": 32011,
+          "bkk07": 32012
+        }
       }
     },
     "asset-hub-paseo": {
       "type": "parachain",
-      "container": "192.168.141.11",
+      "container": {
+        "haproxy": "192.168.141.11",
+        "bkk06": "10.6.141.11",
+        "bkk07": "10.7.142.11"
+      },
       "ports": {
-        "p2p": 34001
+        "p2p": {
+          "bkk06": 34011,
+          "bkk07": 33957
+        }
       }
     },
     "passet-hub-paseo": {
       "type": "parachain",
-      "container": "192.168.141.17",
+      "container": {
+        "haproxy": "192.168.141.17",
+        "bkk07": "10.7.141.17",
+        "bkk08": "10.8.142.17"
+      },
       "ports": {
-        "p2p": 34071
+        "p2p": {
+          "bkk07": 34071,
+          "bkk08": 34072
+        }
       }
     },
     "bridge-hub-polkadot": {
       "type": "parachain",
-      "container": "192.168.111.12",
+      "container": {
+        "haproxy": "192.168.111.12",
+        "bkk06": "10.6.111.12",
+        "bkk07": "10.7.112.12"
+      },
       "ports": {
-        "p2p": 31021
+        "p2p": {
+          "bkk06": 31021,
+          "bkk07": 31022
+        }
       }
     },
     "bridge-hub-kusama": {
       "type": "parachain",
-      "container": "192.168.121.12",
+      "container": {
+        "haproxy": "192.168.121.12",
+        "bkk06": "10.6.121.12",
+        "bkk07": "10.7.122.12"
+      },
       "ports": {
-        "p2p": 32021
+        "p2p": {
+          "bkk06": 32021,
+          "bkk07": 32022
+        }
       }
     },
     "bridge-hub-paseo": {
       "type": "parachain",
-      "container": "192.168.76.60",
+      "container": {
+        "haproxy": "192.168.76.60",
+        "bkk06": "10.6.141.12",
+        "bkk07": "10.7.142.12"
+      },
       "ports": {
-        "p2p": 34021
+        "p2p": {
+          "bkk06": 34021,
+          "bkk07": 33967
+        }
       }
     },
     "collectives-polkadot": {
       "type": "parachain",
-      "container": "192.168.111.13",
+      "container": {
+        "haproxy": "192.168.111.13",
+        "bkk06": "10.6.111.13",
+        "bkk07": "10.7.112.13"
+      },
       "ports": {
-        "p2p": 31031
+        "p2p": {
+          "bkk06": 31031,
+          "bkk07": 31032
+        }
+      }
+    },
+    "collectives-paseo": {
+      "type": "parachain",
+      "container": {
+        "haproxy": "192.168.141.13",
+        "bkk07": "10.7.141.13",
+        "bkk08": "10.8.142.13"
+      },
+      "ports": {
+        "p2p": {
+          "bkk07": 34031,
+          "bkk08": 34032
+        }
       }
     },
     "people-polkadot": {
       "type": "parachain",
-      "container": "192.168.76.18",
+      "container": {
+        "haproxy": "192.168.76.18",
+        "bkk06": "10.6.111.14",
+        "bkk07": "10.7.112.14"
+      },
       "ports": {
-        "p2p": 31041
+        "p2p": {
+          "bkk06": 31041,
+          "bkk07": 33847
+        }
       }
     },
     "people-kusama": {
       "type": "parachain",
-      "container": "192.168.121.14",
+      "container": {
+        "haproxy": "192.168.121.14",
+        "bkk06": "10.6.121.14",
+        "bkk07": "10.7.122.14"
+      },
       "ports": {
-        "p2p": 32041
+        "p2p": {
+          "bkk06": 32041,
+          "bkk07": 32042
+        }
       }
     },
     "people-paseo": {
       "type": "parachain",
-      "container": "192.168.46.94",
+      "container": {
+        "haproxy": "192.168.46.94",
+        "bkk06": "10.6.141.14",
+        "bkk07": "10.7.142.14"
+      },
       "ports": {
-        "p2p": 34041
+        "p2p": {
+          "bkk06": 34041,
+          "bkk07": 34042
+        }
       }
     },
     "coretime-polkadot": {
       "type": "parachain",
-      "container": "192.168.176.16",
+      "container": {
+        "haproxy": "192.168.176.15",
+        "bkk06": "10.6.111.15",
+        "bkk07": "10.7.112.15"
+      },
       "ports": {
-        "p2p": 31051
+        "p2p": {
+          "bkk06": 31051,
+          "bkk07": 31052
+        }
       }
     },
     "coretime-kusama": {
       "type": "parachain",
-      "container": "192.168.121.15",
+      "container": {
+        "haproxy": "192.168.121.15",
+        "bkk06": "10.6.121.15",
+        "bkk07": "10.7.122.15"
+      },
       "ports": {
-        "p2p": 32051
+        "p2p": {
+          "bkk06": 32051,
+          "bkk07": 32052
+        }
       }
     },
     "coretime-paseo": {
       "type": "parachain",
-      "container": "192.168.46.90",
+      "container": {
+        "haproxy": "192.168.46.90",
+        "bkk06": "10.6.141.15",
+        "bkk07": "10.7.142.15"
+      },
       "ports": {
-        "p2p": 34051
+        "p2p": {
+          "bkk06": 34051,
+          "bkk07": 34052
+        }
       }
     },
     "encointer-kusama": {
       "type": "parachain",
-      "container": "192.168.121.16",
+      "container": {
+        "haproxy": "192.168.121.16",
+        "bkk06": "10.6.121.16",
+        "bkk07": "10.7.122.16"
+      },
       "ports": {
-        "p2p": 32061
+        "p2p": {
+          "bkk06": 32061,
+          "bkk07": 32062
+        }
       }
     },
     "acala": {
