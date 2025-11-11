@@ -1,4 +1,4 @@
-# 2025-11-10 14:10:31 by RouterOS 7.19.4
+# 2025-11-11 14:10:15 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -328,7 +328,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 address add address=2403:5000:171:138::2 advertise=no comment="HK IPv6" interface=HK-HGC-IPTx-vlan2519
 /ipv6 address add address=2001:7f8:1:0:a500:14:2108:1 advertise=no interface=EU-AMS-IX-vlan3995
 /ipv6 address add address=2407:9540:111:8::2/126 advertise=no interface=SG-HGC-IPTx-backup-vlan2518
-/ipv6 address add address=2401:a860:1181::/128 advertise=no interface=lo
+/ipv6 address add address=2401:a860:1181::100/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/127 advertise=no interface=BKK20-LAG
 /ipv6 address add address=fd00:dead:beef:10::/127 advertise=no comment="ULA P2P to BKK10" interface=bridge_vlan
