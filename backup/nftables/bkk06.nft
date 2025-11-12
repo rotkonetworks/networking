@@ -51,8 +51,8 @@ table inet filter {
 		ip6 daddr 2401:a860:: udp dport 53 accept
 		tcp dport { 80, 443 } accept
 		iif "lo" tcp dport 8404 accept
-		tcp dport { 30335, 31001, 31021, 31031, 31041, 31051, 31201, 31211, 31231, 31241, 31251, 31261, 31271, 31281, 31291, 31312, 31321, 32001, 32021, 32041, 32051, 32061, 34001, 34021, 34041, 34051, 34071 } accept
-		udp dport { 30335, 31001, 31021, 31031, 31041, 31051, 31201, 31211, 31231, 31241, 31251, 31261, 31271, 31281, 31291, 31312, 31321, 32001, 32021, 32041, 32051, 32061, 34001, 34021, 34041, 34051, 34071 } accept
+		tcp dport { 30335, 31001, 31011, 31021, 31031, 31041, 31051, 31201, 31211, 31231, 31241, 31251, 31261, 31271, 31281, 31291, 31312, 31321, 32001, 32011, 32021, 32041, 32051, 32061, 34001, 34011, 34021, 34041, 34051 } accept
+		udp dport { 30335, 31001, 31011, 31021, 31031, 31041, 31051, 31201, 31211, 31231, 31241, 31251, 31261, 31271, 31281, 31291, 31312, 31321, 32001, 32011, 32021, 32041, 32051, 32061, 34001, 34011, 34021, 34041, 34051 } accept
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
 	}
@@ -78,42 +78,40 @@ table ip nat {
 		tcp dport 30335 dnat to 192.168.76.91:30335
 		udp dport 30335 dnat to 192.168.76.91:30335
 		tcp dport 30435 dnat to 192.168.76.91:30435
-		tcp dport 31001 dnat to 192.168.111.10:31001
-		udp dport 31001 dnat to 192.168.111.10:31001
-		tcp dport 34001 dnat to 192.168.141.10:34001
-		udp dport 34001 dnat to 192.168.141.10:34001
-		tcp dport 32001 dnat to 192.168.121.10:32001
-		udp dport 32001 dnat to 192.168.121.10:32001
-		tcp dport 31001 dnat to 192.168.111.11:31001
-		udp dport 31001 dnat to 192.168.111.11:31001
-		tcp dport 32001 dnat to 192.168.121.11:32001
-		udp dport 32001 dnat to 192.168.121.11:32001
-		tcp dport 34001 dnat to 192.168.141.11:34001
-		udp dport 34001 dnat to 192.168.141.11:34001
-		tcp dport 34071 dnat to 192.168.141.17:34071
-		udp dport 34071 dnat to 192.168.141.17:34071
-		tcp dport 31021 dnat to 192.168.111.12:31021
-		udp dport 31021 dnat to 192.168.111.12:31021
-		tcp dport 32021 dnat to 192.168.121.12:32021
-		udp dport 32021 dnat to 192.168.121.12:32021
-		tcp dport 34021 dnat to 192.168.76.60:34021
-		udp dport 34021 dnat to 192.168.76.60:34021
-		tcp dport 31031 dnat to 192.168.111.13:31031
-		udp dport 31031 dnat to 192.168.111.13:31031
-		tcp dport 31041 dnat to 192.168.76.18:31041
-		udp dport 31041 dnat to 192.168.76.18:31041
-		tcp dport 32041 dnat to 192.168.121.14:32041
-		udp dport 32041 dnat to 192.168.121.14:32041
-		tcp dport 34041 dnat to 192.168.46.94:34041
-		udp dport 34041 dnat to 192.168.46.94:34041
-		tcp dport 31051 dnat to 192.168.176.16:31051
-		udp dport 31051 dnat to 192.168.176.16:31051
-		tcp dport 32051 dnat to 192.168.121.15:32051
-		udp dport 32051 dnat to 192.168.121.15:32051
-		tcp dport 34051 dnat to 192.168.46.90:34051
-		udp dport 34051 dnat to 192.168.46.90:34051
-		tcp dport 32061 dnat to 192.168.121.16:32061
-		udp dport 32061 dnat to 192.168.121.16:32061
+		tcp dport 31001 dnat to 10.6.111.10:31001
+		udp dport 31001 dnat to 10.6.111.10:31001
+		tcp dport 34001 dnat to 10.6.141.10:34001
+		udp dport 34001 dnat to 10.6.141.10:34001
+		tcp dport 32001 dnat to 10.6.121.10:32001
+		udp dport 32001 dnat to 10.6.121.10:32001
+		tcp dport 31011 dnat to 10.6.111.11:31011
+		udp dport 31011 dnat to 10.6.111.11:31011
+		tcp dport 32011 dnat to 10.6.121.11:32011
+		udp dport 32011 dnat to 10.6.121.11:32011
+		tcp dport 34011 dnat to 10.6.141.11:34011
+		udp dport 34011 dnat to 10.6.141.11:34011
+		tcp dport 31021 dnat to 10.6.111.12:31021
+		udp dport 31021 dnat to 10.6.111.12:31021
+		tcp dport 32021 dnat to 10.6.121.12:32021
+		udp dport 32021 dnat to 10.6.121.12:32021
+		tcp dport 34021 dnat to 10.6.141.12:34021
+		udp dport 34021 dnat to 10.6.141.12:34021
+		tcp dport 31031 dnat to 10.6.111.13:31031
+		udp dport 31031 dnat to 10.6.111.13:31031
+		tcp dport 31041 dnat to 10.6.111.14:31041
+		udp dport 31041 dnat to 10.6.111.14:31041
+		tcp dport 32041 dnat to 10.6.121.14:32041
+		udp dport 32041 dnat to 10.6.121.14:32041
+		tcp dport 34041 dnat to 10.6.141.14:34041
+		udp dport 34041 dnat to 10.6.141.14:34041
+		tcp dport 31051 dnat to 10.6.111.15:31051
+		udp dport 31051 dnat to 10.6.111.15:31051
+		tcp dport 32051 dnat to 10.6.121.15:32051
+		udp dport 32051 dnat to 10.6.121.15:32051
+		tcp dport 34051 dnat to 10.6.141.15:34051
+		udp dport 34051 dnat to 10.6.141.15:34051
+		tcp dport 32061 dnat to 10.6.121.16:32061
+		udp dport 32061 dnat to 10.6.121.16:32061
 		tcp dport 31231 dnat to 10.6.111.33:31231
 		udp dport 31231 dnat to 10.6.111.33:31231
 		tcp dport 31271 dnat to 10.6.111.37:31271
