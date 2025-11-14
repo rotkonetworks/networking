@@ -1,4 +1,4 @@
-# 2025-11-12 23:05:48 by RouterOS 7.20beta2
+# 2025-11-13 23:05:56 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -184,6 +184,8 @@
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=31051 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=34021 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=25001 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=25002 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=3513 protocol=tcp
