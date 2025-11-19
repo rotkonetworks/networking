@@ -217,6 +217,18 @@ iface vmbr0 inet static
     pre-down ip route flush table mgmt 2>/dev/null || true
 INTERFACES
 
+  # Add IPv6 to management bridge if configured
+  if [[ -n "$MANAGEMENT_V6" ]] && [[ -n "$MANAGEMENT_V6_GW" ]]; then
+    cat <<MGMT_V6
+
+iface vmbr0 inet6 static
+    address ${MANAGEMENT_V6}
+    gateway ${MANAGEMENT_V6_GW}
+    accept_ra 0
+    autoconf 0
+MGMT_V6
+  fi
+
   # Check if using bonded VLANs (new design)
   if [[ "$BONDED_VLANS" == "true" ]]; then
     # Split uplink configuration

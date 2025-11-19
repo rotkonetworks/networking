@@ -443,11 +443,6 @@
   "bootnodes": {
     "global-haproxy": {
       "type": "haproxy",
-      "container": {
-        "bkk06": "192.168.76.91",
-        "bkk07": "192.168.77.91",
-        "bkk08": "192.168.78.91"
-      },
       "ports": {
         "p2p": 30335,
         "p2p_wss": 30435
