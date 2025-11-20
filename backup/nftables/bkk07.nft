@@ -55,7 +55,6 @@ table inet filter {
 		udp dport { 30335, 31012, 31022, 31032, 31052, 32012, 32022, 32042, 32052, 32062, 33312, 33322, 33342, 33847, 33957, 33967, 34031, 34042, 34052, 34071 } accept
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
-		tcp dport 8888 accept
 	}
 
 	chain forward {
@@ -77,9 +76,6 @@ table ip nat {
 	chain prerouting {
 		type nat hook prerouting priority dstnat; policy accept;
 		tcp dport 25001 dnat to 10.7.0.100:22
-		tcp dport 30335 dnat to 192.168.77.91:30335
-		udp dport 30335 dnat to 192.168.77.91:30335
-		tcp dport 30435 dnat to 192.168.77.91:30435
 		tcp dport 33312 dnat to 10.7.112.10:33312
 		udp dport 33312 dnat to 10.7.112.10:33312
 		tcp dport 33342 dnat to 10.7.142.10:33342

@@ -1,4 +1,4 @@
-# 2025-11-18 23:06:14 by RouterOS 7.20beta2
+# 2025-11-19 23:06:08 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1568,6 +1568,7 @@
 /ipv6 address add address=fd00:dead:beef:2050::1/127 advertise=no comment="ULA P2P to BKK20" interface=BKK20-LAG
 /ipv6 address add address=2401:a860:1181:50::1/127 advertise=no comment="Global P2P to BKK00" interface=BKK00-LAG
 /ipv6 address add address=2401:a860:1181:2050::1/127 advertise=no comment="Global P2P to BKK20" interface=BKK20-LAG
+/ipv6 address add address=2401:a860:1181:50::1 advertise=no comment="mgmt-v6 50::/64" interface=bridge_local
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
