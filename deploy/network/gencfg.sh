@@ -220,25 +220,23 @@ INTERFACES
     # Split uplink configuration
     UPLINK1=$(echo "$BOND_MEMBERS" | awk '{print $1}')
     UPLINK2=$(echo "$BOND_MEMBERS" | awk '{print $2}')
-    
-    # Generate interface identifiers based on the uplink names
-    # This is a simplified approach - adjust based on your naming convention
-    UP1_BASE="${UPLINK1%np*}"  # Remove np* suffix if present
-    UP1_BASE="${UP1_BASE#enp}"  # Remove enp prefix
-    UP1_BASE="${UP1_BASE#en}"   # Remove en prefix
-    if [[ "$UP1_BASE" == "o1" ]]; then
-      UP1_BASE="o1"
+
+    # Generate simple interface names based on prefix
+    # enp* -> enp, eno* -> eno
+    if [[ "$UPLINK1" == enp* ]]; then
+      UP1_BASE="enp"
+    elif [[ "$UPLINK1" == eno* ]]; then
+      UP1_BASE="eno"
     else
-      UP1_BASE="100p1"
+      UP1_BASE="${UPLINK1%%[0-9]*}"
     fi
-    
-    UP2_BASE="${UPLINK2%np*}"
-    UP2_BASE="${UP2_BASE#enp}"
-    UP2_BASE="${UP2_BASE#en}"
-    if [[ "$UP2_BASE" == "o1" ]]; then
-      UP2_BASE="o1"
+
+    if [[ "$UPLINK2" == enp* ]]; then
+      UP2_BASE="enp"
+    elif [[ "$UPLINK2" == eno* ]]; then
+      UP2_BASE="eno"
     else
-      UP2_BASE="100p2"
+      UP2_BASE="${UPLINK2%%[0-9]*}"
     fi
 
     cat <<BONDED_CONFIG
