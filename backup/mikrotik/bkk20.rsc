@@ -1,4 +1,4 @@
-# 2025-11-21 14:11:04 by RouterOS 7.19.4
+# 2025-11-21 18:47:30 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -584,6 +584,7 @@
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-IN-v4 disabled=yes rule="if (gw == 10.155.206.1 || gw == 10.155.207.1 || gw == 10.155.208.1) { set distance 90; accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 disabled=yes rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
