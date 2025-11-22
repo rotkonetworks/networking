@@ -1,4 +1,4 @@
-# 2025-11-22 14:08:22 by RouterOS 7.19.4
+# 2025-11-22 14:25:08 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -29,9 +29,6 @@
 /interface vlan add interface=vlan-400 name=qnq-400-216 vlan-id=216
 /interface vlan add interface=vlan-400 name=qnq-400-217 vlan-id=217
 /interface vlan add interface=vlan-400 name=qnq-400-218 vlan-id=218
-/interface bonding add mode=active-backup name=BKK06-LAG primary=qnq-400-206 slaves=qnq-400-206,qnq-400-216 transmit-hash-policy=layer-3-and-4
-/interface bonding add mode=active-backup name=BKK07-LAG primary=qnq-400-207 slaves=qnq-400-207,qnq-400-217 transmit-hash-policy=layer-3-and-4
-/interface bonding add mode=active-backup name=BKK08-LAG primary=qnq-400-208 slaves=qnq-400-208,qnq-400-218 transmit-hash-policy=layer-3-and-4
 /interface list add name=LAN
 /interface list add name=WAN
 /port set 0 name=serial0
@@ -111,9 +108,9 @@
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
 /ip address add address=10.155.254.200/24 interface=vlan-400 network=10.155.254.0
-/ip address add address=10.155.208.0/31 interface=BKK08-LAG network=10.155.208.0
-/ip address add address=10.155.206.0/31 interface=BKK06-LAG network=10.155.206.0
-/ip address add address=10.155.207.0/31 interface=BKK07-LAG network=10.155.207.0
+/ip address add address=10.155.208.0/31 interface=*78 network=10.155.208.0
+/ip address add address=10.155.206.0/31 interface=*7A network=10.155.206.0
+/ip address add address=10.155.207.0/31 interface=*79 network=10.155.207.0
 /ip address add address=172.16.210.0/31 interface=BKK10-LAG network=172.16.210.0
 /ip address add address=10.155.100.2/24 interface=qnq-400-100 network=10.155.100.0
 /ip address add address=10.155.206.0/31 interface=qnq-400-206 network=10.155.206.0
@@ -266,9 +263,9 @@
 /ipv6 address add address=fd00:dead:beef:2050::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=2401:a860:1181:2010::/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
 /ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
-/ipv6 address add address=fd00:155:206::/127 advertise=no interface=BKK06-LAG
-/ipv6 address add address=fd00:155:207::/127 advertise=no interface=BKK07-LAG
-/ipv6 address add address=fd00:155:208::/127 advertise=no interface=BKK08-LAG
+/ipv6 address add address=fd00:155:206::/127 advertise=no interface=*7A
+/ipv6 address add address=fd00:155:207::/127 advertise=no interface=*79
+/ipv6 address add address=fd00:155:208::/127 advertise=no interface=*78
 /ipv6 address add address=fd00:155:100::2 advertise=no comment="BGP RR unified\
     \n   network" interface=qnq-400-100
 /ipv6 address add address=fd00:155:206::/127 advertise=no interface=qnq-400-206
