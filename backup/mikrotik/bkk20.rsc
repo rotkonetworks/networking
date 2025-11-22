@@ -1,4 +1,4 @@
-# 2025-11-21 18:47:30 by RouterOS 7.19.4
+# 2025-11-22 14:08:22 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -111,14 +111,14 @@
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
 /ip address add address=10.155.254.200/24 interface=vlan-400 network=10.155.254.0
-/ip address add address=10.155.208.0/31 disabled=yes interface=BKK08-LAG network=10.155.208.0
-/ip address add address=10.155.206.0/31 disabled=yes interface=BKK06-LAG network=10.155.206.0
-/ip address add address=10.155.207.0/31 disabled=yes interface=BKK07-LAG network=10.155.207.0
+/ip address add address=10.155.208.0/31 interface=BKK08-LAG network=10.155.208.0
+/ip address add address=10.155.206.0/31 interface=BKK06-LAG network=10.155.206.0
+/ip address add address=10.155.207.0/31 interface=BKK07-LAG network=10.155.207.0
 /ip address add address=172.16.210.0/31 interface=BKK10-LAG network=172.16.210.0
-/ip address add address=10.155.120.1/16 interface=qnq-400-100 network=10.155.0.0
-/ip address add address=10.155.208.0/16 interface=qnq-400-100 network=10.155.0.0
-/ip address add address=10.155.206.0/16 interface=qnq-400-100 network=10.155.0.0
-/ip address add address=10.155.207.0/16 interface=qnq-400-100 network=10.155.0.0
+/ip address add address=10.155.100.2/24 interface=qnq-400-100 network=10.155.100.0
+/ip address add address=10.155.206.0/31 interface=qnq-400-206 network=10.155.206.0
+/ip address add address=10.155.207.0/31 interface=qnq-400-207 network=10.155.207.0
+/ip address add address=10.155.208.0/31 interface=qnq-400-208 network=10.155.208.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
@@ -266,13 +266,14 @@
 /ipv6 address add address=fd00:dead:beef:2050::/127 advertise=no comment="ULA P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=2401:a860:1181:2010::/127 advertise=no comment="Global P2P to BKK10" interface=BKK10-LAG
 /ipv6 address add address=2401:a860:1181:2050::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
-/ipv6 address add address=fd00:155:206::/127 advertise=no disabled=yes interface=BKK06-LAG
-/ipv6 address add address=fd00:155:207::/127 advertise=no disabled=yes interface=BKK07-LAG
-/ipv6 address add address=fd00:155:208::/127 advertise=no disabled=yes interface=BKK08-LAG
-/ipv6 address add address=fd00:155:208::/32 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155:207::/32 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155:206::/32 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155::20/32 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:206::/127 advertise=no interface=BKK06-LAG
+/ipv6 address add address=fd00:155:207::/127 advertise=no interface=BKK07-LAG
+/ipv6 address add address=fd00:155:208::/127 advertise=no interface=BKK08-LAG
+/ipv6 address add address=fd00:155:100::2 advertise=no comment="BGP RR unified\
+    \n   network" interface=qnq-400-100
+/ipv6 address add address=fd00:155:206::/127 advertise=no interface=qnq-400-206
+/ipv6 address add address=fd00:155:207::/127 advertise=no interface=qnq-400-207
+/ipv6 address add address=fd00:155:208::/127 advertise=no interface=qnq-400-208
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons

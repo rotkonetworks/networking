@@ -1,4 +1,4 @@
-# 2025-11-21 14:11:04 by RouterOS 7.19.4
+# 2025-11-22 14:08:22 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -30,9 +30,6 @@
 /interface vlan add interface=vlan-400 name=qnq-400-117 vlan-id=117
 /interface vlan add interface=vlan-400 name=qnq-400-118 vlan-id=118
 /interface vlan add interface=vlan-400 name=qnq-400-200 vlan-id=200
-/interface bonding add mode=active-backup name=BKK06-LAG slaves=qnq-400-106,qnq-400-116
-/interface bonding add mode=active-backup name=BKK07-LAG slaves=qnq-400-107,qnq-400-117
-/interface bonding add mode=active-backup name=BKK08-LAG slaves=qnq-400-108,qnq-400-118
 /interface list add name=LAN
 /interface list add name=WAN
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
@@ -136,14 +133,12 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip address add address=172.16.50.0/31 interface=BKK50-LAG network=172.16.50.0
 /ip address add address=10.155.254.100/24 comment="BGP RR VLAN" interface=vlan-400 network=10.155.254.0
 /ip address add address=10.155.254.100 interface=lo network=10.155.254.100
-/ip address add address=10.155.108.0/31 disabled=yes interface=BKK08-LAG network=10.155.108.0
-/ip address add address=10.155.106.0/31 disabled=yes interface=BKK06-LAG network=10.155.106.0
-/ip address add address=10.155.107.0/31 disabled=yes interface=BKK07-LAG network=10.155.107.0
 /ip address add address=172.16.110.0/31 interface=BKK10-LAG network=172.16.110.0
-/ip address add address=10.155.108.0/16 interface=qnq-400-100 network=10.155.0.0
 /ip address add address=10.155.100.1/16 interface=qnq-400-100 network=10.155.0.0
-/ip address add address=10.155.107.0/16 interface=qnq-400-100 network=10.155.0.0
-/ip address add address=10.155.106.0/16 interface=qnq-400-100 network=10.155.0.0
+/ip address add address=10.155.100.1/24 interface=qnq-400-100 network=10.155.100.0
+/ip address add address=10.155.106.0/31 interface=qnq-400-106 network=10.155.106.0
+/ip address add address=10.155.107.0/31 interface=qnq-400-107 network=10.155.107.0
+/ip address add address=10.155.108.0/31 interface=qnq-400-108 network=10.155.108.0
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=8.8.8.8,9.9.9.9,1.1.1.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
 /ip dns static add address=159.148.147.251 disabled=yes name=upgrade.mikrotik.com type=A
@@ -337,13 +332,13 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 address add address=2401:a860:1181:10::/127 advertise=no comment="Global P2P to BKK10" interface=bridge_vlan
 /ipv6 address add address=2401:a860:1181:50::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=fd00:155:254::100 advertise=no comment="BGP RR VLAN IPv6" interface=vlan-400
-/ipv6 address add address=fd00:155:108::/127 advertise=no disabled=yes interface=BKK08-LAG
-/ipv6 address add address=fd00:155:107::/127 advertise=no disabled=yes interface=BKK07-LAG
-/ipv6 address add address=fd00:155:106::/127 advertise=no disabled=yes interface=BKK06-LAG
-/ipv6 address add address=fd00:155:108::/32 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155:107::/32 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155:106::/32 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155::100/32 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:108::/127 advertise=no disabled=yes interface=*30
+/ipv6 address add address=fd00:155:107::/127 advertise=no disabled=yes interface=*37
+/ipv6 address add address=fd00:155:106::/127 advertise=no disabled=yes interface=*38
+/ipv6 address add address=fd00:155:100::1 advertise=no interface=qnq-400-100
+/ipv6 address add address=fd00:155:106::/127 advertise=no interface=qnq-400-106
+/ipv6 address add address=fd00:155:107::/127 advertise=no interface=qnq-400-107
+/ipv6 address add address=fd00:155:108::/127 advertise=no interface=qnq-400-108
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
