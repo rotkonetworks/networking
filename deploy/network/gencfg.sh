@@ -366,8 +366,8 @@ iface vmbr2 inet static
 COMMON_CONFIG
 
   if [[ "$BONDED_VLANS" == "true" ]]; then
-    echo "    #bridge-ports bond-bkk00 bond-bkk20"
-    echo "    bridge-ports bond-vlan100"
+    echo "    bridge-ports bond-bkk00 bond-bkk20"
+    echo "    #bridge-ports bond-vlan100"
   else
     echo "    bridge-ports vlan${VLAN_RR2_DIRECT} vlan${VLAN_RR1_DIRECT}"
   fi
@@ -375,7 +375,7 @@ COMMON_CONFIG
   cat <<COMMON_CONFIG
     bridge-stp off
     bridge-fd 0
-    address ${BGP_RR1_V4}/16
+    address ${BGP_RR1_V4}/31
     mtu 1500
     # policy-based routing for public services
     # ensures traffic from public IPs uses BIRD routes (main table)
@@ -439,13 +439,13 @@ COMMON_CONFIG
   cat <<COMMON_CONFIG
 
 iface vmbr2:1 inet static
-    address ${BGP_RR2_V4}/16
+    address ${BGP_RR2_V4}/31
 COMMON_CONFIG
 
   cat <<COMMON_CONFIG
 
 iface vmbr2 inet6 static
-    address ${BGP_RR1_V6}/32
+    address ${BGP_RR1_V6}/127
     accept_ra 0
     autoconf 0
     # policy-based routing for IPv6 public services
@@ -508,7 +508,7 @@ POLICY_V6
   cat <<COMMON_CONFIG
 
 iface vmbr2:1 inet6 static
-    address ${BGP_RR2_V6}/32
+    address ${BGP_RR2_V6}/127
 COMMON_CONFIG
 }
 
