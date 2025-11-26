@@ -448,6 +448,17 @@ iface vmbr2 inet6 static
     address ${BGP_RR1_V6}/127
     accept_ra 0
     autoconf 0
+    # public IPv6 on vmbr2 for correct source address selection
+    # (also on loopback for BIRD/BGP stability)
+    up ip -6 addr add ${PUBLIC_V6}/128 dev vmbr2
+COMMON_CONFIG
+
+  # Add anycast IPv6 to vmbr2 for source selection
+  [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "    up ip -6 addr add ${ANYCAST_LOCAL_V6}/128 dev vmbr2"
+  [[ -n "$ANYCAST_SITE_V6" ]] && echo "    up ip -6 addr add ${ANYCAST_SITE_V6}/128 dev vmbr2"
+  [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "    up ip -6 addr add ${ANYCAST_GLOBAL_V6}/128 dev vmbr2"
+
+  cat <<COMMON_CONFIG
     # policy-based routing for IPv6 public services
     # anycast rules have higher priority to ensure proper routing
 COMMON_CONFIG
