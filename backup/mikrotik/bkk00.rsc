@@ -1,4 +1,4 @@
-# 2025-11-26 14:10:30 by RouterOS 7.19.4
+# 2025-11-27 14:11:16 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -335,9 +335,6 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 address add address=2401:a860:1181:10::/127 advertise=no comment="Global P2P to BKK10" interface=bridge_vlan
 /ipv6 address add address=2401:a860:1181:50::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=fd00:155:254::100 advertise=no comment="BGP RR VLAN IPv6" interface=vlan-400
-/ipv6 address add address=fd00:155:108::/127 advertise=no disabled=yes interface=*30
-/ipv6 address add address=fd00:155:107::/127 advertise=no disabled=yes interface=*37
-/ipv6 address add address=fd00:155:106::/127 advertise=no disabled=yes interface=*38
 /ipv6 address add address=fd00:155:100::1 advertise=no interface=qnq-400-100
 /ipv6 address add address=fd00:155:106::/127 advertise=no interface=BKK06-LAG
 /ipv6 address add address=fd00:155:107::/127 advertise=no interface=BKK07-LAG
