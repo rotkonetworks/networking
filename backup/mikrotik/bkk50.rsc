@@ -1,4 +1,4 @@
-# 2025-11-27 23:06:32 by RouterOS 7.20beta2
+# 2025-11-28 23:04:32 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -184,6 +184,9 @@
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=22901 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10901 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=8233 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=31051 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=34021 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=25001 protocol=tcp
@@ -1525,6 +1528,8 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=25001 protocol=tcp to-addresses=10.7.0.100 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=25002 protocol=tcp to-addresses=100.64.0.2 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.60 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22901 protocol=tcp to-addresses=192.168.77.201 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=8233 protocol=tcp to-addresses=192.168.77.201 to-ports=8233
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
