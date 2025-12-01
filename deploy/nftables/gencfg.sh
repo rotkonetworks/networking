@@ -221,7 +221,7 @@ generate_icmp_rules() {
            time-exceeded,
            parameter-problem,
            echo-request
-       } limit rate 10/second accept
+       } limit rate 10000/second accept
 ICMP
 }
 

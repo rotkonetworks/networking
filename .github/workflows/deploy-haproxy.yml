@@ -1,0 +1,100 @@
+name: Deploy HAProxy Config
+on:
+  workflow_dispatch:
+    inputs:
+      server:
+        description: "Target server"
+        required: true
+        type: choice
+        options:
+          - all
+          - bkk06
+          - bkk07
+          - bkk08
+      dry_run:
+        description: "Dry run (validate only)"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      servers: ${{ steps.set-servers.outputs.servers }}
+    steps:
+      - name: Set server matrix
+        id: set-servers
+        run: |
+          if [[ "${{ github.event.inputs.server }}" == "all" ]]; then
+            echo 'servers=["bkk06","bkk07","bkk08"]' >> $GITHUB_OUTPUT
+          else
+            echo 'servers=["${{ github.event.inputs.server }}"]' >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        server: ${{ fromJson(needs.setup.outputs.servers) }}
+      fail-fast: false
+    env:
+      SSH_HOST: 160.22.181.181
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set SSH port
+        id: ssh
+        run: |
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+          echo "port=${ports[${{ matrix.server }}]}" >> $GITHUB_OUTPUT
+
+      - name: Generate HAProxy config
+        run: ./deploy/haproxy/gencfg.sh ${{ matrix.server }} > haproxy.cfg
+
+      - name: Upload config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: root
+          key: ${{ secrets.INTERFACE_SSH_KEY }}
+          port: ${{ steps.ssh.outputs.port }}
+          source: haproxy.cfg
+          target: /tmp
+
+      - name: Validate config
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: root
+          key: ${{ secrets.INTERFACE_SSH_KEY }}
+          port: ${{ steps.ssh.outputs.port }}
+          script: haproxy -c -f /tmp/haproxy.cfg
+
+      - name: Apply config
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: root
+          key: ${{ secrets.INTERFACE_SSH_KEY }}
+          port: ${{ steps.ssh.outputs.port }}
+          script: |
+            cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.$(date +%Y%m%d-%H%M%S).bak || true
+            cp /tmp/haproxy.cfg /etc/haproxy/haproxy.cfg
+            systemctl reload haproxy
+            echo "HAProxy config applied on ${{ matrix.server }}"
+
+      - name: Cleanup
+        if: always()
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: root
+          key: ${{ secrets.INTERFACE_SSH_KEY }}
+          port: ${{ steps.ssh.outputs.port }}
+          script: rm -f /tmp/haproxy.cfg

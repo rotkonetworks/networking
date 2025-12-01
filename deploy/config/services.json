@@ -232,6 +232,19 @@
         }
       }
     },
+    "collectives-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "rpc-collectives-paseo-01": {
+          "address": "192.168.141.13",
+          "port": 9400
+        },
+        "rpc-collectives-paseo-02": {
+          "address": "192.168.142.13",
+          "port": 9400
+        }
+      }
+    },
     "coretime-paseo": {
       "type": "system-parachain",
       "instances": {
