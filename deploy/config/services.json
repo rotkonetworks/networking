@@ -34,19 +34,6 @@
         }
       }
     },
-    "westend": {
-      "type": "relay",
-      "instances": {
-        "rpc-westend-01-bkk06": {
-          "address": "192.168.131.10",
-          "port": 9300
-        },
-        "rpc-westend-02-bkk07": {
-          "address": "192.168.77.32",
-          "port": 9332
-        }
-      }
-    },
     "paseo": {
       "type": "relay",
       "instances": {
