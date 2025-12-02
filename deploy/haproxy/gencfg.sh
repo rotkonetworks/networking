@@ -120,7 +120,7 @@ generate_ssl_frontend() {
   cat <<'EOF'
 # SSL Frontend
 frontend ssl-frontend
-    bind *:443 ssl crt /etc/haproxy/certs/ alpn h2,http/1.1
+    bind *:443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko alpn h2,http/1.1
     mode http
     
     # Security headers
@@ -342,15 +342,15 @@ EOF
            | select(.container != null and .container != "")
            | "\(.chain)|\(.type)|\(.container)|\(.p2p_wss_port)"' |
     while IFS='|' read -r chain ctype container p2p_wss_port; do
-      
+
       # Skip if no container
       if [[ -z "$container" || "$container" == "null" ]]; then
         continue
       fi
-      
+
       echo "backend ${chain}-p2p-wss-backend"
       echo "    mode tcp"
-      
+
       # Use custom p2p_wss port if available, otherwise fall back to standard ports
       if [[ -n "$p2p_wss_port" && "$p2p_wss_port" != "null" ]]; then
         port="$p2p_wss_port"
@@ -359,7 +359,7 @@ EOF
       else
         port=30435
       fi
-      
+
       echo "    server ${chain} ${container}:${port} check"
       echo
     done
