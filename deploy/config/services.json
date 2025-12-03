@@ -427,6 +427,15 @@
           "port": 9450
         }
       }
+    },
+    "zcash": {
+      "type": "misc",
+      "instances": {
+        "zcash-01": {
+          "address": "192.168.77.201",
+          "port": 50050
+        }
+      }
     }
   },
   "port_forwards": {

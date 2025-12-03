@@ -209,25 +209,50 @@ generate_backends() {
 
   echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
     local chain=$(echo "$entry" | jq -r '.key')
+    local chain_type=$(echo "$entry" | jq -r '.value.type')
     local instances=$(echo "$entry" | jq -r '.value.instances')
 
     echo ""
     echo "backend ${chain}-backend"
-    echo "    mode http"
-    echo "    balance leastconn"
-    echo "    "
-    echo "    # Health checks"
-    echo "    option httpchk"
-    echo '    http-check send meth POST uri / ver HTTP/1.1 hdr Host localhost hdr Content-Type application/json body "{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"'
-    echo "    http-check expect rstring \"isSyncing.*false\""
-    echo "    "
-    echo "    # Retry and timeout"
-    echo "    retries 2"
-    echo "    option redispatch"
-    echo "    timeout server 30s"
-    echo "    "
-    echo "    # Servers"
-    echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+
+    # Generate backend config based on service type
+    case "$chain_type" in
+      misc)
+        # Misc services - HTTP mode with simple TCP health check
+        echo "    mode http"
+        echo "    balance leastconn"
+        echo "    "
+        echo "    # Simple health check for misc services"
+        echo "    option httpchk"
+        echo "    http-check connect"
+        echo "    "
+        echo "    # Retry and timeout"
+        echo "    retries 2"
+        echo "    option redispatch"
+        echo "    timeout server 30s"
+        echo "    "
+        echo "    # Servers"
+        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server \($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+        ;;
+      *)
+        # Substrate-based chains (relay, system-parachain, parachain) - HTTP mode with JSON-RPC health check
+        echo "    mode http"
+        echo "    balance leastconn"
+        echo "    "
+        echo "    # Health checks"
+        echo "    option httpchk"
+        echo '    http-check send meth POST uri / ver HTTP/1.1 hdr Host localhost hdr Content-Type application/json body "{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"'
+        echo "    http-check expect rstring \"isSyncing.*false\""
+        echo "    "
+        echo "    # Retry and timeout"
+        echo "    retries 2"
+        echo "    option redispatch"
+        echo "    timeout server 30s"
+        echo "    "
+        echo "    # Servers"
+        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+        ;;
+    esac
   done
 
   # Minimal deny backend
