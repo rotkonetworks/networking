@@ -1,4 +1,4 @@
-# 2025-12-14 14:09:25 by RouterOS 7.19.4
+# 2025-12-15 14:15:33 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -283,7 +283,27 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip firewall raw add action=drop chain=prerouting comment="Block external access to BGP loopbacks" dst-address-list=bgp-loopback-ips in-interface-list=WAN
 /ip firewall raw add action=accept chain=prerouting comment="Accept from WAN" in-interface-list=WAN
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
-#error exporting "/ip/route" (timeout)
+/ip route add blackhole comment=global_ipv4_resources distance=240 dst-address=160.22.180.0/23
+/ip route add distance=220 gateway=172.16.30.2 pref-src=160.22.181.180
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=0.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=172.16.0.0/12
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.168.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=10.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=169.254.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=127.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=yes distance=240 dst-address=224.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=198.18.0.0/15
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.0.0.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.0.2.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=198.51.100.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=203.0.113.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=100.64.0.0/10
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=240.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.88.99.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no distance=240 dst-address=255.255.255.255/32
+/ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.181.0/24
+/ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
+/ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.10.2
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
