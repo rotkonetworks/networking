@@ -328,6 +328,9 @@ generate_public_services() {
         # HAProxy stats (localhost only)
         iif "lo" tcp dport 8404 accept
 
+        # QUIC/quicnet (UDP-based transport)
+        udp dport 4433 accept
+
         # Bootnode P2P ports
 PUBLIC
 
