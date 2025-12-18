@@ -54,8 +54,10 @@ table inet filter {
 		tcp dport { 30335, 31012, 31022, 31032, 31052, 32012, 32022, 32042, 32052, 32062, 33312, 33322, 33342, 33847, 33957, 33967, 34031, 34042, 34052, 34071 } accept
 		udp dport { 30335, 31012, 31022, 31032, 31052, 32012, 32022, 32042, 32052, 32062, 33312, 33322, 33342, 33847, 33957, 33967, 34031, 34042, 34052, 34071 } accept
 		tcp dport 30435 accept
-		limit rate 5/minute log prefix "[DROP-IN] "
 		udp dport 4433 accept
+		udp dport 5000 accept
+		limit rate 5/minute log prefix "[DROP-IN] "
+		udp dport 5000 accept
 	}
 
 	chain forward {
