@@ -1,4 +1,4 @@
-# 2025-12-28 14:11:02 by RouterOS 7.19.4
+# 2025-12-29 14:17:08 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -99,6 +99,7 @@
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=amdnuc public-key="IlZR7z5LVE6BKwkApq+VTvXRGaOp0hvmKSSrgi1R/V4="
 /interface wireguard peers add allowed-address=172.31.0.50/32 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
+/interface wireguard peers add allowed-address=172.31.0.100/32,172.31.0.4/32 endpoint-address=160.22.181.180 endpoint-port=51820 interface=wg_rotko name=bkk00 persistent-keepalive=25s public-key="gkXioj9pgmNULmvJqN9LtR31XaCfVWF/11QHxJBYhTg="
 /ip address add address=118.143.234.74/29 interface=SG-HGC-IPTx-vlan2520 network=118.143.234.72
 /ip address add address=172.31.0.20/16 interface=wg_rotko network=172.31.0.0
 /ip address add address=10.155.255.2 interface=lo network=10.155.255.2
@@ -237,6 +238,7 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" dst-address=240.0.0.0/4
 /ip route add disabled=yes distance=150 dst-address=160.22.181.81 gateway=10.155.208.1
 /ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.20.2
+/ip route add comment="route to atomman via bkk00 WG" dst-address=172.31.0.4/32 gateway=172.31.0.100
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
@@ -607,6 +609,7 @@
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:1020::1/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::20/128 passive
+/routing ospf interface-template add area=backbone comment="WireGuard wg_rotko" disabled=no networks=172.31.0.0/16 passive
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323

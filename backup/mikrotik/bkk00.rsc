@@ -1,4 +1,4 @@
-# 2025-12-28 14:11:02 by RouterOS 7.19.4
+# 2025-12-29 14:17:08 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -122,6 +122,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=amdnuc public-key="IlZR7z5LVE6BKwkApq+VTvXRGaOp0hvmKSSrgi1R/V4="
 /interface wireguard peers add allowed-address=172.31.0.50/32 endpoint-address=172.16.10.2 endpoint-port=51820 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
+/interface wireguard peers add allowed-address=172.31.0.4/32 interface=wg_rotko name=bgpctl public-key="Vy/FwO7pVn27ZwA1HnllqcIGBLPHh426JtfBlQopfgY="
 /ip address add address=192.168.88.100/24 comment=defconf interface=ether1 network=192.168.88.0
 /ip address add address=172.16.30.1/30 interface=BKK20-LAG network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180
@@ -314,7 +315,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
 /ip service set www address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
-/ip service set www-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16
+/ip service set www-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 certificate=local-cert disabled=no
 /ip service set winbox address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16,104.28.213.0/24 disabled=yes
 /ip service set api address=160.22.181.181/32
 /ip service set api-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
@@ -647,6 +648,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK10" disabled=no networks=2401:a860:1181:10::/127
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:50::/127
 /routing ospf interface-template add area=backbone cost=10 disabled=no networks=10.155.254.0/24 priority=100
+/routing ospf interface-template add area=backbone comment="WireGuard wg_rotko" disabled=no networks=172.31.0.0/16 passive
 /routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
 /routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
@@ -661,7 +663,6 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /system ntp client servers add address=0.th.pool.ntp.org
 /system ntp client servers add address=0.asia.pool.ntp.org
 /system ntp client servers add address=1.asia.pool.ntp.org
-/system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
 /system scheduler add name=restore-on-boot on-event="/system script run on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
 /system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=18:05:00
@@ -706,6 +707,95 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
     \n      :log warning \"BCP214: reboot\";\
     \n      /system reboot\
     \n    "
+/system script add dont-require-permissions=no name=on-startup owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\r\
+    \n:log warning \"STARTUP: waiting 60s for BGP to initialize...\"\r\
+    \n:delay 60s\r\
+    \n:if ([:len [/routing filter rule find where comment=\"BCP214\"]] > 0) do={\r\
+    \n    :log warning \"STARTUP: removing leftover BCP214 filter rules\"\r\
+    \n    /routing filter rule remove [find comment=\"BCP214\"]\r\
+    \n}\r\
+    \n/ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\r\
+    \n/ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\r\
+    \n:delay 30s\r\
+    \n:local established 0\r\
+    \n:local total 0\r\
+    \n:foreach sess in=[/routing/bgp/session find] do={\r\
+    \n    :set total (\$total + 1)\r\
+    \n    :if ([/routing/bgp/session get \$sess established]) do={ :set established (\$established + 1) }\r\
+    \n}\r\
+    \n:if (\$established > 0) do={\r\
+    \n    :log warning \"STARTUP: BGP restored - \$established/\$total sessions established\"\r\
+    \n} else={\r\
+    \n    :log error \"STARTUP: WARNING - no BGP sessions established!\"\r\
+    \n}\r\
+    \n"
+/system script add dont-require-permissions=no name=bcp214-maintenance owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\r\
+    \n:local now [/system clock get time]\r\
+    \n:local nowSec ([:pick \$now 0 2] * 3600 + [:pick \$now 3 5] * 60 + [:pick \$now 6 8])\r\
+    \n\r\
+    \n# T+0: start graceful shutdown\r\
+    \n:log warning \"BCP214-MAINT: starting graceful shutdown sequence\"\r\
+    \n/system script run bcp214-start\r\
+    \n\r\
+    \n# calculate times for T+2min and T+3min\r\
+    \n:local blockSec (\$nowSec + 120)\r\
+    \n:local rebootSec (\$nowSec + 180)\r\
+    \n\r\
+    \n# handle day wrap\r\
+    \n:if (\$blockSec >= 86400) do={ :set blockSec (\$blockSec - 86400) }\r\
+    \n:if (\$rebootSec >= 86400) do={ :set rebootSec (\$rebootSec - 86400) }\r\
+    \n\r\
+    \n:local blockH (\$blockSec / 3600)\r\
+    \n:local blockM ((\$blockSec % 3600) / 60)\r\
+    \n:local blockS (\$blockSec % 60)\r\
+    \n:local rebootH (\$rebootSec / 3600)\r\
+    \n:local rebootM ((\$rebootSec % 3600) / 60)\r\
+    \n:local rebootS (\$rebootSec % 60)\r\
+    \n\r\
+    \n:local blockTime \"\$[:pick (100 + \$blockH) 1 3]:\$[:pick (100 + \$blockM) 1 3]:\$[:pick (100 + \$blockS) 1 3]\"\r\
+    \n:local rebootTime \"\$[:pick (100 + \$rebootH) 1 3]:\$[:pick (100 + \$rebootM) 1 3]:\$[:pick (100 + \$rebootS) 1 3]\"\r\
+    \n\r\
+    \n:local today [/system clock get date]\r\
+    \n\r\
+    \n# remove old schedulers if exist\r\
+    \n/system scheduler remove [find name~\"bcp214-sched-\"]\r\
+    \n\r\
+    \n# schedule block at T+2min\r\
+    \n/system scheduler add name=bcp214-sched-block start-date=\$today start-time=\$blockTime interval=0 \\\r\
+    \n    on-event=\"/system script run bcp214-block; :log warning \\\"BCP214-MAINT: BGP blocked, reboot in 60s\\\"\" \\\r\
+    \n    policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon\r\
+    \n\r\
+    \n# schedule reboot at T+3min\r\
+    \n/system scheduler add name=bcp214-sched-reboot start-date=\$today start-time=\$rebootTime interval=0 \\\r\
+    \n    on-event=\"/system scheduler remove [find name~\\\"bcp214-sched-\\\"]; /system reboot\" \\\r\
+    \n    policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon\r\
+    \n\r\
+    \n:log warning \"BCP214-MAINT: block scheduled at \$blockTime, reboot at \$rebootTime\"\r\
+    \n"
+/system script add dont-require-permissions=no name=bcp214-abort owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\r\
+    \n:log warning \"BCP214-ABORT: canceling maintenance\"\r\
+    \n/system scheduler remove [find name~\"bcp214-sched-\"]\r\
+    \n/system script run bcp214-restore\r\
+    \n:log warning \"BCP214-ABORT: maintenance canceled, service restored\"\r\
+    \n"
+/system script add dont-require-permissions=no name=bcp214-status owner=pj policy=read source="\r\
+    \n:local hasBcp214 ([:len [/routing filter rule find where comment=\"BCP214\"]] > 0)\r\
+    \n:local hasMaintFw ([:len [/ip firewall raw find where comment~\"BGP-MAINTENANCE-MODE\" and disabled=no]] > 0)\r\
+    \n:local pendingSched [:len [/system scheduler find where name~\"bcp214-sched-\"]]\r\
+    \n\r\
+    \n:put \"=== BCP214 Status ===\"\r\
+    \n:if (\$hasBcp214) do={ :put \"GSHUT rules: ACTIVE\" } else={ :put \"GSHUT rules: inactive\" }\r\
+    \n:if (\$hasMaintFw) do={ :put \"BGP blocked: YES\" } else={ :put \"BGP blocked: no\" }\r\
+    \n:put \"Pending schedulers: \$pendingSched\"\r\
+    \n\r\
+    \n:local established 0\r\
+    \n:local total 0\r\
+    \n:foreach sess in=[/routing/bgp/session find] do={\r\
+    \n    :set total (\$total + 1)\r\
+    \n    :if ([/routing/bgp/session get \$sess established]) do={ :set established (\$established + 1) }\r\
+    \n}\r\
+    \n:put \"BGP sessions: \$established/\$total established\"\r\
+    \n"
 /system watchdog set watchdog-timer=no
 /tool traffic-monitor add disabled=yes interface=BKNIX-LAG name=bknix
 /tool traffic-monitor add disabled=yes interface=EU-AMS-IX-vlan3995 name=amsix
