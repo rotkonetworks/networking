@@ -1,4 +1,4 @@
-# 2025-12-29 14:17:08 by RouterOS 7.19.4
+# 2025-12-30 14:14:04 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -25,7 +25,7 @@
 /interface vlan add interface=vlan-400 name=qnq-400-100 vlan-id=100
 /interface vlan add interface=vlan-400 name=qnq-400-106 vlan-id=106
 /interface vlan add interface=vlan-400 name=qnq-400-107 vlan-id=107
-/interface vlan add interface=vlan-400 name=qnq-400-108 vlan-id=108
+/interface vlan add disabled=yes interface=vlan-400 name=qnq-400-108 vlan-id=108
 /interface vlan add interface=vlan-400 name=qnq-400-116 vlan-id=116
 /interface vlan add interface=vlan-400 name=qnq-400-117 vlan-id=117
 /interface vlan add interface=vlan-400 name=qnq-400-118 vlan-id=118
@@ -312,14 +312,15 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
 /ipv6 route add blackhole comment=global_unicast_ipv6 disabled=no distance=240 dst-address=2401:a860:1000::/36
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
-/ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128
+/ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128,172.31.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
-/ip service set www address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
+/ip service set www address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16
 /ip service set www-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 certificate=local-cert disabled=no
 /ip service set winbox address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16,104.28.213.0/24 disabled=yes
 /ip service set api address=160.22.181.181/32
 /ip service set api-ssl address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
 /ip smb shares set [ find default=yes ] directory=/pub
+/ip ssh set forwarding-enabled=local
 /ipv6 address add address=fd00:dead:beef:30::1/126 advertise=no interface=BKK20-LAG
 /ipv6 address add address=2401:a860:181::100/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::100/128 advertise=no interface=lo
@@ -630,6 +631,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (gw in ibgp-block-gw-v6) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
+/routing filter rule add chain=HE-AMSIX-IN-v4 comment="HE free transit priority" rule="set bgp-local-pref 190; set bgp-large-communities amsix-communities; accept"
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::/128 passive
 /routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4 passive
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-BKK20 disabled=no networks=fd00:dead:beef:30::1/126

@@ -1,11 +1,23 @@
-# 2025-12-28 23:12:56 by RouterOS 7.20beta2
+# 2025-12-29 23:09:52 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
 # serial number = HEF08WE12HR
 /interface bridge add name=bridge_local vlan-filtering=yes
+/interface ethernet set [ find default-name=ether1 ] comment=pve-node-220
+/interface ethernet set [ find default-name=ether2 ] comment=pve-node-218
+/interface ethernet set [ find default-name=ether3 ] comment=trunk-pve-cluster
+/interface ethernet set [ find default-name=ether5 ] comment=asrock-221
+/interface ethernet set [ find default-name=ether6 ] comment=asrock-103
+/interface ethernet set [ find default-name=ether8 ] comment=asrock-204
 /interface ethernet set [ find default-name=ether9 ] comment=bkk-sax-01-kvm
 /interface ethernet set [ find default-name=ether10 ] comment=bkk-sax-01-9950x
+/interface ethernet set [ find default-name=ether11 ] comment=bkk06-mgmt
+/interface ethernet set [ find default-name=ether12 ] comment=bkk06-pub
+/interface ethernet set [ find default-name=ether13 ] comment=bkk07-mgmt
+/interface ethernet set [ find default-name=ether14 ] comment=bkk07-pub
+/interface ethernet set [ find default-name=ether15 ] comment=bkk08-mgmt
+/interface ethernet set [ find default-name=ether16 ] comment=bkk08-pub
 /interface ethernet set [ find default-name=sfp-sfpplus1 ] advertise=10G-baseCR comment="atm to bkk00 hk" fec-mode=fec91
 /interface ethernet set [ find default-name=sfp-sfpplus2 ] advertise=10G-baseCR comment="atm to bkk20 sg" fec-mode=fec91
 /interface wireguard add listen-port=52281 mtu=1420 name=bkk_sax_wg

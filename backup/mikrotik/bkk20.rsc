@@ -1,4 +1,4 @@
-# 2025-12-29 14:17:08 by RouterOS 7.19.4
+# 2025-12-30 14:14:05 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -25,7 +25,7 @@
 /interface vlan add interface=vlan-400 name=qnq-400-200 vlan-id=200
 /interface vlan add interface=vlan-400 name=qnq-400-206 vlan-id=206
 /interface vlan add interface=vlan-400 name=qnq-400-207 vlan-id=207
-/interface vlan add interface=vlan-400 name=qnq-400-208 vlan-id=208
+/interface vlan add disabled=yes interface=vlan-400 name=qnq-400-208 vlan-id=208
 /interface vlan add interface=vlan-400 name=qnq-400-216 vlan-id=216
 /interface vlan add interface=vlan-400 name=qnq-400-217 vlan-id=217
 /interface vlan add interface=vlan-400 name=qnq-400-218 vlan-id=218
