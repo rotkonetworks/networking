@@ -1,4 +1,4 @@
-# 2025-12-31 23:09:43 by RouterOS 7.20beta2
+# 2026-01-01 23:10:30 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -99,6 +99,10 @@
 /interface wireguard peers add allowed-address=172.30.50.4/32 comment=bkk04 interface=wg_rotko name=peer7 public-key="SRPXYavqbiZpuLFMhNRT/mieCy6hsYaOODb3zNtzriw="
 /interface wireguard peers add allowed-address=172.30.50.6/32 comment=alarchlinux interface=wg_rotko name=peer11 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
 /interface wireguard peers add allowed-address=172.29.169.11/32 comment=al interface=bkk_sax_wg name=peer12 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
+/interface wireguard peers add allowed-address=172.31.0.0/16 endpoint-address=172.16.10.1 endpoint-port=51820 interface=wg_rotko name=bkk00 persistent-keepalive=25s public-key="gkXioj9pgmNULmvJqN9LtR31XaCfVWF/11QHxJBYhTg="
+/interface wireguard peers add allowed-address=172.31.0.6/32 interface=wg_rotko name=bkk06 public-key="kVfcladp4l87PsMtzLmfgBU4aumgQDC/dKOfa8NSbxk="
+/interface wireguard peers add allowed-address=172.31.0.7/32 interface=wg_rotko name=bkk07 public-key="4CGbVHKfkhiyga53lFaydcweOe0vgozADvXdJApyEiM="
+/interface wireguard peers add allowed-address=172.31.0.8/32 interface=wg_rotko name=bkk08 public-key="HWIsnsm+CY6ul6kX1+llsUT1JZ5IdzxOunjIAhoTvkk="
 /ip address add address=192.168.88.50/24 comment=defconf interface=bridge_local network=192.168.88.0
 /ip address add address=192.168.69.1/16 interface=bridge_local network=192.168.0.0
 /ip address add address=10.155.255.3 interface=lo network=10.155.255.3
@@ -116,6 +120,7 @@
 /ip address add address=160.22.181.20 interface=lo network=160.22.181.20
 /ip address add address=172.16.50.1/31 interface=BKK00-LAG network=172.16.50.0
 /ip address add address=100.64.0.1/24 interface=bridge_local network=100.64.0.0
+/ip address add address=172.31.0.50/16 interface=wg_rotko network=172.31.0.0
 /ip dhcp-server lease add address=192.168.69.232 client-id=1:48:da:35:6f:6b:66 comment="bkk09nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:6B:66 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.231 client-id=1:e4:5f:1:de:47:96 comment="blikvm nixos" mac-address=E4:5F:01:DE:47:96 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.230 comment=bkk09 mac-address=58:47:CA:78:CD:48 server=dhcp1
