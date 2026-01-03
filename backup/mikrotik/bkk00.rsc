@@ -1,4 +1,4 @@
-# 2026-01-02 14:14:42 by RouterOS 7.19.4
+# 2026-01-03 14:10:10 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -120,12 +120,13 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.20/32 interface=wg_rotko name=bkk20 public-key="/09ofEbIM1qjlq7xM/R0KfJMQ8R/UR9aHaph70FTp30="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
-/interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=amdnuc public-key="IlZR7z5LVE6BKwkApq+VTvXRGaOp0hvmKSSrgi1R/V4="
 /interface wireguard peers add allowed-address=172.31.0.50/32 endpoint-address=172.16.10.2 endpoint-port=51820 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
 /interface wireguard peers add allowed-address=172.31.0.4/32 interface=wg_rotko name=bgpctl public-key="Vy/FwO7pVn27ZwA1HnllqcIGBLPHh426JtfBlQopfgY="
 /interface wireguard peers add allowed-address=172.31.0.6/32 interface=wg_rotko name=bkk06 public-key="kVfcladp4l87PsMtzLmfgBU4aumgQDC/dKOfa8NSbxk="
 /interface wireguard peers add allowed-address=172.31.0.7/32 interface=wg_rotko name=bkk07 public-key="4CGbVHKfkhiyga53lFaydcweOe0vgozADvXdJApyEiM="
 /interface wireguard peers add allowed-address=172.31.0.8/32 interface=wg_rotko name=bkk08 public-key="HWIsnsm+CY6ul6kX1+llsUT1JZ5IdzxOunjIAhoTvkk="
+/interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=bkk03 public-key="sigpCqPiAg6Ro1deiaGWQg+Zk3iHx18UInq7jyBVuWY="
+/interface wireguard peers add allowed-address=172.31.0.9/32 comment=bkk09 interface=wg_rotko name=peer12 public-key="ohFfKug5RQ07GGOjOwxeJR17c3NVBaLFXlEf6Tiizhs="
 /ip address add address=192.168.88.100/24 comment=defconf interface=ether1 network=192.168.88.0
 /ip address add address=172.16.30.1/30 interface=BKK20-LAG network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180
@@ -308,6 +309,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.181.0/24
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
 /ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.10.2
+/ip route add comment="bkk50 loopback via p2p" distance=1 dst-address=160.22.181.181/32 gateway=172.16.10.2%BKK50-LAG
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
