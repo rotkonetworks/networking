@@ -1,4 +1,4 @@
-# 2026-01-03 14:10:10 by RouterOS 7.19.4
+# 2026-01-04 14:12:34 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -127,6 +127,9 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /interface wireguard peers add allowed-address=172.31.0.8/32 interface=wg_rotko name=bkk08 public-key="HWIsnsm+CY6ul6kX1+llsUT1JZ5IdzxOunjIAhoTvkk="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=bkk03 public-key="sigpCqPiAg6Ro1deiaGWQg+Zk3iHx18UInq7jyBVuWY="
 /interface wireguard peers add allowed-address=172.31.0.9/32 comment=bkk09 interface=wg_rotko name=peer12 public-key="ohFfKug5RQ07GGOjOwxeJR17c3NVBaLFXlEf6Tiizhs="
+/interface wireguard peers add allowed-address=172.31.0.11/32 comment=bkk11-validator interface=wg_rotko name=peer13 public-key="OF8k2YrVl1Rg42MvhhJAFgkG3fmWlji5eZadWuLdZUc="
+/interface wireguard peers add allowed-address=172.31.0.12/32 comment=bkk12-validator interface=wg_rotko name=peer14 public-key="Lkd/T8OD+udQnOzRYVPCg7/44H8s+wGDBGOscy6HoB4="
+/interface wireguard peers add allowed-address=172.31.0.13/32 comment=bkk13-validator interface=wg_rotko name=peer15 public-key="tTVnDs307swj3aV1CbM/a18epWCooPKDLwa/Aa9W4xM="
 /ip address add address=192.168.88.100/24 comment=defconf interface=ether1 network=192.168.88.0
 /ip address add address=172.16.30.1/30 interface=BKK20-LAG network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180
@@ -249,6 +252,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
+/ip firewall nat add action=dst-nat chain=dstnat comment=temp-bkk13-ipmi dst-address=160.22.181.183 dst-port=8443 protocol=tcp to-addresses=192.168.69.216 to-ports=443
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
