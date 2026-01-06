@@ -1,27 +1,38 @@
-# 2026-01-05 14:19:29 by RouterOS 7.19.4
+# 2026-01-06 13:12:11 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
 /interface bridge add name=bridge_vlan vlan-filtering=yes
-/interface ethernet set [ find default-name=ether1 ] comment=mgmt
+/interface ethernet set [ find default-name=ether1 ] comment="mgmt OOBM"
 /interface ethernet set [ find default-name=qsfp28-1-1 ] comment=EDGE-BKK20-LAG
+/interface ethernet set [ find default-name=qsfp28-1-2 ] comment="breakout dark"
+/interface ethernet set [ find default-name=qsfp28-1-3 ] comment="breakout dark"
+/interface ethernet set [ find default-name=qsfp28-1-4 ] comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-2-1 ] comment=EDGE-BKK20-LAG
+/interface ethernet set [ find default-name=qsfp28-2-2 ] comment="breakout dark"
+/interface ethernet set [ find default-name=qsfp28-2-3 ] comment="breakout dark"
+/interface ethernet set [ find default-name=qsfp28-2-4 ] comment="breakout dark"
+/interface ethernet set [ find default-name=sfp28-1 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR comment="HGC-HK-MMR-A-XXX ORIGINAL-MAC=F4:1E:57:4B:D7:1D" mac-address=78:9A:18:80:E2:E4
+/interface ethernet set [ find default-name=sfp28-3 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="BKNIX-core7,8-MMRB ORIGINAL-MAC-F4:1E:57:4B:D7:1F" mac-address=78:9A:18:80:E2:E6
 /interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=BKK10-LAG
+/interface ethernet set [ find default-name=sfp28-6 ] comment=dark/available
+/interface ethernet set [ find default-name=sfp28-7 ] comment=dark/available
+/interface ethernet set [ find default-name=sfp28-8 ] comment=dark/available
+/interface ethernet set [ find default-name=sfp28-9 ] comment=dark/available
+/interface ethernet set [ find default-name=sfp28-10 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
+/interface ethernet set [ find default-name=sfp28-12 ] comment="25G DAC to bkk60\? - UNCONFIGURED"
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
 /interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
-/interface bonding add comment=WAN mode=802.3ad mtu=1514 name=AMSIX-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment=bkk10-sfp28-5 lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=100G-EDGE-TO-BKK20 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add mode=802.3ad name=BKK30-LAG slaves=qsfp28-2-1
 /interface bonding add comment=bkk50-sfp28-11 lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp28-11 transmit-hash-policy=layer-2-and-3
-/interface bonding add comment=WAN mode=802.3ad mtu=1514 name=BKNIX-LAG slaves=sfp28-4 transmit-hash-policy=layer-3-and-4
-/interface vlan add interface=AMSIX-LAG name=EU-AMS-IX-vlan3995 vlan-id=3995
-/interface vlan add interface=AMSIX-LAG name=HK-HGC-IPTx-vlan2519 vlan-id=2519
-/interface vlan add interface=AMSIX-LAG name=SG-HGC-IPTx-backup-vlan2518 vlan-id=2518
+/interface bonding add comment="sfp28-4 BKNIX-core7,8 MMR-B" mode=802.3ad mtu=1514 name=BKNIX-10G-BKK00-LAG slaves=sfp28-4 transmit-hash-policy=layer-3-and-4
+/interface bonding add comment="sfp28-2 HGC-HK MMR-A" mode=802.3ad mtu=1514 name=HGC-10G-HK-BKK00-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
 /interface vlan add interface=vlan-400 name=qnq-400-100 vlan-id=100
 /interface vlan add interface=vlan-400 name=qnq-400-106 vlan-id=106
 /interface vlan add interface=vlan-400 name=qnq-400-107 vlan-id=107
@@ -30,6 +41,9 @@
 /interface vlan add interface=vlan-400 name=qnq-400-117 vlan-id=117
 /interface vlan add interface=vlan-400 name=qnq-400-118 vlan-id=118
 /interface vlan add interface=vlan-400 name=qnq-400-200 vlan-id=200
+/interface vlan add interface=HGC-10G-HK-BKK00-LAG name=vAMSIX-EU vlan-id=3995
+/interface vlan add interface=HGC-10G-HK-BKK00-LAG name=vHGC-HK-PRIMARY vlan-id=2519
+/interface vlan add interface=HGC-10G-HK-BKK00-LAG name=vHGC-SG-BACKUP vlan-id=2518
 /interface bonding add mode=active-backup name=BKK06-LAG slaves=qnq-400-106,qnq-400-116
 /interface bonding add mode=active-backup name=BKK07-LAG slaves=qnq-400-107,qnq-400-117
 /interface bonding add mode=active-backup name=BKK08-LAG slaves=qnq-400-108,qnq-400-118
@@ -58,6 +72,7 @@
 /routing bgp template add add-path-out=all afi=ip as=142108 input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS-v4 nexthop-choice=propagate output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ipv6 as=142108 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
+/snmp community set [ find default=yes ] addresses=0.0.0.0/0,::/0
 /user group add name=mktxp_group policy=ssh,read,winbox,api,!local,!telnet,!ftp,!reboot,!write,!policy,!test,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
@@ -103,11 +118,11 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /interface list member add interface=BKK10-LAG list=LAN
 /interface list member add interface=BKK50-LAG list=LAN
 /interface list member add interface=wg_rotko list=LAN
-/interface list member add interface=AMSIX-LAG list=WAN
-/interface list member add interface=BKNIX-LAG list=WAN
-/interface list member add interface=HK-HGC-IPTx-vlan2519 list=WAN
-/interface list member add interface=EU-AMS-IX-vlan3995 list=WAN
-/interface list member add interface=SG-HGC-IPTx-backup-vlan2518 list=WAN
+/interface list member add interface=HGC-10G-HK-BKK00-LAG list=WAN
+/interface list member add interface=BKNIX-10G-BKK00-LAG list=WAN
+/interface list member add interface=vHGC-HK-PRIMARY list=WAN
+/interface list member add interface=vAMSIX-EU list=WAN
+/interface list member add interface=vHGC-SG-BACKUP list=WAN
 /interface list member add interface=sfp28-2 list=WAN
 /interface list member add interface=sfp28-4 list=WAN
 /interface list member add interface=BKK20-LAG list=LAN
@@ -134,11 +149,11 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip address add address=172.16.30.1/30 interface=BKK20-LAG network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180
 /ip address add address=10.155.255.4 interface=lo network=10.155.255.4
-/ip address add address=203.159.68.168/23 comment=BKNIX-V4 interface=BKNIX-LAG network=203.159.68.0
-/ip address add address=118.143.211.186/29 interface=HK-HGC-IPTx-vlan2519 network=118.143.211.184
-/ip address add address=10.25.1.126/24 interface=EU-AMS-IX-vlan3995 network=10.25.1.0
-/ip address add address=80.249.212.139/21 interface=EU-AMS-IX-vlan3995 network=80.249.208.0
-/ip address add address=103.168.174.182/30 interface=SG-HGC-IPTx-backup-vlan2518 network=103.168.174.180
+/ip address add address=203.159.68.168/23 comment=BKNIX-V4 interface=BKNIX-10G-BKK00-LAG network=203.159.68.0
+/ip address add address=118.143.211.186/29 interface=vHGC-HK-PRIMARY network=118.143.211.184
+/ip address add address=10.25.1.126/24 interface=vAMSIX-EU network=10.25.1.0
+/ip address add address=80.249.212.139/21 interface=vAMSIX-EU network=80.249.208.0
+/ip address add address=103.168.174.182/30 interface=vHGC-SG-BACKUP network=103.168.174.180
 /ip address add address=172.16.10.1/30 interface=BKK50-LAG network=172.16.10.0
 /ip address add address=172.31.0.100/16 interface=wg_rotko network=172.31.0.0
 /ip address add address=172.16.50.0/31 interface=BKK50-LAG network=172.16.50.0
@@ -252,7 +267,6 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
-/ip firewall nat add action=dst-nat chain=dstnat comment=temp-bkk13-ipmi dst-address=160.22.181.183 dst-port=8443 protocol=tcp to-addresses=192.168.69.216 to-ports=443
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
@@ -333,10 +347,10 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 address add address=fd00:dead:beef:30::1/126 advertise=no interface=BKK20-LAG
 /ipv6 address add address=2401:a860:181::100/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::100/128 advertise=no interface=lo
-/ipv6 address add address=2001:df5:b881::168 advertise=no comment=BKNIX-V6 interface=BKNIX-LAG
-/ipv6 address add address=2403:5000:171:138::2 advertise=no comment="HK IPv6" interface=HK-HGC-IPTx-vlan2519
-/ipv6 address add address=2001:7f8:1:0:a500:14:2108:1 advertise=no interface=EU-AMS-IX-vlan3995
-/ipv6 address add address=2407:9540:111:8::2/126 advertise=no interface=SG-HGC-IPTx-backup-vlan2518
+/ipv6 address add address=2001:df5:b881::168 advertise=no comment=BKNIX-V6 interface=BKNIX-10G-BKK00-LAG
+/ipv6 address add address=2403:5000:171:138::2 advertise=no comment="HK IPv6" interface=vHGC-HK-PRIMARY
+/ipv6 address add address=2001:7f8:1:0:a500:14:2108:1 advertise=no interface=vAMSIX-EU
+/ipv6 address add address=2407:9540:111:8::2/126 advertise=no interface=vHGC-SG-BACKUP
 /ipv6 address add address=2401:a860:1181::100/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/128 advertise=no interface=lo
 /ipv6 address add address=fd00:dead:beef::/127 advertise=no interface=BKK20-LAG
@@ -446,6 +460,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 firewall raw add action=jump chain=prerouting comment="Check TCP flags" jump-target=bad_tcp protocol=tcp
 /ipv6 firewall raw add action=accept chain=prerouting comment="Accept all link-local ICMPv6" in-interface-list=WAN src-address=fe80::/10
 /ipv6 firewall raw add action=jump chain=prerouting comment="Jump to bogon handler" in-interface-list=WAN jump-target=bogon-drop src-address-list=bogons-v6
+/ipv6 firewall raw add action=notrack chain=prerouting comment=notrack-forwarded
 /ipv6 firewall raw add action=accept chain=prerouting comment="FINAL ACCEPT"
 /ipv6 firewall raw add action=log chain=bogon-drop disabled=yes limit=1,5:packet log-prefix=BOGON:
 /ipv6 firewall raw add action=drop chain=bogon-drop comment="Drop bogons"
@@ -457,6 +472,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: FIN+URG" protocol=tcp tcp-flags=fin,urg
 /ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: SYN+RST" protocol=tcp tcp-flags=syn,rst
 /ipv6 firewall raw add action=drop chain=bad_tcp comment="TCP flag: RST+URG" protocol=tcp tcp-flags=rst,urg
+/ipv6 firewall raw add action=notrack chain=output comment=notrack-output
 /ipv6 nd set [ find default=yes ] ra-lifetime=none
 /routing bgp connection add comment="iBGP peer BKK20" input.filter=IBGP-IN-v4 .limit-process-routes-ipv4=2000000 local.address=10.155.255.4 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v4 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v4 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=10.155.255.2 templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 comment="iBGP peer BKK20 IPv6" disabled=no input.filter=IBGP-IN-v6 .limit-process-routes-ipv6=2000000 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=IBGP-ROTKO-BKK20-v6 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v6 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::20 .as=142108 templates=IBGP-ROTKO-v6
@@ -480,14 +496,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 keepalive-time=30s local.role=ebgp name=Cloudflare-AMSIX-v4-2 remote.address=80.249.210.118 .as=13335 templates=AMSIX-v4
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-1 remote.address=2001:7f8:1::a501:3335:1 .as=13335 templates=AMSIX-v6
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-2 remote.address=2001:7f8:1::a501:3335:2 .as=13335 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=210000 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=HE-AMSIX-v4 remote.address=80.249.209.150 .as=6939 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=237000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
-/routing bgp connection add disabled=no local.address=10.155.106.0 .role=ibgp-rr name=rr-client-bkk06-v4 remote.address=10.155.106.1 .as=142108 templates=RR-CLIENTS-v4
-/routing bgp connection add disabled=no local.address=10.155.107.0 .role=ibgp-rr name=rr-client-bkk07-v4 remote.address=10.155.107.1 .as=142108 templates=RR-CLIENTS-v4
-/routing bgp connection add disabled=no local.address=10.155.108.0 .role=ibgp-rr name=rr-client-bkk08-v4 remote.address=10.155.108.1 .as=142108 templates=RR-CLIENTS-v4
-/routing bgp connection add afi=ipv6 disabled=no local.address=fd00:155:106:: .role=ibgp-rr name=rr-client-bkk06-v6 remote.address=fd00:155:106::1 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add afi=ipv6 disabled=no local.address=fd00:155:107:: .role=ibgp-rr name=rr-client-bkk07-v6 remote.address=fd00:155:107::1 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add afi=ipv6 disabled=no local.address=fd00:155:108:: .role=ibgp-rr name=rr-client-bkk08-v6 remote.address=fd00:155:108::1 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no hold-time=1m30s input.filter=HE-AMSIX-IN-v4 .limit-process-routes-ipv4=210000 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=HE-AMSIX-v4 remote.address=80.249.209.150 .as=6939 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.filter=HE-AMSIX-IN-v6 .limit-process-routes-ipv6=237000 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
 /routing bgp connection add afi=ip input.filter=iBGP-IN-v4 local.address=10.155.255.4 .role=ibgp multihop=yes name=ibgp-bkk50-v4 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.255.3 .as=142108 templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 input.filter=iBGP-IN-v6 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=ibgp-bkk50-v6 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v6 .redistribute=connected,static,bgp remote.address=fd00:dead:beef::50 .as=142108 templates=IBGP-ROTKO-v6
 /routing bgp connection add local.address=10.155.100.1 .role=ibgp-rr name=rr-client-bkk08-unified-v4 remote.address=10.155.100.8 .as=142108 templates=RR-CLIENTS-v4
@@ -516,6 +526,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter num-list add list=private-asn range=64512-65535
 /routing filter num-list add list=private-asn range=4200000000-4294967295
 /routing filter num-list add list=my-as range=142108
+/routing filter num-list add comment=RFC7607 list=bogon-asn range=0
 /routing filter rule add chain=IBGP-IN-v4 rule="if (dst in bkk50-rotko-ranges) { set distance 100; set bgp-local-pref 150; accept; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (dst in bkk50-rotko-ranges-v6) { set distance 100; set bgp-local-pref 150; accept; }"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
@@ -596,16 +607,52 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v4 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v4 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v4 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v4 comment="Accept route" rule="set bgp-local-pref 200; set bgp-large-communities bknix-communities; accept"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v4 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v4 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v4 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Accept route" rule="set bgp-local-pref 100; set bgp-large-communities amsix-communities; accept"
+/routing filter rule add chain=BKNIX-IN-v6 comment="Reject our own prefixes" rule="if (dst in ipv6-apnic-rotko) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v6 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v6 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v6 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=BKNIX-IN-v6 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v6 comment="Accept route" rule="set bgp-local-pref 200; set bgp-large-communities bknix-communities; accept"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="Reject our own prefixes" rule="if (dst in ipv6-apnic-rotko) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="Reject our own prefixes" rule="if (dst in ipv6-apnic-rotko) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept"
+/routing filter rule add chain=AMSIX-IN-v6 comment="Reject our own prefixes" rule="if (dst in ipv6-apnic-rotko) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v6 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v6 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v6 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
+/routing filter rule add chain=AMSIX-IN-v6 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v6 comment="Accept route" rule="set bgp-local-pref 100; set bgp-large-communities amsix-communities; accept"
 /routing filter rule add chain=graceful-shutdown rule="set bgp-communities graceful-shutdown; set bgp-local-pref 0; accept"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=too-specific rule="if (dst-len > 24) { reject; }"
@@ -646,8 +693,9 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (gw in ibgp-block-gw-v6) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
-/routing filter rule add chain=HE-AMSIX-IN-v4 comment="HE free transit priority" rule="set bgp-local-pref 190; set bgp-large-communities amsix-communities; accept"
+/routing filter rule add chain=HE-AMSIX-IN-v4 comment="HE free transit priority" rule="set bgp-local-pref 200; set bgp-large-communities amsix-communities; accept"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="set bgp-weight 1"
+/routing filter rule add chain=HE-AMSIX-IN-v6 comment="HE free transit priority" rule="set bgp-local-pref 200; set bgp-large-communities amsix-communities; accept"
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::/128 passive
 /routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4 passive
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-BKK20 disabled=no networks=fd00:dead:beef:30::1/126
@@ -815,5 +863,5 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
     \n:put \"BGP sessions: \$established/\$total established\"\r\
     \n"
 /system watchdog set watchdog-timer=no
-/tool traffic-monitor add disabled=yes interface=BKNIX-LAG name=bknix
-/tool traffic-monitor add disabled=yes interface=EU-AMS-IX-vlan3995 name=amsix
+/tool traffic-monitor add disabled=yes interface=BKNIX-10G-BKK00-LAG name=bknix
+/tool traffic-monitor add disabled=yes interface=vAMSIX-EU name=amsix
