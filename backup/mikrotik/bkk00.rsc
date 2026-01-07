@@ -1,4 +1,4 @@
-# 2026-01-06 14:16:27 by RouterOS 7.19.4
+# 2026-01-07 14:15:53 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -69,7 +69,7 @@
 /routing bgp template add afi=ipv6 as=142108 disabled=no input.filter=AMSIX-IN-v6 name=AMSIX-v6 nexthop-choice=default output.as-override=no .filter-chain=AMSIX-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ipv6 as=142108 disabled=no input.filter=HGC-SG-IN-v6 multihop=yes name=HGC-TH-SG-v6 nexthop-choice=default output.as-override=no .filter-chain=HGC-SG-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ip as=142108 disabled=no input.filter=HGC-SG-IN-v4 multihop=yes name=HGC-TH-SG-v4 nexthop-choice=default output.as-override=no .filter-chain=HGC-SG-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes router-id=10.155.255.4 routing-table=main
-/routing bgp template add add-path-out=all afi=ip as=142108 input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS-v4 nexthop-choice=propagate output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
+/routing bgp template add add-path-out=all afi=ip as=142108 input.allow-as=0 .filter=RR-CLIENT-IN-v4 name=RR-CLIENTS-v4 nexthop-choice=propagate output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ipv6 as=142108 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
 /routing bgp template add afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp router-id=10.155.255.4 routing-table=main
 /snmp community set [ find default=yes ] addresses=0.0.0.0/0,::/0
@@ -688,13 +688,13 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (gw in ibgp-block-gw-v4) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v4 comment="ECMP weight for anycast" rule="set bgp-weight 1"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (gw in ibgp-block-gw-v6) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing filter rule add chain=HE-AMSIX-IN-v4 comment="HE free transit priority" rule="set bgp-local-pref 200; set bgp-large-communities amsix-communities; accept"
-/routing filter rule add chain=RR-CLIENT-IN-v4 rule="set bgp-weight 1"
 /routing filter rule add chain=HE-AMSIX-IN-v6 comment="HE free transit priority" rule="set bgp-local-pref 200; set bgp-large-communities amsix-communities; accept"
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::/128 passive
 /routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4 passive

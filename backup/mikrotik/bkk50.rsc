@@ -1,4 +1,4 @@
-# 2026-01-05 23:12:14 by RouterOS 7.20beta2
+# 2026-01-06 23:11:40 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -139,7 +139,7 @@
 /ip dhcp-server lease add address=192.168.69.215 client-id=1:9c:6b:0:9f:f5:57 comment="bkk12 ipmi" mac-address=9C:6B:00:9F:F5:57 server=dhcp1
 /ip dhcp-server network add address=10.69.169.0/24 dns-server=9.9.9.9 gateway=10.69.169.1
 /ip dhcp-server network add address=192.168.0.0/16 dns-server=9.9.9.9 gateway=192.168.69.1
-/ip dns set cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4
+/ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4
 /ip firewall address-list add address=100.64.0.0/10 comment="CGNAT subnets" list=cgnat_customers
 /ip firewall address-list add list=ddos-attackers
 /ip firewall address-list add list=ddos-targets
