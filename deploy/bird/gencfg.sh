@@ -63,19 +63,31 @@ PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_NET6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
 INTERNAL_NET4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
 
-# Extract BGP RR network IPs
-BGP_LOCAL_V4=$(echo "$SITE_CONFIG" | jq -r '.bgp_rr_v4')
-BGP_LOCAL_V6=$(echo "$SITE_CONFIG" | jq -r '.bgp_rr_v6')
+# Extract host number from site name (bkk07 -> 07)
+HOST_NUM=$(echo "$SITE" | sed 's/[^0-9]//g')
 
-# Get RR IPs from the network config
-BGP_NETWORK_V4=$(jq -r '.networks.bgp_rr_network.v4' "$CONFIG_FILE")
-BGP_NETWORK_V6=$(jq -r '.networks.bgp_rr_network.v6' "$CONFIG_FILE")
+# Extract BGP RR network IPs (unified network)
+UNIFIED_LOCAL_V4=$(echo "$SITE_CONFIG" | jq -r '.bgp_rr_v4')
+UNIFIED_LOCAL_V6=$(echo "$SITE_CONFIG" | jq -r '.bgp_rr_v6')
 
-# Get RR IPs
-RR1_IP4=$(jq -r '.sites.bkk00.bgp_rr_v4 // empty' "$CONFIG_FILE")
-RR1_IP6=$(jq -r '.sites.bkk00.bgp_rr_v6 // empty' "$CONFIG_FILE")
-RR2_IP4=$(jq -r '.sites.bkk20.bgp_rr_v4 // empty' "$CONFIG_FILE")
-RR2_IP6=$(jq -r '.sites.bkk20.bgp_rr_v6 // empty' "$CONFIG_FILE")
+# Get unified RR IPs from the network config
+UNIFIED_RR1_V4=$(jq -r '.sites.bkk00.bgp_rr_v4 // empty' "$CONFIG_FILE")
+UNIFIED_RR1_V6=$(jq -r '.sites.bkk00.bgp_rr_v6 // empty' "$CONFIG_FILE")
+UNIFIED_RR2_V4=$(jq -r '.sites.bkk20.bgp_rr_v4 // empty' "$CONFIG_FILE")
+UNIFIED_RR2_V6=$(jq -r '.sites.bkk20.bgp_rr_v6 // empty' "$CONFIG_FILE")
+
+# Point-to-point BGP networks (per-host /30 or /31 style)
+# RR1: 10.155.1XX.0 (RR side), 10.155.1XX.1 (local side) where XX is host number
+# RR2: 10.155.2XX.0 (RR side), 10.155.2XX.1 (local side)
+RR1_IP4="10.155.1${HOST_NUM}.0"
+RR1_IP6="fd00:155:1${HOST_NUM}::"
+LOCAL_IP4_RR1="10.155.1${HOST_NUM}.1"
+LOCAL_IP6_RR1="fd00:155:1${HOST_NUM}::1"
+
+RR2_IP4="10.155.2${HOST_NUM}.0"
+RR2_IP6="fd00:155:2${HOST_NUM}::"
+LOCAL_IP4_RR2="10.155.2${HOST_NUM}.1"
+LOCAL_IP6_RR2="fd00:155:2${HOST_NUM}::1"
 
 # extract all three anycast tiers if present
 # Local (ULA) - internal only
@@ -143,20 +155,6 @@ define PUBLIC_NET4 = ${PUBLIC_IP4}/32;
 define PUBLIC_NET6 = ${PUBLIC_IP6}/128;
 define INTERNAL_NET4 = ${INTERNAL_NET4};
 define INTERNAL_NET6 = ${INTERNAL_NET6};
-
-# BGP RR Network (unified)
-define BGP_NETWORK_V4 = ${BGP_NETWORK_V4};
-define BGP_NETWORK_V6 = ${BGP_NETWORK_V6};
-
-# Route Reflector IPs
-define RR1_IP4 = ${RR1_IP4};
-define RR1_IP6 = ${RR1_IP6};
-define RR2_IP4 = ${RR2_IP4};
-define RR2_IP6 = ${RR2_IP6};
-
-# Local BGP IPs
-define LOCAL_IP4 = ${BGP_LOCAL_V4};
-define LOCAL_IP6 = ${BGP_LOCAL_V6};
 CONSTANTS
 
   # Add anycast constants - all three tiers
@@ -181,6 +179,22 @@ CONSTANTS
     [[ -n "$ANYCAST_SITE_V6_PREFIX" ]] && echo "define ANYCAST_SITE_V6_PREFIX = ${ANYCAST_SITE_V6_PREFIX};    # GUA /48 - Bangkok"
     [[ -n "$ANYCAST_GLOBAL_V6_PREFIX" ]] && echo "define ANYCAST_GLOBAL_V6_PREFIX = ${ANYCAST_GLOBAL_V6_PREFIX}; # GUA /36 - global"
   fi
+
+  # Point-to-point RR IPs
+  cat <<PTP_IPS
+
+# Route Reflector IPs
+define RR1_IP4 = ${RR1_IP4};
+define RR2_IP4 = ${RR2_IP4};
+define RR1_IP6 = ${RR1_IP6};
+define RR2_IP6 = ${RR2_IP6};
+
+# Local IPs for BGP sessions
+define LOCAL_IP4_RR1 = ${LOCAL_IP4_RR1};
+define LOCAL_IP6_RR1 = ${LOCAL_IP6_RR1};
+define LOCAL_IP4_RR2 = ${LOCAL_IP4_RR2};
+define LOCAL_IP6_RR2 = ${LOCAL_IP6_RR2};
+PTP_IPS
 
   cat <<'PREFERENCES'
 
@@ -370,47 +384,51 @@ generate_bgp_sessions() {
   echo "#"
   echo "# BGP Sessions to Route Reflectors"
   echo "#"
-  
-  # Generate IPv6 session to RR1
+
+  # Generate IPv6 session to RR1 (point-to-point)
   cat <<BGP_V6_RR1
 
 protocol bgp RR1_v6 from BGP_COMMON {
-    description "Route Reflector 1 - bkk00 IPv6";
-    neighbor ${RR1_IP6} as LOCAL_AS;
-    source address ${BGP_LOCAL_V6};
-    
+    description "Route Reflector - bkk00 IPv6";
+    neighbor RR1_IP6 as LOCAL_AS;
+    source address LOCAL_IP6_RR1;
+
     ipv6 {
         next hop self;
         import filter {
             # Prefer IPv6 routes
             preference = PREF_IPV6;
-            
+
             # Accept default route
             if net = ::/0 then {
                 bgp_local_pref = LOCAL_PREF_PRIMARY;
                 accept;
             }
-            
+
             # Accept all other routes
             accept;
         };
         export filter {
             # Export our unicast
             if net = PUBLIC_NET6 then accept;
-            
+
+            # Export anycast /128 host addresses
+            if net = ANYCAST_SITE_V6_HOST then accept;
+            if net = ANYCAST_GLOBAL_V6_HOST then accept;
+
             # Export GUA anycast prefixes for external BGP
             # Site-local /48 - Bangkok only services
             if net = ANYCAST_SITE_V6_PREFIX then accept;
             # Global /36 - worldwide services
             if net = ANYCAST_GLOBAL_V6_PREFIX then accept;
-            
+
             # ULA anycast stays internal only (not exported to eBGP)
             # But we can export to iBGP for internal routing
             if net = ANYCAST_LOCAL_V6_PREFIX then accept;
-            
+
             # Internal networks
             if net ~ INTERNAL_NET6 then accept;
-            
+
             # Don't export learned routes
             reject;
         };
@@ -418,20 +436,20 @@ protocol bgp RR1_v6 from BGP_COMMON {
 }
 BGP_V6_RR1
 
-  # Generate IPv4 session to RR1
-  cat <<BGP_V4_RR1
+  # Generate IPv4 session to RR1 (point-to-point)
+  cat <<'BGP_V4_RR1'
 
 protocol bgp RR1_v4 from BGP_COMMON {
-    description "Route Reflector 1 - bkk00 IPv4";
-    neighbor ${RR1_IP4} as LOCAL_AS;
-    source address ${BGP_LOCAL_V4};
-    
+    description "Route Reflector - bkk00 IPv4";
+    neighbor RR1_IP4 as LOCAL_AS;
+    source address LOCAL_IP4_RR1;
+
     ipv4 {
         next hop self;
         import filter {
             # Lower preference for IPv4
             preference = PREF_IPV4;
-            
+
             # Accept default
             if net = 0.0.0.0/0 then {
                 bgp_local_pref = LOCAL_PREF_BACKUP;
@@ -441,12 +459,12 @@ protocol bgp RR1_v4 from BGP_COMMON {
         };
         export filter {
             if net = PUBLIC_NET4 then accept;
-            
+
             # Export all anycast /32 addresses
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
             if net = ANYCAST_SITE_V4 then accept;   # Bangkok only
             if net = ANYCAST_GLOBAL_V4 then accept; # Global
-            
+
             if net ~ INTERNAL_NET4 then accept;
             reject;
         };
@@ -454,46 +472,50 @@ protocol bgp RR1_v4 from BGP_COMMON {
 }
 BGP_V4_RR1
 
-  # Generate IPv6 session to RR2
-  cat <<BGP_V6_RR2
+  # Generate IPv6 session to RR2 (point-to-point)
+  cat <<'BGP_V6_RR2'
 
 protocol bgp RR2_v6 from BGP_COMMON {
-    description "Route Reflector 2 - bkk20 IPv6";
-    neighbor ${RR2_IP6} as LOCAL_AS;
-    source address ${BGP_LOCAL_V6};
-    
+    description "Route Reflector - bkk20 IPv6";
+    neighbor RR2_IP6 as LOCAL_AS;
+    source address LOCAL_IP6_RR2;
+
     ipv6 {
         next hop self;
         import filter {
             # Prefer IPv6 routes
             preference = PREF_IPV6;
-            
+
             # Accept default route
             if net = ::/0 then {
                 bgp_local_pref = LOCAL_PREF_PRIMARY;
                 accept;
             }
-            
+
             # Accept all other routes
             accept;
         };
         export filter {
             # Export our unicast
             if net = PUBLIC_NET6 then accept;
-            
+
+            # Export anycast /128 host addresses
+            if net = ANYCAST_SITE_V6_HOST then accept;
+            if net = ANYCAST_GLOBAL_V6_HOST then accept;
+
             # Export GUA anycast prefixes for external BGP
             # Site-local /48 - Bangkok only services
             if net = ANYCAST_SITE_V6_PREFIX then accept;
             # Global /36 - worldwide services
             if net = ANYCAST_GLOBAL_V6_PREFIX then accept;
-            
+
             # ULA anycast stays internal only (not exported to eBGP)
             # But we can export to iBGP for internal routing
             if net = ANYCAST_LOCAL_V6_PREFIX then accept;
-            
+
             # Internal networks
             if net ~ INTERNAL_NET6 then accept;
-            
+
             # Don't export learned routes
             reject;
         };
@@ -501,20 +523,20 @@ protocol bgp RR2_v6 from BGP_COMMON {
 }
 BGP_V6_RR2
 
-  # Generate IPv4 session to RR2
-  cat <<BGP_V4_RR2
+  # Generate IPv4 session to RR2 (point-to-point)
+  cat <<'BGP_V4_RR2'
 
 protocol bgp RR2_v4 from BGP_COMMON {
-    description "Route Reflector 2 - bkk20 IPv4";
-    neighbor ${RR2_IP4} as LOCAL_AS;
-    source address ${BGP_LOCAL_V4};
-    
+    description "Route Reflector - bkk20 IPv4";
+    neighbor RR2_IP4 as LOCAL_AS;
+    source address LOCAL_IP4_RR2;
+
     ipv4 {
         next hop self;
         import filter {
             # Lower preference for IPv4
             preference = PREF_IPV4;
-            
+
             # Accept default
             if net = 0.0.0.0/0 then {
                 bgp_local_pref = LOCAL_PREF_BACKUP;
@@ -524,18 +546,77 @@ protocol bgp RR2_v4 from BGP_COMMON {
         };
         export filter {
             if net = PUBLIC_NET4 then accept;
-            
+
             # Export all anycast /32 addresses
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
             if net = ANYCAST_SITE_V4 then accept;   # Bangkok only
             if net = ANYCAST_GLOBAL_V4 then accept; # Global
-            
+
             if net ~ INTERNAL_NET4 then accept;
             reject;
         };
     };
 }
 BGP_V4_RR2
+
+  # Generate unified network sessions
+  cat <<UNIFIED
+
+# ============================================
+# UNIFIED RR NETWORK - 10.155.100.x (ECMP)
+# ============================================
+
+define UNIFIED_RR1_IP4 = ${UNIFIED_RR1_V4};
+define UNIFIED_RR2_IP4 = ${UNIFIED_RR2_V4};
+define UNIFIED_RR1_IP6 = ${UNIFIED_RR1_V6};
+define UNIFIED_RR2_IP6 = ${UNIFIED_RR2_V6};
+define UNIFIED_LOCAL_IP4 = ${UNIFIED_LOCAL_V4};
+define UNIFIED_LOCAL_IP6 = ${UNIFIED_LOCAL_V6};
+
+protocol bgp RR1_UNIFIED_v4 from BGP_COMMON {
+    description "Route Reflector 1 - bkk00 IPv4 UNIFIED";
+    neighbor UNIFIED_RR1_IP4 as LOCAL_AS;
+    source address UNIFIED_LOCAL_IP4;
+    ipv4 {
+        next hop self;
+        import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
+        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
+    };
+}
+
+protocol bgp RR1_UNIFIED_v6 from BGP_COMMON {
+    description "Route Reflector 1 - bkk00 IPv6 UNIFIED";
+    neighbor UNIFIED_RR1_IP6 as LOCAL_AS;
+    source address UNIFIED_LOCAL_IP6;
+    ipv6 {
+        next hop self;
+        import filter { preference = PREF_IPV6; if net = ::/0 then { bgp_local_pref = LOCAL_PREF_PRIMARY; accept; } accept; };
+        export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; if net ~ INTERNAL_NET6 then accept; reject; };
+    };
+}
+
+protocol bgp RR2_UNIFIED_v4 from BGP_COMMON {
+    description "Route Reflector 2 - bkk20 IPv4 UNIFIED";
+    neighbor UNIFIED_RR2_IP4 as LOCAL_AS;
+    source address UNIFIED_LOCAL_IP4;
+    ipv4 {
+        next hop self;
+        import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
+        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
+    };
+}
+
+protocol bgp RR2_UNIFIED_v6 from BGP_COMMON {
+    description "Route Reflector 2 - bkk20 IPv6 UNIFIED";
+    neighbor UNIFIED_RR2_IP6 as LOCAL_AS;
+    source address UNIFIED_LOCAL_IP6;
+    ipv6 {
+        next hop self;
+        import filter { preference = PREF_IPV6; if net = ::/0 then { bgp_local_pref = LOCAL_PREF_PRIMARY; accept; } accept; };
+        export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; if net ~ INTERNAL_NET6 then accept; reject; };
+    };
+}
+UNIFIED
 }
 
 # main execution
