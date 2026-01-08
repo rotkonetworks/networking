@@ -156,7 +156,7 @@ generate_sets() {
    set allowed_ssh {
        type ipv4_addr
        flags interval
-       elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 }
+       elements = { 0.0.0.0/0 }
    }
 
    set allowed_ssh_v6 {
@@ -221,7 +221,7 @@ generate_icmp_rules() {
            time-exceeded,
            parameter-problem,
            echo-request
-       } limit rate 10/second accept
+       } limit rate 10000/second accept
 ICMP
 }
 
@@ -334,17 +334,35 @@ generate_public_services() {
         # Bootnode P2P ports
 PUBLIC
 
- # collect all p2p ports (filter out null/empty)
+ # Collect p2p ports - handle both simple values and site-specific objects
  local p2p_ports
- p2p_ports=$(jq -r '.bootnodes[] | select(.ports.p2p != null) | .ports.p2p' "$SERVICES_FILE" 2>/dev/null |
-   sort -u |
+ p2p_ports=$(jq -r --arg site "$SITE" '
+   .bootnodes[] 
+   | select(.ports.p2p != null) 
+   | .ports.p2p 
+   | if type == "object" then 
+       .[$site] // empty 
+     else 
+       . 
+     end 
+   | select(. != "" and . != null)' "$SERVICES_FILE" 2>/dev/null |
+   sort -nu |
    tr '\n' ',' |
    sed 's/,$//')
 
- # collect only non-null websocket ports
+ # Collect p2p_wss ports - handle both simple values and site-specific objects  
  local p2p_wss_ports
- p2p_wss_ports=$(jq -r '.bootnodes[] | select(.ports.p2p_wss != null) | .ports.p2p_wss' "$SERVICES_FILE" 2>/dev/null |
-   sort -u |
+ p2p_wss_ports=$(jq -r --arg site "$SITE" '
+   .bootnodes[] 
+   | select(.ports.p2p_wss != null) 
+   | .ports.p2p_wss 
+   | if type == "object" then 
+       .[$site] // empty 
+     else 
+       . 
+     end 
+   | select(. != "" and . != null)' "$SERVICES_FILE" 2>/dev/null |
+   sort -nu |
    tr '\n' ',' |
    sed 's/,$//')
 
@@ -418,6 +436,9 @@ table ip nat {
 
 NAT
 
+  # Generate port forwards for VMs and services
+  generate_port_forwards
+
   # Generate bootnode port mappings
   generate_bootnode_mappings
 
@@ -447,37 +468,80 @@ table ip6 nat {
 NAT_POST
 }
 
-# Generate bootnode port mappings
-generate_bootnode_mappings() {
- echo "        # Bootnode P2P ports"
- # Read bootnodes from services.json
+# Generate port forwards for VMs and services
+generate_port_forwards() {
+ echo "        # VM and service port forwards"
 
- jq -r --arg site "$SITE" '
-   .bootnodes
-   | to_entries[]
-   | select(.value.ports != null)
-   | (
-       .key as $chain
-       | (
-           .value.container
-           | if type=="object" then .[$site] else . end
-         ) as $container
-       | .value.ports.p2p as $p2p
-       | (.value.ports.p2p_wss // "") as $p2p_wss
-       | "\($chain) \($container) \($p2p) \($p2p_wss)"
-     )
- ' "$SERVICES_FILE" | while read -r chain container p2p p2p_wss; do
-   if [[ -n "$p2p" && "$p2p" != "null" ]]; then
-     echo "        # ${chain}"
-     echo "        tcp dport ${p2p} dnat to ${container}:${p2p}"
-     echo "        udp dport ${p2p} dnat to ${container}:${p2p}"
-     if [[ -n "$p2p_wss" && "$p2p_wss" != "null" ]]; then
-       echo "        tcp dport ${p2p_wss} dnat to ${container}:${p2p_wss}"
+ # Read port forwards from services.json for current site
+ if jq -e ".port_forwards.\"$SITE\"" "$SERVICES_FILE" >/dev/null 2>&1; then
+   jq -r --arg site "$SITE" '
+     .port_forwards[$site][]
+     | "\(.name) \(.external_port) \(.internal_ip) \(.internal_port) \(.protocol)"
+   ' "$SERVICES_FILE" | while read -r name ext_port int_ip int_port protocol; do
+     if [[ -n "$ext_port" && "$ext_port" != "null" ]]; then
+       echo "        # ${name}"
+       echo "        ${protocol} dport ${ext_port} dnat to ${int_ip}:${int_port}"
+       echo
      fi
-     echo
-   fi
- done
+   done
+ fi
 }
 
+# Generate bootnode port mappings
+generate_bootnode_mappings() {
+    echo "        # Bootnode P2P ports"
+    
+    # Process each bootnode entry - use site-specific container and ports for nftables NAT
+    jq -r --arg site "$SITE" '
+        .bootnodes
+        | to_entries[]
+        | select(.value.ports != null and .value.container != null)
+        | {
+            chain: .key,
+            container: (
+                .value.container 
+                | if type == "object" then 
+                    .[$site] // empty
+                  else 
+                    . 
+                  end
+            ),
+            p2p: (
+                .value.ports.p2p
+                | if type == "object" then
+                    .[$site] // empty
+                  else
+                    .
+                  end
+            ),
+            p2p_wss: (
+                (.value.ports.p2p_wss // null)
+                | if type == "object" then
+                    .[$site] // null
+                  else
+                    .
+                  end
+            )
+          }
+        | select(.container != null and .container != "" and .p2p != null and .p2p != "")
+        | "\(.chain)|\(.container)|\(.p2p)|\(.p2p_wss)"
+    ' "$SERVICES_FILE" | while IFS='|' read -r chain container p2p p2p_wss; do
+        
+        # Skip if essential values are missing
+        if [[ -z "$chain" || -z "$container" || -z "$p2p" || "$p2p" == "null" ]]; then
+            continue
+        fi
+        
+        echo "        # ${chain}"
+        echo "        tcp dport ${p2p} dnat to ${container}:${p2p}"
+        echo "        udp dport ${p2p} dnat to ${container}:${p2p}"
+        
+        # Add WebSocket port if present
+        if [[ -n "$p2p_wss" && "$p2p_wss" != "null" ]]; then
+            echo "        tcp dport ${p2p_wss} dnat to ${container}:${p2p_wss}"
+        fi
+        echo
+    done
+}
 # Main execution
 generate_nftables_config

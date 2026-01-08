@@ -120,7 +120,7 @@ generate_ssl_frontend() {
   cat <<'EOF'
 # SSL Frontend
 frontend ssl-frontend
-    bind *:443 ssl crt /etc/haproxy/certs/ alpn h2,http/1.1
+    bind *:443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko alpn h2,http/1.1
     mode http
     
     # Security headers
@@ -165,18 +165,26 @@ frontend ssl-frontend
 EOF
 
   # Generate domain ACLs only for configured chains
-  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+  echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
+    local chain=$(echo "$entry" | jq -r '.key')
+    local chain_type=$(echo "$entry" | jq -r '.value.type')
     echo "    # ${chain} ACLs"
-    echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
+    if [[ "$chain_type" == "misc" ]]; then
+      # Misc services only use rotko.net
+      echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net"
+    else
+      # Substrate chains use all domain suffixes
+      echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
+    fi
   done
 
-  # Path-based ACLs for centralized endpoints
+  # Path-based ACLs for centralized endpoints (excludes misc type)
   echo ""
   echo "    # Centralized endpoint ACLs"
   echo "    acl is_rpc hdr_beg(host) -i rpc."
   echo "    acl is_sys hdr_beg(host) -i sys."
 
-  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
     echo "    acl path_${chain} path_beg -i /${chain}"
   done
 
@@ -189,8 +197,8 @@ EOF
   done
 
   echo ""
-  # Path-based routing
-  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+  # Path-based routing (excludes misc type - those only use direct domain)
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
     echo "    use_backend ${chain}-backend if is_rpc path_${chain}"
     echo "    use_backend ${chain}-backend if is_sys path_${chain}"
   done
@@ -209,25 +217,50 @@ generate_backends() {
 
   echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
     local chain=$(echo "$entry" | jq -r '.key')
+    local chain_type=$(echo "$entry" | jq -r '.value.type')
     local instances=$(echo "$entry" | jq -r '.value.instances')
 
     echo ""
     echo "backend ${chain}-backend"
-    echo "    mode http"
-    echo "    balance leastconn"
-    echo "    "
-    echo "    # Health checks"
-    echo "    option httpchk"
-    echo '    http-check send meth POST uri / ver HTTP/1.1 hdr Host localhost hdr Content-Type application/json body "{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"'
-    echo "    http-check expect rstring \"isSyncing.*false\""
-    echo "    "
-    echo "    # Retry and timeout"
-    echo "    retries 2"
-    echo "    option redispatch"
-    echo "    timeout server 30s"
-    echo "    "
-    echo "    # Servers"
-    echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+
+    # Generate backend config based on service type
+    case "$chain_type" in
+      misc)
+        # Misc services - HTTP mode with simple TCP health check
+        echo "    mode http"
+        echo "    balance leastconn"
+        echo "    "
+        echo "    # Simple health check for misc services"
+        echo "    option httpchk"
+        echo "    http-check connect"
+        echo "    "
+        echo "    # Retry and timeout"
+        echo "    retries 2"
+        echo "    option redispatch"
+        echo "    timeout server 30s"
+        echo "    "
+        echo "    # Servers"
+        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server \($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+        ;;
+      *)
+        # Substrate-based chains (relay, system-parachain, parachain) - HTTP mode with JSON-RPC health check
+        echo "    mode http"
+        echo "    balance leastconn"
+        echo "    "
+        echo "    # Health checks"
+        echo "    option httpchk"
+        echo '    http-check send meth POST uri / ver HTTP/1.1 hdr Host localhost hdr Content-Type application/json body "{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}"'
+        echo "    http-check expect rstring \"isSyncing.*false\""
+        echo "    "
+        echo "    # Retry and timeout"
+        echo "    retries 2"
+        echo "    option redispatch"
+        echo "    timeout server 30s"
+        echo "    "
+        echo "    # Servers"
+        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+        ;;
+    esac
   done
 
   # Minimal deny backend
@@ -290,7 +323,7 @@ EOF
   echo
 
   # per-chain ACLs (parachain)
-  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" |
+  jq -r 'to_entries[] | select(.value.type=="parachain" or .value.type=="system-parachain") | .key' <<<"$bootchains_json" |
     while read -r chain; do
       printf "    acl domain-match-%s req_ssl_sni -i %s.boot.rotko.net" "$chain" "$chain"
       echo
@@ -298,14 +331,14 @@ EOF
   echo
 
   # per-chain routing (parachain)
-  jq -r 'to_entries[] | select(.value.type=="parachain") | .key' <<<"$bootchains_json" |
+  jq -r 'to_entries[] | select(.value.type=="parachain" or .value.type=="system-parachain") | .key' <<<"$bootchains_json" |
     while read -r chain; do
       printf "    use_backend %s-p2p-wss-backend if domain-match-%s\n" "$chain" "$chain"
     done
   echo
 }
 
-# Generate P2P WSS backends
+# Generate P2P WSS backends - use "haproxy" container key for centralized routing
 generate_wss_backends() {
   local bootchains_json="$1"
 
@@ -314,22 +347,52 @@ generate_wss_backends() {
 # P2P WSS Backends
 EOF
 
-  # for each relay or parachain bootnode, pick its scalar container and static port
+  # Process each bootnode - use "haproxy" container address for centralized HAProxy routing
   echo "$bootchains_json" |
     jq -r 'to_entries[]
-             | select(.value.type=="relay" or .value.type=="parachain")
-             | [.key, .value.type, .value.container]
-             | @tsv' |
-    while IFS=$'\t' read -r chain ctype container; do
-      # static port: 30335 for relay, 30435 for parachain
-      if [[ "$ctype" == "relay" ]]; then
+           | select(.value.type=="relay" or .value.type=="parachain" or .value.type=="system-parachain")
+           | select(.value.container != null)
+           | {
+               chain: .key,
+               type: .value.type,
+               container: (
+                 .value.container 
+                 | if type == "object" then
+                     .haproxy // empty
+                   else 
+                     .
+                   end
+               ),
+               p2p_wss_port: (
+                 (.value.ports.p2p_wss // null)
+                 | if type == "object" then
+                     .haproxy // null
+                   else
+                     .
+                   end
+               )
+             }
+           | select(.container != null and .container != "")
+           | "\(.chain)|\(.type)|\(.container)|\(.p2p_wss_port)"' |
+    while IFS='|' read -r chain ctype container p2p_wss_port; do
+
+      # Skip if no container
+      if [[ -z "$container" || "$container" == "null" ]]; then
+        continue
+      fi
+
+      echo "backend ${chain}-p2p-wss-backend"
+      echo "    mode tcp"
+
+      # Use custom p2p_wss port if available, otherwise fall back to standard ports
+      if [[ -n "$p2p_wss_port" && "$p2p_wss_port" != "null" ]]; then
+        port="$p2p_wss_port"
+      elif [[ "$ctype" == "relay" ]]; then
         port=30335
       else
         port=30435
       fi
 
-      echo "backend ${chain}-p2p-wss-backend"
-      echo "    mode tcp"
       echo "    server ${chain} ${container}:${port} check"
       echo
     done

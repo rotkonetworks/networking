@@ -215,6 +215,18 @@ iface vmbr0 inet static
     pre-down ip route flush table mgmt 2>/dev/null || true
 INTERFACES
 
+  # Add IPv6 to management bridge if configured
+  if [[ -n "$MANAGEMENT_V6" ]] && [[ -n "$MANAGEMENT_V6_GW" ]]; then
+    cat <<MGMT_V6
+
+iface vmbr0 inet6 static
+    address ${MANAGEMENT_V6}
+    gateway ${MANAGEMENT_V6_GW}
+    accept_ra 0
+    autoconf 0
+MGMT_V6
+  fi
+
   # Check if using bonded VLANs (new design)
   if [[ "$BONDED_VLANS" == "true" ]]; then
     # Split uplink configuration
@@ -289,6 +301,17 @@ iface bond-bgp inet manual
     bond-slaves vlan${BGP_RR_VLAN}-p1 vlan${BGP_RR_VLAN}-p2
     bond-mode ${BOND_MODE}
     bond-primary vlan${BGP_RR_VLAN}-p1
+    bond-miimon ${BOND_MIIMON}
+    bond-lacp-rate ${BOND_LACP_RATE}
+    bond-xmit-hash-policy layer3+4
+    mtu 1500
+    
+# vlan100 bond (direct + via bkk10)
+auto bond-vlan100
+iface bond-vlan100 inet manual
+    bond-slaves ${UP1_BASE}-vlan${VLAN_100} ${UP2_BASE}-vlan${VLAN_100}
+    bond-mode ${BOND_MODE}
+    bond-primary ${UP1_BASE}-vlan${VLAN_100}
     bond-miimon ${BOND_MIIMON}
     bond-lacp-rate ${BOND_LACP_RATE}
     bond-xmit-hash-policy layer3+4
@@ -380,6 +403,11 @@ COMMON_CONFIG
 
   echo "    pre-down ip route flush table anycast 2>/dev/null || true"
   echo "    pre-down ip rule del iif vmbr2 lookup main 2>/dev/null || true"
+  cat <<COMMON_CONFIG
+
+iface vmbr2:1 inet static
+    address ${BGP_RR2_V4}/31
+COMMON_CONFIG
 
   cat <<COMMON_CONFIG
 
@@ -387,6 +415,17 @@ iface vmbr2 inet6 static
     address ${BGP_RR_V6}/${BGP_NETWORK_V6##*/}
     accept_ra 0
     autoconf 0
+    # public IPv6 on vmbr2 for correct source address selection
+    # (also on loopback for BIRD/BGP stability)
+    up ip -6 addr add ${PUBLIC_V6}/128 dev vmbr2
+COMMON_CONFIG
+
+  # Add anycast IPv6 to vmbr2 for source selection
+  [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "    up ip -6 addr add ${ANYCAST_LOCAL_V6}/128 dev vmbr2"
+  [[ -n "$ANYCAST_SITE_V6" ]] && echo "    up ip -6 addr add ${ANYCAST_SITE_V6}/128 dev vmbr2"
+  [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "    up ip -6 addr add ${ANYCAST_GLOBAL_V6}/128 dev vmbr2"
+
+  cat <<COMMON_CONFIG
     # policy-based routing for IPv6 public services
     # anycast rules have higher priority to ensure proper routing
 COMMON_CONFIG
@@ -443,6 +482,12 @@ POLICY_V6
 
   echo "    pre-down ip -6 route flush table anycast 2>/dev/null || true"
   echo "    pre-down ip -6 rule del iif vmbr2 lookup main 2>/dev/null || true"
+
+  cat <<COMMON_CONFIG
+
+iface vmbr2:1 inet6 static
+    address ${BGP_RR2_V6}/127
+COMMON_CONFIG
 }
 
 # main execution

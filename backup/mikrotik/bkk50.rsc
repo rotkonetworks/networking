@@ -1,15 +1,28 @@
-# 2025-08-22 23:04:05 by RouterOS 7.20beta2
+# 2026-01-06 23:11:40 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
 # serial number = HEF08WE12HR
 /interface bridge add name=bridge_local vlan-filtering=yes
+/interface ethernet set [ find default-name=ether1 ] comment=pve-node-220
+/interface ethernet set [ find default-name=ether2 ] comment=pve-node-218
+/interface ethernet set [ find default-name=ether3 ] comment=trunk-pve-cluster
+/interface ethernet set [ find default-name=ether5 ] comment=asrock-221
+/interface ethernet set [ find default-name=ether6 ] comment=asrock-103
+/interface ethernet set [ find default-name=ether8 ] comment=asrock-204
 /interface ethernet set [ find default-name=ether9 ] comment=bkk-sax-01-kvm
 /interface ethernet set [ find default-name=ether10 ] comment=bkk-sax-01-9950x
+/interface ethernet set [ find default-name=ether11 ] comment=bkk06-mgmt
+/interface ethernet set [ find default-name=ether12 ] comment=bkk06-pub
+/interface ethernet set [ find default-name=ether13 ] comment=bkk07-mgmt
+/interface ethernet set [ find default-name=ether14 ] comment=bkk07-pub
+/interface ethernet set [ find default-name=ether15 ] comment=bkk08-mgmt
+/interface ethernet set [ find default-name=ether16 ] comment=bkk08-pub
 /interface ethernet set [ find default-name=sfp-sfpplus1 ] advertise=10G-baseCR comment="atm to bkk00 hk" fec-mode=fec91
 /interface ethernet set [ find default-name=sfp-sfpplus2 ] advertise=10G-baseCR comment="atm to bkk20 sg" fec-mode=fec91
 /interface wireguard add listen-port=52281 mtu=1420 name=bkk_sax_wg
 /interface wireguard add listen-port=52180 mtu=1420 name=wg_rotko
+/interface vlan add interface=bridge_local name=vlan_cgnat vlan-id=100
 /interface bonding add comment=bkk00-sfp11 lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=BKK20-sfp11 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus2 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=saxemberg-9950X-client name=SAX-BKK-01 slaves=ether9
@@ -19,14 +32,16 @@
 /interface list add name=WG
 /ip pool add name=dhcp69 ranges=192.168.69.210-192.168.69.236
 /ip pool add name=saxbkk ranges=10.69.169.2-10.69.169.254
+/ip pool add name=cgnat_pool ranges=100.64.0.10-100.64.0.250
 /ip dhcp-server add address-pool=dhcp69 interface=bridge_local name=dhcp1
 /ip dhcp-server add address-pool=saxbkk interface=SAX-BKK-01-KVM name=saxemberg-kvm
+/ip dhcp-server add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /port set 0 name=serial0
 /routing bgp instance add as=142108 name=bgp-instance-1 router-id=10.155.255.3
 /routing bgp template add add-path-out=all afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=iBGP-v4 nexthop-choice=default output.filter-chain=iBGP-OUT-v4
 /routing bgp template add afi=ipv6 as=142108 input.filter=iBGP-IN-v6 multihop=yes name=iBGP-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6
 /routing id add id=10.155.255.3 name=main select-dynamic-id=only-static select-from-vrf=main
-/routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never router-id=10.155.255.3
+/routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never redistribute=static router-id=10.155.255.3
 /routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.3 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
@@ -51,6 +66,7 @@
 /interface bridge port add bridge=bridge_local comment=bkk08 interface=ether16
 /ip firewall connection tracking set udp-timeout=10s
 /ipv6 settings set accept-router-advertisements=no
+/interface bridge vlan add bridge=bridge_local tagged=ether13,ether14 vlan-ids=100
 /interface list member add interface=sfp-sfpplus1 list=WAN
 /interface list member add interface=sfp-sfpplus2 list=WAN
 /interface list member add interface=bridge_local list=local
@@ -83,6 +99,10 @@
 /interface wireguard peers add allowed-address=172.30.50.4/32 comment=bkk04 interface=wg_rotko name=peer7 public-key="SRPXYavqbiZpuLFMhNRT/mieCy6hsYaOODb3zNtzriw="
 /interface wireguard peers add allowed-address=172.30.50.6/32 comment=alarchlinux interface=wg_rotko name=peer11 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
 /interface wireguard peers add allowed-address=172.29.169.11/32 comment=al interface=bkk_sax_wg name=peer12 public-key="fpjwiYxizNATSZMwrK7wKf2IqSfm/ZKcSOur9BMT5Bg="
+/interface wireguard peers add allowed-address=172.31.0.0/16 endpoint-address=172.16.10.1 endpoint-port=51820 interface=wg_rotko name=bkk00 persistent-keepalive=25s public-key="gkXioj9pgmNULmvJqN9LtR31XaCfVWF/11QHxJBYhTg="
+/interface wireguard peers add allowed-address=172.31.0.6/32 interface=wg_rotko name=bkk06 public-key="kVfcladp4l87PsMtzLmfgBU4aumgQDC/dKOfa8NSbxk="
+/interface wireguard peers add allowed-address=172.31.0.7/32 interface=wg_rotko name=bkk07 public-key="4CGbVHKfkhiyga53lFaydcweOe0vgozADvXdJApyEiM="
+/interface wireguard peers add allowed-address=172.31.0.8/32 interface=wg_rotko name=bkk08 public-key="HWIsnsm+CY6ul6kX1+llsUT1JZ5IdzxOunjIAhoTvkk="
 /ip address add address=192.168.88.50/24 comment=defconf interface=bridge_local network=192.168.88.0
 /ip address add address=192.168.69.1/16 interface=bridge_local network=192.168.0.0
 /ip address add address=10.155.255.3 interface=lo network=10.155.255.3
@@ -99,6 +119,8 @@
 /ip address add address=10.69.169.1/24 interface=SAX-BKK-01-KVM network=10.69.169.0
 /ip address add address=160.22.181.20 interface=lo network=160.22.181.20
 /ip address add address=172.16.50.1/31 interface=BKK00-LAG network=172.16.50.0
+/ip address add address=100.64.0.1/24 interface=bridge_local network=100.64.0.0
+/ip address add address=172.31.0.50/16 interface=wg_rotko network=172.31.0.0
 /ip dhcp-server lease add address=192.168.69.232 client-id=1:48:da:35:6f:6b:66 comment="bkk09nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:6B:66 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.231 client-id=1:e4:5f:1:de:47:96 comment="blikvm nixos" mac-address=E4:5F:01:DE:47:96 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.230 comment=bkk09 mac-address=58:47:CA:78:CD:48 server=dhcp1
@@ -114,10 +136,10 @@
 /ip dhcp-server lease add address=192.168.69.210 comment=val-paseo-bkk13-01 mac-address=52:54:00:DD:41:AE server=dhcp1
 /ip dhcp-server lease add address=192.168.69.219 client-id=ff:0:dd:1e:d8:0:1:0:1:2f:8f:7a:95:52:54:0:dd:1e:d8 comment=val-paseo-bkk13-02 mac-address=52:54:00:DD:1E:D8 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.222 client-id=ff:0:96:39:9c:0:1:0:1:2f:8f:96:fb:52:54:0:96:39:9c comment=val-kusama-bkk13-01 mac-address=52:54:00:96:39:9C server=dhcp1
-/ip dhcp-server lease add address=192.168.69.215 client-id=1:9c:6b:0:9f:f5:57 mac-address=9C:6B:00:9F:F5:57 server=dhcp1
+/ip dhcp-server lease add address=192.168.69.215 client-id=1:9c:6b:0:9f:f5:57 comment="bkk12 ipmi" mac-address=9C:6B:00:9F:F5:57 server=dhcp1
 /ip dhcp-server network add address=10.69.169.0/24 dns-server=9.9.9.9 gateway=10.69.169.1
 /ip dhcp-server network add address=192.168.0.0/16 dns-server=9.9.9.9 gateway=192.168.69.1
-/ip dns set cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4
+/ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4
 /ip firewall address-list add address=100.64.0.0/10 comment="CGNAT subnets" list=cgnat_customers
 /ip firewall address-list add list=ddos-attackers
 /ip firewall address-list add list=ddos-targets
@@ -179,10 +201,35 @@
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=22901 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10901 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=8233 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=31051 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=34021 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=25001 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=25002 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=3513 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=13513 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=34031 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=3323 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=13323 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=34032 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=3147 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=3341 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10971 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=34071 protocol=tcp
+/ip firewall filter add action=drop chain=input comment="ephemerals runner - Block VM to router 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=input comment="ephemerals runner - Block VM to router 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=input comment="ephemerals runner - Block VM to router 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block VM to 192.168" dst-address=192.168.0.0/16 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block CGNAT to local 192.168" dst-address=192.168.0.0/16 src-address=100.64.0.0/24
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block VM to 10.x" dst-address=10.0.0.0/8 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block CGNAT to local 10.x" dst-address=10.0.0.0/8 src-address=100.64.0.0/24
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block VM to 172.16-31" dst-address=172.16.0.0/12 src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block CGNAT to local 172.16-31" dst-address=172.16.0.0/12 src-address=100.64.0.0/24
+/ip firewall filter add action=accept chain=forward comment="ephemerals runner - Allow VM to internet" src-address=160.22.181.254
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block local to CGNAT" dst-address=100.64.0.0/24 src-address=192.168.0.0/16
+/ip firewall filter add action=drop chain=forward comment="ephemerals runner - Block local to CGNAT" dst-address=100.64.0.0/24 src-address=10.0.0.0/8
 /ip firewall filter add action=accept chain=forward comment="BYPASS RULE - DISABLE WHEN NOT NEEDED"
 /ip firewall filter add action=accept chain=forward dst-port=3142 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10972 protocol=tcp
@@ -838,6 +885,7 @@
 /ip firewall filter add action=accept chain=forward dst-port=30433 protocol=tcp
 /ip firewall filter add action=drop chain=forward comment="Drop all other forward"
 /ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi https - disabled" dst-address=160.22.181.181 dst-port=17845 protocol=tcp to-addresses=192.168.69.204 to-ports=443
+/ip firewall nat add action=masquerade chain=srcnat out-interface-list=WAN src-address=100.64.0.0/24
 /ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi http - disabled" dst-address=160.22.181.181 dst-port=17846 protocol=tcp to-addresses=192.168.69.204 to-ports=80
 /ip firewall nat add action=masquerade chain=srcnat out-interface-list=WAN src-address=172.31.0.0/24
 /ip firewall nat add action=src-nat chain=srcnat out-interface-list=WAN src-address=192.168.0.0/16 to-addresses=160.22.181.181
@@ -1486,6 +1534,19 @@
 /ip firewall nat add action=masquerade chain=srcnat comment="Hairpin NAT - masquerade internal traffic accessing public services to enable loopback" out-interface=bridge_local src-address=192.168.0.0/16
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34008 protocol=tcp to-addresses=192.168.69.201 to-ports=34008
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34009 protocol=tcp to-addresses=192.168.69.201 to-ports=34009
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32506 protocol=tcp to-addresses=192.168.69.202 to-ports=32506
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3323 protocol=tcp to-addresses=192.168.142.13 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34032 protocol=tcp to-addresses=192.168.142.13 to-ports=34032
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=3513 protocol=tcp to-addresses=192.168.141.13 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34031 protocol=tcp to-addresses=192.168.141.13 to-ports=34031
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32302 protocol=tcp to-addresses=192.168.69.201 to-ports=32302
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32301 protocol=tcp to-addresses=192.168.69.202 to-ports=32301
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=31101 protocol=tcp to-addresses=192.168.67.101 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=25001 protocol=tcp to-addresses=10.7.0.100 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=25002 protocol=tcp to-addresses=100.64.0.2 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.60 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22901 protocol=tcp to-addresses=192.168.77.201 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=8233 protocol=tcp to-addresses=192.168.77.201 to-ports=8233
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
@@ -1510,6 +1571,8 @@
 /ip route add distance=220 gateway=BKK00-LAG
 /ip route add blackhole distance=220 dst-address=160.22.181.169/29
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
+/ip route add disabled=no dst-address=160.22.181.254/32 gateway=100.64.0.2
+/ip route add disabled=no dst-address=160.22.181.252/32 gateway=192.168.77.82
 /ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32
@@ -1527,6 +1590,7 @@
 /ipv6 address add address=fd00:dead:beef:2050::1/127 advertise=no comment="ULA P2P to BKK20" interface=BKK20-LAG
 /ipv6 address add address=2401:a860:1181:50::1/127 advertise=no comment="Global P2P to BKK00" interface=BKK00-LAG
 /ipv6 address add address=2401:a860:1181:2050::1/127 advertise=no comment="Global P2P to BKK20" interface=BKK20-LAG
+/ipv6 address add address=2401:a860:1181:50::1 advertise=no comment="mgmt-v6 50::/64" interface=bridge_local
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -1589,6 +1653,8 @@
 /routing ospf interface-template add area=backbone comment=rotko-infra-v4 disabled=no networks=160.22.181.0/26 passive
 /routing ospf interface-template add area=backbone-v6 comment=anycast-v6 disabled=no networks=2401:a860::/48 passive
 /routing ospf interface-template add area=backbone-v6 comment=ibp-unicast-v6 disabled=no networks=2401:a860:1181::/48 passive
+/routing ospf interface-template add area=backbone comment=ibp-runner-001 disabled=no networks=160.22.181.254/32 passive
+/routing ospf interface-template add area=backbone-v6 comment=sax-v6 disabled=no networks=2401:a860:169::/64 passive
 /snmp set enabled=yes trap-version=3
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk50
