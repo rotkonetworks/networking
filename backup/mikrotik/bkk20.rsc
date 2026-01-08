@@ -1,4 +1,4 @@
-# 2026-01-07 14:15:53 by RouterOS 7.19.4
+# 2026-01-08 14:15:36 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -24,9 +24,10 @@
 /interface ethernet set [ find default-name=sfp28-9 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-10 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
-/interface ethernet set [ find default-name=sfp28-12 ] comment="25G DAC to bkk60\? - UNCONFIGURED"
+/interface ethernet set [ find default-name=sfp28-12 ] comment=BKK12
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
 /interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
+/interface vlan add interface=bridge_vlan name=vlan-p2p-bkk10 vlan-id=210
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk10-sfp5-gw lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add mode=802.3ad name=BKK40-LAG slaves=qsfp28-2-1
@@ -89,6 +90,8 @@
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK40-LAG,BKK10-LAG vlan-ids=400
+/interface bridge vlan add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=210
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
@@ -130,11 +133,12 @@
 /ip address add address=192.168.88.20/24 comment=bkk20-mgmt disabled=yes interface=ether1 network=192.168.88.0
 /ip address add address=160.22.181.178 comment="for rkpi to work" interface=BKK00-LAG network=160.22.181.178
 /ip address add address=10.155.254.200/24 interface=vlan-400 network=10.155.254.0
-/ip address add address=172.16.210.0/31 interface=BKK10-LAG network=172.16.210.0
+/ip address add address=172.16.210.0/31 interface=vlan-p2p-bkk10 network=172.16.210.0
 /ip address add address=10.155.100.2/24 interface=qnq-400-100 network=10.155.100.0
 /ip address add address=10.155.206.0/31 interface=BKK06-LAG network=10.155.206.0
 /ip address add address=10.155.207.0/31 interface=BKK07-LAG network=10.155.207.0
 /ip address add address=10.155.208.0/31 interface=BKK08-LAG network=10.155.208.0
+/ip address add address=172.16.200.20/24 disabled=yes interface=bridge_vlan network=172.16.200.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
