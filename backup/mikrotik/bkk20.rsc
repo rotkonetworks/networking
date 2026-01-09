@@ -1,4 +1,4 @@
-# 2026-01-09 16:10:12 by RouterOS 7.19.4
+# 2026-01-09 16:35:36 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -44,7 +44,7 @@
 /interface vlan add interface=HGC-10G-SG-BKK20-LAG name=vAMSIX-HK vlan-id=3994
 /interface vlan add interface=HGC-10G-SG-BKK20-LAG name=vHGC-HK-BACKUP vlan-id=2517
 /interface vlan add interface=HGC-10G-SG-BKK20-LAG name=vHGC-SG-PRIMARY vlan-id=2520
-/interface vlan add interface=BKK10-LAG name=vlan-p2p-bkk10 vlan-id=110
+/interface vlan add interface=BKK10-LAG name=vlan-p2p-bkk10 vlan-id=210
 /interface bonding add mode=active-backup name=BKK06-LAG slaves=qnq-400-206,qnq-400-216
 /interface bonding add mode=active-backup name=BKK07-LAG slaves=qnq-400-207,qnq-400-217
 /interface bonding add mode=active-backup name=BKK08-LAG slaves=qnq-400-208,qnq-400-218

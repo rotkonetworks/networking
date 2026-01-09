@@ -1,4 +1,4 @@
-# 2025-12-06 08:55:03 by RouterOS 7.20beta4
+# 2025-12-06 09:20:27 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -7,11 +7,11 @@
 /interface bridge add name=bridge_vlan vlan-filtering=yes
 /interface ethernet set [ find default-name=ether11 ] disabled=yes
 /interface vlan add interface=bridge_vlan name=vlan-p2p-bkk00 vlan-id=110
-/interface vlan add interface=bridge_vlan name=vlan-p2p-bkk20 vlan-id=210
+/interface vlan add disabled=yes interface=bridge_vlan name=vlan-p2p-bkk20 vlan-id=210
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus3 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK60-LAG slaves=sfp-sfpplus2,sfp-sfpplus4 transmit-hash-policy=layer-2-and-3
-/interface vlan add interface=BKK20-LAG name=vlan-direct-bkk20 vlan-id=110
+/interface vlan add interface=BKK20-LAG name=vlan-direct-bkk20 vlan-id=210
 /interface list add name=WAN
 /interface list add name=LAN
 /interface wireless security-profiles set [ find default=yes ] supplicant-identity=MikroTik
@@ -57,7 +57,7 @@
 /ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
 /ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
 /ip service set ftp address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 disabled=yes
-/ip service set ssh address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16
+/ip service set ssh address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,160.22.181.181/32
 /ip service set telnet address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 /ip service set www address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 disabled=yes
 /ip service set www-ssl address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
