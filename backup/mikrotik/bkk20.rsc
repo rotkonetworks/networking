@@ -1,4 +1,4 @@
-# 2026-01-09 14:16:08 by RouterOS 7.19.4
+# 2026-01-09 16:10:12 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -27,7 +27,6 @@
 /interface ethernet set [ find default-name=sfp28-12 ] comment=BKK12
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
 /interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
-/interface vlan add interface=bridge_vlan name=vlan-p2p-bkk10 vlan-id=210
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk10-sfp5-gw lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add mode=802.3ad name=BKK40-LAG slaves=qsfp28-2-1
@@ -45,6 +44,7 @@
 /interface vlan add interface=HGC-10G-SG-BKK20-LAG name=vAMSIX-HK vlan-id=3994
 /interface vlan add interface=HGC-10G-SG-BKK20-LAG name=vHGC-HK-BACKUP vlan-id=2517
 /interface vlan add interface=HGC-10G-SG-BKK20-LAG name=vHGC-SG-PRIMARY vlan-id=2520
+/interface vlan add interface=BKK10-LAG name=vlan-p2p-bkk10 vlan-id=110
 /interface bonding add mode=active-backup name=BKK06-LAG slaves=qnq-400-206,qnq-400-216
 /interface bonding add mode=active-backup name=BKK07-LAG slaves=qnq-400-207,qnq-400-217
 /interface bonding add mode=active-backup name=BKK08-LAG slaves=qnq-400-208,qnq-400-218
@@ -84,14 +84,20 @@
 /interface bridge filter add action=drop chain=forward comment="Block inbound RA/NS/NA multicasts from WAN" dst-mac-address=33:33:00:00:00:00/FF:FF:00:00:00:00 in-interface-list=WAN mac-protocol=ipv6
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK40-LAG
-/interface bridge port add bridge=bridge_vlan interface=BKK10-LAG
+/interface bridge port add bridge=bridge_vlan disabled=yes interface=BKK10-LAG
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK40-LAG,BKK10-LAG vlan-ids=400
-/interface bridge vlan add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=210
+/interface bridge vlan
+# BKK10-LAG not a bridge port
+add bridge=bridge_vlan tagged=BKK40-LAG,BKK10-LAG vlan-ids=400
+/interface bridge vlan
+# BKK10-LAG not a bridge port
+add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
+/interface bridge vlan
+# BKK10-LAG not a bridge port
+add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=110
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
