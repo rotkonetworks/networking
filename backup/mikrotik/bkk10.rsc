@@ -1,4 +1,4 @@
-# 2025-12-10 05:57:25 by RouterOS 7.20beta4
+# 2025-12-10 07:00:38 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -30,7 +30,7 @@
 /ipv6 settings set accept-router-advertisements=no
 /interface bridge vlan add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG vlan-ids=400
 /interface bridge vlan add bridge=bridge_vlan untagged=BKK00-LAG,BKK20-LAG,BKK60-LAG,bridge_vlan vlan-ids=1
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK00-LAG,BKK20-LAG,bridge_vlan vlan-ids=110
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK00-LAG,bridge_vlan vlan-ids=110
 /interface bridge vlan add bridge=bridge_vlan tagged=bridge_vlan,BKK20-LAG vlan-ids=210
 /interface list member add interface=bridge_local list=LAN
 /interface list member add interface=BKK00-LAG list=WAN
