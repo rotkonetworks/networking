@@ -1,4 +1,4 @@
-# 2025-12-10 07:00:38 by RouterOS 7.20beta4
+# 2025-12-10 08:42:04 by RouterOS 7.20beta4
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -6,11 +6,12 @@
 /interface bridge add name=bridge_local vlan-filtering=yes
 /interface bridge add name=bridge_vlan vlan-filtering=yes
 /interface ethernet set [ find default-name=ether11 ] disabled=yes
-/interface vlan add interface=bridge_vlan name=vlan-direct-bkk20 vlan-id=210
 /interface vlan add interface=bridge_vlan name=vlan-p2p-bkk00 vlan-id=110
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=sfp-sfpplus1 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=sfp-sfpplus3 transmit-hash-policy=layer-2-and-3
 /interface bonding add lacp-rate=1sec mode=802.3ad name=BKK60-LAG slaves=sfp-sfpplus2,sfp-sfpplus4 transmit-hash-policy=layer-2-and-3
+/interface vlan add interface=BKK20-LAG name=vlan-400-to-bkk20 vlan-id=400
+/interface vlan add interface=BKK20-LAG name=vlan-direct-bkk20 vlan-id=210
 /interface list add name=WAN
 /interface list add name=LAN
 /interface wireless security-profiles set [ find default=yes ] supplicant-identity=MikroTik
@@ -26,12 +27,15 @@
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=ether6
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=ether7
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=ether8
-/interface bridge port add bridge=bridge_vlan interface=BKK20-LAG
+/interface bridge port add bridge=bridge_vlan disabled=yes frame-types=admit-only-vlan-tagged interface=BKK20-LAG pvid=400
+/interface bridge port add bridge=bridge_vlan interface=vlan-400-to-bkk20
 /ipv6 settings set accept-router-advertisements=no
-/interface bridge vlan add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG vlan-ids=400
-/interface bridge vlan add bridge=bridge_vlan untagged=BKK00-LAG,BKK20-LAG,BKK60-LAG,bridge_vlan vlan-ids=1
+/interface bridge vlan
+# BKK20-LAG not a bridge port
+add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG vlan-ids=400
+/interface bridge vlan add bridge=bridge_vlan untagged=BKK00-LAG,BKK60-LAG,bridge_vlan vlan-ids=1
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK00-LAG,bridge_vlan vlan-ids=110
-/interface bridge vlan add bridge=bridge_vlan tagged=bridge_vlan,BKK20-LAG vlan-ids=210
+/interface bridge vlan add bridge=bridge_vlan tagged=bridge_vlan vlan-ids=210
 /interface list member add interface=bridge_local list=LAN
 /interface list member add interface=BKK00-LAG list=WAN
 /interface list member add interface=BKK20-LAG list=WAN
