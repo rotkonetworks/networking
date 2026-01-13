@@ -1,4 +1,4 @@
-# 2026-01-12 14:18:15 by RouterOS 7.19.4
+# 2026-01-13 12:47:59 by RouterOS 7.19.4
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -98,6 +98,9 @@ add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
 /interface bridge vlan
 # BKK10-LAG not a bridge port
 add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=110
+/interface bridge vlan
+# BKK10-LAG not a bridge port
+add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=210
 /interface ethernet switch set 0 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
