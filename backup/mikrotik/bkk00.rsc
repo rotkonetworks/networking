@@ -1,4 +1,4 @@
-# 2026-01-18 14:11:06 by RouterOS 7.19.4
+# 2026-01-19 14:20:09 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -162,7 +162,6 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip address add address=10.155.254.100/24 comment="BGP RR VLAN" interface=vlan-400 network=10.155.254.0
 /ip address add address=10.155.254.100 interface=lo network=10.155.254.100
 /ip address add address=172.16.110.0/31 interface=vlan-p2p-bkk10 network=172.16.110.0
-/ip address add address=10.155.100.1/16 interface=qnq-400-100 network=10.155.0.0
 /ip address add address=10.155.100.1/24 interface=qnq-400-100 network=10.155.100.0
 /ip address add address=10.155.106.0/31 interface=BKK06-LAG network=10.155.106.0
 /ip address add address=10.155.107.0/31 interface=BKK07-LAG network=10.155.107.0
@@ -331,6 +330,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
 /ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.10.2
 /ip route add comment="bkk50 loopback via p2p" distance=1 dst-address=160.22.181.181/32 gateway=172.16.10.2%BKK50-LAG
+/ip route add comment=temp-bkk20-recovery dst-address=160.22.181.178/32 gateway=10.155.255.2
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
@@ -555,20 +555,24 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=IBGP-IN-v4 rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list bknix-communities) { set bgp-local-pref 200; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
-/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 150; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
-/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 150; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="set bgp-large-communities location; accept;"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="set bgp-large-communities location; accept;"
-/routing filter rule add chain=HGC-HK-OUT-v4 rule="set bgp-med 100; set bgp-path-prepend 2; set bgp-large-communities location; accept"
-/routing filter rule add chain=HGC-HK-OUT-v6 rule="set bgp-med 100; set bgp-path-prepend 2; set bgp-large-communities location; accept"
+/routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst == 160.22.181.0/24) { set bgp-med 100; set bgp-path-prepend 3; set bgp-large-communities location; accept; }"
+/routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst == 160.22.180.0/24) { set bgp-med 100; set bgp-path-prepend 4; set bgp-large-communities location; accept; }"
+/routing filter rule add chain=HGC-HK-OUT-v4 rule="set bgp-med 100; set bgp-path-prepend 4; set bgp-large-communities location; accept"
+/routing filter rule add chain=HGC-HK-OUT-v6 rule="set bgp-med 100; set bgp-path-prepend 4; set bgp-large-communities location; accept"
 /routing filter rule add chain=AMSIX-OUT-v4 rule="set bgp-med 150; set bgp-path-prepend 3; set bgp-large-communities location; accept"
 /routing filter rule add chain=AMSIX-OUT-v6 rule="set bgp-med 150; set bgp-path-prepend 3; set bgp-large-communities location; accept"
-/routing filter rule add chain=HGC-SG-OUT-v4 rule="set bgp-med 100; set bgp-path-prepend 2; set bgp-large-communities location; accept"
-/routing filter rule add chain=HGC-SG-OUT-v6 rule="set bgp-med 100; set bgp-path-prepend 2; set bgp-large-communities location; accept"
+/routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst == 160.22.180.0/24) { set bgp-med 100; set bgp-path-prepend 3; set bgp-large-communities location; accept; }"
+/routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst == 160.22.181.0/24) { set bgp-med 100; set bgp-path-prepend 4; set bgp-large-communities location; accept; }"
+/routing filter rule add chain=HGC-SG-OUT-v4 rule="set bgp-med 100; set bgp-path-prepend 4; set bgp-large-communities location; accept"
+/routing filter rule add chain=HGC-SG-OUT-v6 rule="set bgp-med 100; set bgp-path-prepend 4; set bgp-large-communities location; accept"
 /routing filter rule add chain=BKNIX-IN-v6 comment="Discard IPv6 bogons" disabled=no rule="if (dst in ipv6-bogons) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v6 comment="Discard overly specific IPv6 prefixes /49 to /128" disabled=no rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=BKNIX-IN-v6 comment="RPKI validation for IPv6" disabled=no rule="rpki-verify rpki.bknix.co.th"
@@ -620,7 +624,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
-/routing filter rule add chain=HGC-SG-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="Accept route" rule="set bgp-local-pref 150; set bgp-large-communities hgc-th-sg-communities; accept"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
@@ -644,7 +648,7 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
-/routing filter rule add chain=HGC-SG-IN-v6 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-th-sg-communities; accept"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="Accept route" rule="set bgp-local-pref 150; set bgp-large-communities hgc-th-sg-communities; accept"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Reject our own prefixes" rule="if (dst in ipv6-apnic-rotko) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
@@ -676,8 +680,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-ban-communities) { set bgp-local-pref 190; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-hk-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 150; }"
-/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 140; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 150; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 150; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 100; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
