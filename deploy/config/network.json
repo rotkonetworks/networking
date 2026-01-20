@@ -113,6 +113,27 @@
         }
       }
     },
+    "bkk12": {
+      "router_id": "10.155.255.12",
+      "bgp_rr_v4": "10.155.100.12",
+      "bgp_rr_v6": "fd00:155:100::12",
+      "public_v4": "160.22.181.12",
+      "public_v4_alt": "160.22.180.12",
+      "public_v6": "2401:a860:1012::",
+      "internal_v4": "10.12.0.0/16",
+      "internal_v6": "2401:a860:1012::/48",
+      "management": "192.168.69.202/16",
+      "management_gateway": "192.168.69.1",
+      "anycast_local_v4": "10.155.181.81/32",
+      "anycast_local_v6": "fd00:a860:1081::",
+      "anycast_site_v4": "160.22.181.81/32",
+      "anycast_site_v6": "2401:a860:1081::",
+      "anycast_global_v4": "160.22.180.180/32",
+      "anycast_global_v6": "2401:a860::",
+      "physical_interfaces": {
+        "management": "enp6s0"
+      }
+    },
     "bkk10": {
       "router_id": "10.155.255.10",
       "management": "192.168.88.10/24",
