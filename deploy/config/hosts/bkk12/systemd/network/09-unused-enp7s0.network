@@ -1,0 +1,6 @@
+# Unused interface - disabled
+[Match]
+Name=enp7s0
+
+[Link]
+Unmanaged=yes

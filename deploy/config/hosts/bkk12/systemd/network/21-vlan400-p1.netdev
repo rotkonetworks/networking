@@ -1,0 +1,6 @@
+[NetDev]
+Name=enp2s0f0np0.400
+Kind=vlan
+
+[VLAN]
+Id=400

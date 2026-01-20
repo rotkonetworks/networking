@@ -1,0 +1,7 @@
+[NetDev]
+Name=vmbr1
+Kind=bridge
+
+[Bridge]
+STP=false
+ForwardDelaySec=0

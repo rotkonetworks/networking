@@ -1,0 +1,16 @@
+# Loopback interface for bkk12
+# Generated on 2026-01-08 08:17:15 UTC
+
+[Match]
+Name=lo
+
+[Network]
+# Router ID
+Address=10.155.255.12/32
+# Public IPv4
+Address=160.22.181.12/32
+
+# Router ID IPv6
+Address=fd00:155:255::12/128
+# Public IPv6
+Address=2401:a860:1012::/128

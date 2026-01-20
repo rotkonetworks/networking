@@ -1,0 +1,6 @@
+[NetDev]
+Name=vlan112-p1
+Kind=vlan
+
+[VLAN]
+Id=112

@@ -1,0 +1,11 @@
+# Point-to-point link to RR1 (bkk00)
+[Match]
+Name=vlan112-p1
+
+[Link]
+MTUBytes=1500
+
+[Network]
+Address=10.155.112.1/30
+Address=fd00:155:112::1/64
+IPv6AcceptRA=false
