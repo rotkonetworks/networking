@@ -22,10 +22,10 @@ ExecStart=/usr/local/bin/polkadot \
      --telemetry-url 'wss://telemetry-backend.w3f.community/submit 1' \
      --telemetry-url "wss://telemetry.rotko.net/submit/ 1" \
      --rpc-port 8545 \
-     --listen-addr /ip4/0.0.0.0/tcp/32506 \
-     --listen-addr /ip6/::/tcp/32506 \
-     --listen-addr /ip4/0.0.0.0/tcp/32506/ws \
-     --listen-addr /ip6/::/tcp/32506/ws \
+     --listen-addr /ip4/160.22.181.12/tcp/32506 \
+     --listen-addr /ip6/2401:a860:1012::/tcp/32506 \
+     --listen-addr /ip4/160.22.181.12/tcp/32506/ws \
+     --listen-addr /ip6/2401:a860:1012::/tcp/32506/ws \
      --public-addr /ip4/160.22.181.12/tcp/32506 \
      --public-addr /ip6/2401:a860:1012::/tcp/32506 \
      --public-addr /ip4/160.22.181.12/tcp/32506/ws \
