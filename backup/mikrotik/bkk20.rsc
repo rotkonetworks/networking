@@ -1,4 +1,4 @@
-# 2026-01-19 14:20:08 by RouterOS 7.22beta3
+# 2026-01-20 14:18:48 by RouterOS 7.22beta3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -68,8 +68,8 @@
 /routing bgp template add afi=ipv6 disabled=no input.filter=HGC-HK-IN-v6 multihop=yes name=IPTX-HGC-TH-HK-v6 output.as-override=no .filter-chain=HGC-HK-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=AMSIX-HK-IN-v4 name=AMSIX-HK-v4 output.as-override=no .filter-chain=AMSIX-HK-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ipv6 disabled=no input.filter=AMSIX-HK-IN-v6 name=AMSIX-HK-v6 output.as-override=no .filter-chain=AMSIX-HK-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
-/routing bgp template add input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
-/routing bgp template add afi=ipv6 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
+/routing bgp template add input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS nexthop-choice=force-self output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
+/routing bgp template add afi=ipv6 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
 /routing bgp template add afi=ip input.filter=iBGP-IN multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /system script add dont-require-permissions=no name=bcp214-start owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
     \n:foreach ruleId in=[/routing filter rule find] do={\
@@ -115,11 +115,12 @@
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK40-LAG
 /interface bridge port add bridge=bridge_vlan interface=BKK10-LAG
+/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=sfp28-12 pvid=400
 /ip firewall connection tracking set enabled=no loose-tcp-tracking=no udp-timeout=10s
 /ip neighbor discovery-settings set discover-interval=1m mode=rx-only
 /ip settings set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings set accept-redirects=no accept-router-advertisements=no
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK40-LAG,BKK10-LAG vlan-ids=400
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,BKK40-LAG,sfp28-12 vlan-ids=400
 /interface bridge vlan add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=110
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=210
@@ -467,14 +468,14 @@
 /ipv6 nd add advertise-dns=yes disabled=yes interface=HGC-10G-SG-BKK20-LAG
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v6 output.redistribute=connected,static,bgp remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=3000000 instance=bgp-instance-1 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v4 remote.address=118.143.234.73 .as=9304 routing-table=main templates=HGC-SG-v4
-/routing bgp connection add afi=ip input.limit-process-routes-ipv4=230000 instance=bgp-instance-1 local.address=103.100.140.31 .role=ebgp multihop=yes name=AMSIX-HE-TH-v4 remote.address=103.100.140.44 .as=6939 routing-table=main templates=AMSIX-BAN-v4
-/routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2402:b740:15:388:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-HE-TH-v6 remote.address=2402:b740:15:388:0:a500:6939:1 .as=6939 routing-table=main templates=AMSIX-BAN-v6
+/routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=230000 instance=bgp-instance-1 local.address=103.100.140.31 .role=ebgp multihop=yes name=AMSIX-HE-TH-v4 remote.address=103.100.140.44 .as=6939 routing-table=main templates=AMSIX-BAN-v4
+/routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2402:b740:15:388:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-HE-TH-v6 remote.address=2402:b740:15:388:0:a500:6939:1 .as=6939 routing-table=main templates=AMSIX-BAN-v6
 /routing bgp connection add afi=ip input.limit-process-routes-ipv4=230000 instance=bgp-instance-1 local.address=103.100.140.31 .role=ebgp multihop=yes name=AMSIX-RS1-TH-v4 remote.address=103.100.140.251 .as=150388 routing-table=main templates=AMSIX-BAN-v4
 /routing bgp connection add afi=ip input.limit-process-routes-ipv4=230000 instance=bgp-instance-1 local.address=103.100.140.31 .role=ebgp multihop=yes name=AMSIX-RS2-TH-v4 remote.address=103.100.140.252 .as=150388 routing-table=main templates=AMSIX-BAN-v4
 /routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2402:b740:15:388:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-RS1-TH-v6 remote.address=2402:b740:15:388:a500:15:388:251 .as=150388 routing-table=main templates=AMSIX-BAN-v6
 /routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2402:b740:15:388:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-RS2-TH-v6 output.redistribute=connected,static,bgp remote.address=2402:b740:15:388:a500:15:388:252 .as=150388 routing-table=main templates=AMSIX-BAN-v6
-/routing bgp connection add afi=ip input.limit-process-routes-ipv4=230000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=no name=AMSIX-HE-HK-v4 remote.address=103.247.139.6 .as=6939 routing-table=main templates=AMSIX-HK-v4
-/routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=no name=AMSIX-HE-HK-v6 remote.address=2001:df0:296::a500:6939:1 .as=6939 routing-table=main templates=AMSIX-HK-v6
+/routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=230000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=no name=AMSIX-HE-HK-v4 remote.address=103.247.139.6 .as=6939 routing-table=main templates=AMSIX-HK-v4
+/routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=250000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=no name=AMSIX-HE-HK-v6 remote.address=2001:df0:296::a500:6939:1 .as=6939 routing-table=main templates=AMSIX-HK-v6
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv4=3000000 .limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.address=2407:9540:111:7::2 .role=ebgp name=HGC-HK-BACKUP-v6 remote.address=2407:9540:111:7::1 .as=142435 routing-table=main templates=IPTX-HGC-TH-HK-v6
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=3000000 .limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.role=ebgp name=HGC-HK-BACKUP-v4 remote.address=103.168.174.177 .as=142435 routing-table=main templates=IPTX-HGC-TH-HK-v4
 /routing bgp connection add afi=ip input.limit-process-routes-ipv4=250000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=yes name=AMSIX-RS1-HK-v4 remote.address=103.247.139.125 .as=58560 routing-table=main templates=AMSIX-HK-v4
@@ -493,6 +494,8 @@
 /routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk07-unified-v6 remote.address=fd00:155:100::7 .as=142108 templates=RR-CLIENTS-v6
 /routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk06-unified-v4 remote.address=10.155.100.6 .as=142108 templates=RR-CLIENTS
 /routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk06-unified-v6 remote.address=fd00:155:100::6 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk12-unified-v4 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v4 .redistribute=connected,static,ospf,bgp remote.address=10.155.100.12 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk12-unified-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v6 remote.address=fd00:155:100::12 .as=142108 templates=RR-CLIENTS-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
@@ -569,43 +572,43 @@
 /routing filter rule add chain=AMSIX-HK-OUT-v6 rule="set bgp-med 75; set bgp-path-prepend 1; set bgp-large-communities location; accept"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" disabled=no rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
-/routing filter rule add chain=HGC-SG-IN-v4 comment="RPKI validation for IPv4" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=HGC-SG-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="RPKI validation for IPv4" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=HGC-SG-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Discard default IPv4 route" disabled=no rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Discard IPv6 bogons" disabled=no rule="if (dst in ipv6-bogons) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Discard overly specific IPv6 prefixes /49 to /128" disabled=no rule="if (dst-len > 48) { reject; }"
-/routing filter rule add chain=HGC-SG-IN-v6 comment="RPKI validation for IPv6" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=HGC-SG-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="RPKI validation for IPv6" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=HGC-SG-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
-/routing filter rule add chain=AMSIX-BAN-IN-v4 comment="RPKI validation" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Reject RPKI invalid routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=AMSIX-BAN-IN-v4 comment="RPKI validation" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Reject RPKI invalid routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Discard default route" disabled=no rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Discard overly specific prefixes" disabled=no rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v6 comment="Discard IPv6 bogons" disabled=no rule="if (dst in ipv6-bogons) { reject; }"
-/routing filter rule add chain=AMSIX-BAN-IN-v6 comment="RPKI validation" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=AMSIX-BAN-IN-v6 comment="Reject RPKI invalid routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=AMSIX-BAN-IN-v6 comment="RPKI validation" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=AMSIX-BAN-IN-v6 comment="Reject RPKI invalid routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v6 comment="Discard default route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v6 comment="Discard overly specific prefixes" disabled=no rule="if (dst-len > 48) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" disabled=no rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Discard IPv4 bogons" disabled=no rule="if (dst in ipv4-bogons) { reject; }"
-/routing filter rule add chain=HGC-HK-IN-v4 comment="RPKI validation for IPv4" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=HGC-HK-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="RPKI validation for IPv4" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="Reject RPKI invalid IPv4 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Discard default IPv4 route" disabled=no rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Discard IPv6 bogons" disabled=no rule="if (dst in ipv6-bogons) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Discard overly specific IPv6 prefixes /49 to /128" disabled=no rule="if (dst-len > 48) { reject; }"
-/routing filter rule add chain=HGC-HK-IN-v6 comment="RPKI validation for IPv6" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=HGC-HK-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="RPKI validation for IPv6" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="Reject RPKI invalid IPv6 routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Discard default IPv6 route" disabled=no rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=AMSIX-HK-IN-v4 comment="Discard overly specific IPv4 prefixes /25 to /32" rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=AMSIX-HK-IN-v4 comment="Discard IPv4 bogons" rule="if (dst in ipv4-bogons) { reject; }"
-/routing filter rule add chain=AMSIX-HK-IN-v4 comment="RPKI validation" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=AMSIX-HK-IN-v4 comment="Reject RPKI invalid routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=AMSIX-HK-IN-v4 comment="RPKI validation" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=AMSIX-HK-IN-v4 comment="Reject RPKI invalid routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=AMSIX-HK-IN-v4 comment="Discard default route" rule="if (dst == 0.0.0.0/0) { reject; }"
 /routing filter rule add chain=AMSIX-HK-IN-v6 comment="Discard IPv6 bogons" rule="if (dst in ipv6-bogons) { reject; }"
 /routing filter rule add chain=AMSIX-HK-IN-v6 comment="Discard overly specific IPv6 prefixes" rule="if (dst-len > 48) { reject; }"
-/routing filter rule add chain=AMSIX-HK-IN-v6 comment="RPKI validation" disabled=yes rule="rpki-verify rpki.bknix.co.th"
-/routing filter rule add chain=AMSIX-HK-IN-v6 comment="Reject RPKI invalid routes" disabled=yes rule="if (rpki invalid) { reject; }"
+/routing filter rule add chain=AMSIX-HK-IN-v6 comment="RPKI validation" disabled=no rule="rpki-verify rpki.bknix.co.th"
+/routing filter rule add chain=AMSIX-HK-IN-v6 comment="Reject RPKI invalid routes" disabled=no rule="if (rpki invalid) { reject; }"
 /routing filter rule add chain=AMSIX-HK-IN-v6 comment="Discard default route" rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v4 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
@@ -680,18 +683,20 @@
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.128.0/17) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="accept;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 disabled=yes rule="if (gw == 10.155.206.1 || gw == 10.155.207.1 || gw == 10.155.208.1) { set distance 90; accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 disabled=yes rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 disabled=yes rule="if (gw in ibgp-block-gw-v6) { reject; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="accept;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in 10.155.0.0/17) { reject;} "
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-FULL-OUT-v4 rule="accept;"
+/routing filter rule add chain=RR-CLIENT-FULL-OUT-v6 rule="accept;"
 /routing ospf interface-template add area=backbone-v6 comment=BKK20-LO-v6 disabled=no networks=fd00:dead:beef::20
 /routing ospf interface-template add area=backbone comment=BKK20-LO-v4 disabled=no networks=10.155.255.2
 /routing ospf interface-template add area=backbone-v6 comment=GW-BKK50-LAG-v6 disabled=no networks=fd00:dead:beef:2050::/127

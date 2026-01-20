@@ -1,4 +1,4 @@
-# 2026-01-19 14:20:09 by RouterOS 7.19.4
+# 2026-01-20 14:18:48 by RouterOS 7.19.4
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -97,6 +97,7 @@
 /interface bridge filter add action=drop chain=forward out-interface-list=WAN
 /interface bridge port add bridge=bridge_vlan interface=BKK10-LAG
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=BKK30-LAG
+/interface bridge port add bridge=bridge_vlan interface=sfp28-12
 /interface ethernet switch l3hw-settings
 # ipv6 neighbor configuration has changed, please restart the device in order to apply the new settings
 set autorestart=yes ipv6-hw=yes
@@ -112,7 +113,7 @@ set secure-redirects=no send-redirects=no tcp-syncookies=yes
 /ipv6 settings
 # ipv6 neighbor configuration has changed, please restart the device in order to apply the new settings
 set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=8192 soft-max-neighbor-entries=8191
-/interface bridge vlan add bridge=bridge_vlan tagged=BKK30-LAG,BKK10-LAG vlan-ids=400
+/interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,BKK30-LAG,sfp28-12 vlan-ids=400
 /interface bridge vlan add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=110
 /interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
@@ -272,8 +273,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
-/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX disabled=yes dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
-/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
+/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-AMSIX dst-address=80.249.208.0/21 port=179 protocol=tcp src-address=80.249.208.0/21
+/ip firewall raw add action=drop chain=prerouting comment=BCP214-BGP-MAINTENANCE-MODE-BKNIX dst-address=203.159.68.0/23 port=179 protocol=tcp src-address=203.159.68.0/23
 /ip firewall raw add action=accept chain=prerouting in-interface-list=!WAN protocol=ospf
 /ip firewall raw add action=drop chain=prerouting comment="Drop spoofed our networks from WAN" in-interface-list=WAN src-address-list=our-networks
 /ip firewall raw add action=accept chain=prerouting comment=TRANSPARENT disabled=yes
@@ -425,8 +426,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /ipv6 firewall address-list add address=2401:a860:1181::/48 list=bkk50-rotko-ranges-v6
 /ipv6 firewall address-list add address=2401:a860:169::/64 list=bkk50-rotko-ranges-v6
 /ipv6 firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
-/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
-/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
+/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
+/ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
 /ipv6 firewall raw add action=accept chain=prerouting comment=TRANSPARENT disabled=yes
 /ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed exchange loopbacks from WAN" in-interface-list=WAN src-address-list=exchange-only-loopbacks
 /ipv6 firewall raw add action=drop chain=prerouting comment="Block spoofed our ip ranges from WAN" in-interface-list=WAN src-address-list=ipv6-apnic-rotko
@@ -509,6 +510,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing bgp connection add local.address=fd00:155:100::1 .role=ibgp-rr name=rr-client-bkk07-unified-v6 remote.address=fd00:155:100::7 .as=142108 templates=RR-CLIENTS-v6
 /routing bgp connection add local.address=10.155.100.1 .role=ibgp-rr name=rr-client-bkk06-unified-v4 remote.address=10.155.100.6 .as=142108 templates=RR-CLIENTS-v4
 /routing bgp connection add local.address=fd00:155:100::1 .role=ibgp-rr name=rr-client-bkk06-unified-v6 remote.address=fd00:155:100::6 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no local.address=10.155.100.1 .role=ibgp-rr name=rr-client-bkk12-unified-v4 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.100.12 .as=142108 templates=RR-CLIENTS-v4
+/routing bgp connection add disabled=no local.address=fd00:155:100::1 .role=ibgp-rr name=rr-client-bkk12-unified-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v6 remote.address=fd00:155:100::12 .as=142108 templates=RR-CLIENTS-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
@@ -530,6 +533,22 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter num-list add list=private-asn range=4200000000-4294967295
 /routing filter num-list add list=my-as range=142108
 /routing filter num-list add comment=RFC7607 list=bogon-asn range=0
+/routing filter rule add chain=BKNIX-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=AMSIX-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=HGC-HK-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=HGC-SG-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=BKNIX-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=AMSIX-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=HGC-HK-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=HGC-SG-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=IBGP-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=IBGP-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=RR-CLIENT-FULL-OUT-v4 comment=BCP214 rule="jump graceful-shutdown"
+/routing filter rule add chain=RR-CLIENT-FULL-OUT-v6 comment=BCP214 rule="jump graceful-shutdown"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (dst in bkk50-rotko-ranges) { set distance 100; set bgp-local-pref 150; accept; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (dst in bkk50-rotko-ranges-v6) { set distance 100; set bgp-local-pref 150; accept; }"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
@@ -703,6 +722,8 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing filter rule add chain=HE-AMSIX-IN-v4 comment="HE free transit priority" rule="set bgp-local-pref 200; set bgp-large-communities amsix-communities; accept"
 /routing filter rule add chain=HE-AMSIX-IN-v6 comment="HE free transit priority" rule="set bgp-local-pref 200; set bgp-large-communities amsix-communities; accept"
+/routing filter rule add chain=RR-CLIENT-FULL-OUT-v4 rule="accept;"
+/routing filter rule add chain=RR-CLIENT-FULL-OUT-v6 rule="accept;"
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::/128 passive
 /routing ospf interface-template add area=backbone comment=BKK00-LO disabled=no networks=10.155.255.4 passive
 /routing ospf interface-template add area=backbone-v6 comment=EDGE-BKK00-BKK20 disabled=no networks=fd00:dead:beef:30::1/126
@@ -738,11 +759,12 @@ set accept-redirects=no accept-router-advertisements=no max-neighbor-entries=819
 /system ntp client servers add address=1.asia.pool.ntp.org
 /system routerboard settings set enter-setup-on=delete-key
 /system scheduler add name=restore-on-boot on-event="/system script run on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
-/system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=18:05:00
-/system scheduler add name=bcp214-block on-event="/system script run bcp214-block" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=18:07:00
-/system scheduler add disabled=yes name=bcp214-restore on-event="/system script run bcp214-restore" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:52:00
-/system scheduler add disabled=yes name=reboot on-event="/system script run bcp214-reboot" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=17:47:00
-/system scheduler add name=bcp214-downgrade on-event="/system script run bcp214-downgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=18:08:00
+/system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2026-01-20 start-time=14:15:00
+/system scheduler add name=bcp214-block on-event="/system script run bcp214-block" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2026-01-20 start-time=14:17:00
+/system scheduler add disabled=yes name=bcp214-restore on-event="/system script run bcp214-restore" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-07-31 start-time=14:25:00
+/system scheduler add name=reboot on-event="/system script run bcp214-reboot" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2026-01-20 start-time=14:23:00
+/system scheduler add disabled=yes name=bcp214-downgrade on-event="/system script run bcp214-downgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=18:08:00
+/system scheduler add name=bcp214-upgrade on-event="/system script run bcp214-upgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2026-01-20 start-time=14:20:00
 /system script add dont-require-permissions=no name=bcp214-start owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
     \n:foreach ruleId in=[/routing filter rule find] do={\
     \n    :local chainName [/routing filter rule get \$ruleId chain]\
