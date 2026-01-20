@@ -48,6 +48,7 @@ fi
 # Extract site config
 SITE_CONFIG=$(jq -r ".sites.$SITE" "$CONFIG_FILE")
 PUBLIC_IP4=$(echo "$SITE_CONFIG" | jq -r '.public_v4')
+PUBLIC_IP4_ALT=$(echo "$SITE_CONFIG" | jq -r '.public_v4_alt // empty')
 PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_V4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
 INTERNAL_V6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
@@ -95,6 +96,13 @@ define WAN = vmbr2
 define INTERNAL = vmbr1
 define MGMT = vmbr0
 VARS
+
+ # Add alternate public IP if configured (180.x range for traffic engineering)
+ if [[ -n "$PUBLIC_IP4_ALT" ]]; then
+   echo ""
+   echo "# Traffic engineering - dual IP ranges"
+   echo "define PUBLIC_IP4_ALT = ${PUBLIC_IP4_ALT}"
+ fi
 
  # Add storage interface if defined
  local storage_iface=$(jq -r '.interfaces.storage_private // "null"' "$CONFIG_FILE")
@@ -449,15 +457,33 @@ NAT
    echo "        # Add specific DNAT rules here if anycast services aren't local"
  fi
 
- cat <<'NAT_POST'
-   }
+ echo "    }"
+ echo ""
+ echo "    chain postrouting {"
+ echo "        type nat hook postrouting priority srcnat; policy accept;"
+ echo ""
 
-   chain postrouting {
-       type nat hook postrouting priority srcnat; policy accept;
-
+ if [[ -n "$PUBLIC_IP4_ALT" ]]; then
+   # Traffic engineering: distribute SNAT across both IP ranges using jhash
+   # jhash on source IP+port gives consistent hashing per connection
+   cat <<'SNAT_DUAL'
+       # SNAT with traffic engineering - distribute across 181.x and 180.x ranges
+       # Uses jhash for consistent per-connection distribution (~50/50 split)
+       ip saddr $INTERNAL4 oifname $WAN snat to jhash ip saddr . tcp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
+       ip saddr $INTERNAL4 oifname $WAN snat to jhash ip saddr . udp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
+       ip saddr $MGMT_NET oifname $WAN snat to jhash ip saddr . tcp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
+       ip saddr $MGMT_NET oifname $WAN snat to jhash ip saddr . udp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
+SNAT_DUAL
+ else
+   # Single IP SNAT (original behavior)
+   cat <<'SNAT_SINGLE'
        # SNAT for internal networks going out
        ip saddr $INTERNAL4 oifname $WAN snat to $PUBLIC_IP4
        ip saddr $MGMT_NET oifname $WAN snat to $PUBLIC_IP4
+SNAT_SINGLE
+ fi
+
+ cat <<'NAT_END'
    }
 }
 
@@ -465,7 +491,7 @@ NAT
 table ip6 nat {
    # Empty - IPv6 uses direct routing
 }
-NAT_POST
+NAT_END
 }
 
 # Generate port forwards for VMs and services

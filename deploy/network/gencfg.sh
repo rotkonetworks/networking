@@ -58,6 +58,7 @@ MANAGEMENT_GW=$(echo "$SITE_CONFIG" | jq -r '.management_gateway // empty')
 MANAGEMENT_V6=$(echo "$SITE_CONFIG" | jq -r '.management_v6 // empty')
 MANAGEMENT_V6_GW=$(echo "$SITE_CONFIG" | jq -r '.management_v6_gateway // empty')
 PUBLIC_V4=$(echo "$SITE_CONFIG" | jq -r '.public_v4')
+PUBLIC_V4_ALT=$(echo "$SITE_CONFIG" | jq -r '.public_v4_alt // empty')
 PUBLIC_V6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_V4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
 INTERNAL_V6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
@@ -147,9 +148,17 @@ INTERFACES
   cat <<INTERFACES
     # router ID
     up ip addr add ${ROUTER_ID}/32 dev lo
-    # public IPv4
+    # public IPv4 (primary - 181.x range)
     up ip addr add ${PUBLIC_V4}/32 dev lo
 INTERFACES
+
+  # add alternate public IPv4 (180.x range) for traffic engineering
+  if [[ -n "$PUBLIC_V4_ALT" ]]; then
+    echo "    # public IPv4 alternate (180.x range) - traffic engineering"
+    echo "    up ip addr add ${PUBLIC_V4_ALT}/32 dev lo"
+  fi
+
+  cat <<INTERFACES
 
   # add all three tiers of anycast IPv4
   if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
@@ -345,7 +354,13 @@ COMMON_CONFIG
   echo "    post-up ip rule add from ${PUBLIC_V4} lookup anycast priority 49"
   echo "    post-up ip rule add from ${PUBLIC_V4} lookup main priority 50"
 
-  priority=51
+  # Alternate public IP (180.x range) rules
+  if [[ -n "$PUBLIC_V4_ALT" ]]; then
+    echo "    post-up ip rule add from ${PUBLIC_V4_ALT} lookup anycast priority 48"
+    echo "    post-up ip rule add from ${PUBLIC_V4_ALT} lookup main priority 51"
+  fi
+
+  priority=52
   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    post-up ip rule add from ${ANYCAST_LOCAL_V4} lookup main priority ${priority}" && ((priority++))
   [[ -n "$ANYCAST_SITE_V4" ]] && echo "    post-up ip rule add from ${ANYCAST_SITE_V4} lookup main priority ${priority}" && ((priority++))
   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "    post-up ip rule add from ${ANYCAST_GLOBAL_V4} lookup main priority ${priority}" && ((priority++))
@@ -360,6 +375,12 @@ COMMON_CONFIG
     pre-down ip rule del from ${PUBLIC_V4} lookup anycast 2>/dev/null || true
     pre-down ip rule del from ${PUBLIC_V4} lookup main 2>/dev/null || true
 COMMON_CONFIG
+
+  # Cleanup rules for alternate public IP
+  if [[ -n "$PUBLIC_V4_ALT" ]]; then
+    echo "    pre-down ip rule del from ${PUBLIC_V4_ALT} lookup anycast 2>/dev/null || true"
+    echo "    pre-down ip rule del from ${PUBLIC_V4_ALT} lookup main 2>/dev/null || true"
+  fi
 
   # Cleanup rules for anycast IPs
   priority=45

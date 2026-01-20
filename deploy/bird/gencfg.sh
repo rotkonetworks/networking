@@ -59,6 +59,7 @@ fi
 # extract site config
 ROUTER_ID=$(echo "$SITE_CONFIG" | jq -r '.router_id')
 PUBLIC_IP4=$(echo "$SITE_CONFIG" | jq -r '.public_v4')
+PUBLIC_IP4_ALT=$(echo "$SITE_CONFIG" | jq -r '.public_v4_alt // empty')
 PUBLIC_IP6=$(echo "$SITE_CONFIG" | jq -r '.public_v6')
 INTERNAL_NET6=$(echo "$SITE_CONFIG" | jq -r '.internal_v6')
 INTERNAL_NET4=$(echo "$SITE_CONFIG" | jq -r '.internal_v4')
@@ -156,6 +157,14 @@ define PUBLIC_NET6 = ${PUBLIC_IP6}/128;
 define INTERNAL_NET4 = ${INTERNAL_NET4};
 define INTERNAL_NET6 = ${INTERNAL_NET6};
 CONSTANTS
+
+  # Add alternate public IP if configured (180.x range for traffic engineering)
+  if [[ -n "$PUBLIC_IP4_ALT" ]]; then
+    echo ""
+    echo "# Alternate Public IP (180.x range - traffic engineering)"
+    echo "define PUBLIC_IP4_ALT = ${PUBLIC_IP4_ALT};"
+    echo "define PUBLIC_NET4_ALT = ${PUBLIC_IP4_ALT}/32;"
+  fi
 
   # Add anycast constants - all three tiers
   if [[ -n "$ANYCAST_LOCAL_V4" ]] || [[ -n "$ANYCAST_SITE_V4" ]] || [[ -n "$ANYCAST_GLOBAL_V4" ]]; then
@@ -323,6 +332,9 @@ protocol static static4 {
     route PUBLIC_NET4 unreachable;
 STATIC
 
+  # Add alternate public IP static route (180.x range for traffic engineering)
+  [[ -n "$PUBLIC_IP4_ALT" ]] && echo "    route PUBLIC_NET4_ALT unreachable;  # 180.x traffic engineering"
+
   # Add IPv4 anycast routes - all three tiers
   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    route ${ANYCAST_LOCAL_V4}/32 unreachable;  # ULA - internal only"
   [[ -n "$ANYCAST_SITE_V4" ]] && echo "    route ${ANYCAST_SITE_V4}/32 unreachable;    # Bangkok site-local"
@@ -437,7 +449,7 @@ protocol bgp RR1_v6 from BGP_COMMON {
 BGP_V6_RR1
 
   # Generate IPv4 session to RR1 (point-to-point)
-  cat <<'BGP_V4_RR1'
+  cat <<BGP_V4_RR1
 
 protocol bgp RR1_v4 from BGP_COMMON {
     description "Route Reflector - bkk00 IPv4";
@@ -459,6 +471,7 @@ protocol bgp RR1_v4 from BGP_COMMON {
         };
         export filter {
             if net = PUBLIC_NET4 then accept;
+$([[ -n "$PUBLIC_IP4_ALT" ]] && echo "            if net = PUBLIC_NET4_ALT then accept;  # 180.x traffic engineering")
 
             # Export all anycast /32 addresses
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
@@ -524,7 +537,7 @@ protocol bgp RR2_v6 from BGP_COMMON {
 BGP_V6_RR2
 
   # Generate IPv4 session to RR2 (point-to-point)
-  cat <<'BGP_V4_RR2'
+  cat <<BGP_V4_RR2
 
 protocol bgp RR2_v4 from BGP_COMMON {
     description "Route Reflector - bkk20 IPv4";
@@ -546,6 +559,7 @@ protocol bgp RR2_v4 from BGP_COMMON {
         };
         export filter {
             if net = PUBLIC_NET4 then accept;
+$([[ -n "$PUBLIC_IP4_ALT" ]] && echo "            if net = PUBLIC_NET4_ALT then accept;  # 180.x traffic engineering")
 
             # Export all anycast /32 addresses
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
@@ -580,7 +594,7 @@ protocol bgp RR1_UNIFIED_v4 from BGP_COMMON {
     ipv4 {
         next hop self;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 
@@ -602,7 +616,7 @@ protocol bgp RR2_UNIFIED_v4 from BGP_COMMON {
     ipv4 {
         next hop self;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 
