@@ -1,0 +1,47 @@
+[Unit]
+Description="val-polkadot-02"
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=10
+User=polkadot
+Group=polkadot
+SyslogIdentifier=polkadot
+LimitNOFILE=16368
+SyslogFacility=local7
+KillSignal=SIGHUP
+ExecStart=/usr/local/bin/polkadot \
+     --validator \
+     --base-path /data_1/polkadot \
+     --chain polkadot \
+     --database paritydb \
+     --name "rotko-net-dot01" \
+     --telemetry-url 'wss://telemetry-backend.w3f.community/submit 1' \
+     --telemetry-url "wss://telemetry.rotko.net/submit/ 1" \
+     --rpc-port 8545 \
+     --listen-addr /ip4/0.0.0.0/tcp/32506 \
+     --listen-addr /ip6/::/tcp/32506 \
+     --listen-addr /ip4/0.0.0.0/tcp/32506/ws \
+     --listen-addr /ip6/::/tcp/32506/ws \
+     --public-addr /ip4/160.22.181.12/tcp/32506 \
+     --public-addr /ip6/2401:a860:1012::/tcp/32506 \
+     --public-addr /ip4/160.22.181.12/tcp/32506/ws \
+     --public-addr /ip6/2401:a860:1012::/tcp/32506/ws \
+     --prometheus-port 7090 \
+     --prometheus-external \
+     --wasm-execution compiled \
+     --pruning 1000 \
+     --no-private-ip \
+     --out-peers 64 \
+     --network-backend litep2p \
+     --in-peers 64 \
+     --workers-path /usr/libexec \
+     --db-cache 16384 \
+     --no-mdns \
+     --sync warp
+
+[Install]
+WantedBy=multi-user.target

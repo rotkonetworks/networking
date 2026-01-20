@@ -1,0 +1,13 @@
+table ip nat {
+    chain postrouting {
+        type nat hook postrouting priority srcnat; policy accept;
+        oifname "vmbr2" snat to 160.22.181.12
+    }
+}
+
+table ip6 nat {
+    chain postrouting {
+        type nat hook postrouting priority srcnat; policy accept;
+        oifname "vmbr2" snat to 2401:a860:1012::
+    }
+}
