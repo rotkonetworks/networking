@@ -1,4 +1,4 @@
-# 2026-01-20 14:18:48 by RouterOS 7.22beta3
+# 2026-01-21 14:18:41 by RouterOS 7.22beta3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -38,6 +38,7 @@
 /interface vlan add interface=vlan-400 name=qnq-400-206 vlan-id=206
 /interface vlan add interface=vlan-400 name=qnq-400-207 vlan-id=207
 /interface vlan add disabled=yes interface=vlan-400 name=qnq-400-208 vlan-id=208
+/interface vlan add comment="BKK12 p2p" interface=vlan-400 name=qnq-400-212 vlan-id=212
 /interface vlan add interface=vlan-400 name=qnq-400-216 vlan-id=216
 /interface vlan add interface=vlan-400 name=qnq-400-217 vlan-id=217
 /interface vlan add interface=vlan-400 name=qnq-400-218 vlan-id=218
@@ -71,19 +72,25 @@
 /routing bgp template add input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS nexthop-choice=force-self output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /routing bgp template add afi=ipv6 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
 /routing bgp template add afi=ip input.filter=iBGP-IN multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
-/system script add dont-require-permissions=no name=bcp214-start owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
+/system script add dont-require-permissions=no name=bcp214-start owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
     \n:foreach ruleId in=[/routing filter rule find] do={\
     \n    :local chainName [/routing filter rule get \$ruleId chain]\
     \n    # Check if chain ends with -OUT-v4 or -OUT-v6\
     \n    :if (\$chainName~\"-OUT-v4\\\$\" or \$chainName~\"-OUT-v6\\\$\") do={\
-    \n        # Check if BCP214 rule doesn't already exist\
-    \n        :if ([:len [/routing filter rule find where chain=\$chainName comment=\"BCP214\"]] = 0) do={\
-    \n            /routing filter rule add chain=\$chainName place-before=0 \\\
-    \n                rule=\"jump graceful-shutdown\" comment=\"BCP214\"\
+    \n        # Skip HE chains - they drop peering when they see graceful-shutdown\
+    \n        :if (\$chainName~\"^HE-\") do={\
+    \n            :log info \"BCP214: Skipping HE chain \$chainName\"\
+    \n        } else={\
+    \n            # Check if BCP214 rule does not already exist\
+    \n            :if ([:len [/routing filter rule find where chain=\$chainName comment=\"BCP214\"]] = 0) do={\
+    \n                /routing filter rule add chain=\$chainName place-before=0 \\\
+    \n                    rule=\"jump graceful-shutdown\" comment=\"BCP214\"\
+    \n            }\
     \n        }\
     \n    }\
     \n}\
-    \n:log warning \"BCP214: T-5min - Graceful shutdown started\""
+    \n:log warning \"BCP214: T-5min - Graceful shutdown started (HE excluded)\"\
+    \n"
 /system script add dont-require-permissions=no name=bcp214-block owner=pj policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
     \n    /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
     \n    /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
@@ -170,6 +177,7 @@
 /ip address add address=10.155.207.0/31 interface=BKK07-LAG network=10.155.207.0
 /ip address add address=10.155.208.0/31 interface=BKK08-LAG network=10.155.208.0
 /ip address add address=172.16.200.20/24 disabled=yes interface=bridge_vlan network=172.16.200.0
+/ip address add address=10.155.212.0/30 comment="BKK12 p2p v4" interface=qnq-400-212 network=10.155.212.0
 /ip dhcp-client add comment=defconf disabled=yes interface=*17 name=client1
 /ip dns set servers=9.9.9.9,1.0.0.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
@@ -326,6 +334,7 @@
 /ipv6 address add address=fd00:155:206::/127 advertise=no interface=BKK06-LAG
 /ipv6 address add address=fd00:155:207::/127 advertise=no interface=BKK07-LAG
 /ipv6 address add address=fd00:155:208::/127 advertise=no interface=BKK08-LAG
+/ipv6 address add address=fd00:155:212:: comment="BKK12 p2p v6" interface=qnq-400-212
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="RFC 4291: Unspecified address" list=ipv6-bogons
 /ipv6 firewall address-list add address=::1/128 comment="RFC 4291: Loopback address" list=ipv6-bogons
@@ -494,8 +503,8 @@
 /routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk07-unified-v6 remote.address=fd00:155:100::7 .as=142108 templates=RR-CLIENTS-v6
 /routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk06-unified-v4 remote.address=10.155.100.6 .as=142108 templates=RR-CLIENTS
 /routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk06-unified-v6 remote.address=fd00:155:100::6 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk12-unified-v4 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v4 .redistribute=connected,static,ospf,bgp remote.address=10.155.100.12 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk12-unified-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v6 remote.address=fd00:155:100::12 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.212.0 .role=ibgp-rr name=rr-client-bkk12-v4 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v4 .redistribute=connected,static,ospf,bgp remote.address=10.155.212.1 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:155:212:: .role=ibgp-rr name=rr-client-bkk12-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v6 remote.address=fd00:155:212::1 .as=142108 templates=RR-CLIENTS-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
 /routing filter community-large-list add comment="Thailand, Asia, Southeast Asia" communities=142108:1:764,142108:2:142,142108:2:35 list=location
 /routing filter community-large-list add comment="Routes learned via iBGP BKK10" communities=142108:16:10 list=ibgp-communities
