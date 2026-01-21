@@ -124,6 +124,8 @@
       "internal_v6": "2401:a860:1012::/48",
       "management": "192.168.69.202/16",
       "management_gateway": "192.168.69.1",
+      "management_v6": "2401:a860:1181:50:82::1/64",
+      "management_v6_gateway": "2401:a860:1181:50::1",
       "anycast_local_v4": "10.155.181.81/32",
       "anycast_local_v6": "fd00:a860:1081::",
       "anycast_site_v4": "160.22.181.81/32",
@@ -131,7 +133,26 @@
       "anycast_global_v4": "160.22.180.180/32",
       "anycast_global_v6": "2401:a860::",
       "physical_interfaces": {
-        "management": "enp6s0"
+        "management": "enp6s0",
+        "uplinks": ["enp2s0f0np0", "enp2s0f1np1"],
+        "unused": ["enp7s0", "enp12s0u4u3c2"],
+        "p2p_vlans": true
+      },
+      "p2p_links": {
+        "rr1": {
+          "interface": "enp2s0f0np0",
+          "vlan": 112,
+          "v4": "10.155.112.1/30",
+          "v6": "fd00:155:112::1/64",
+          "peer": "bkk00"
+        },
+        "rr2": {
+          "interface": "enp2s0f1np1",
+          "vlan": 212,
+          "v4": "10.155.212.1/30",
+          "v6": "fd00:155:212::1/64",
+          "peer": "bkk20"
+        }
       }
     },
     "bkk10": {
