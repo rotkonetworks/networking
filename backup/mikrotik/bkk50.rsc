@@ -1,4 +1,4 @@
-# 2026-01-20 23:14:27 by RouterOS 7.20beta2
+# 2026-01-21 23:12:54 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -121,6 +121,7 @@
 /ip address add address=172.16.50.1/31 interface=BKK00-LAG network=172.16.50.0
 /ip address add address=100.64.0.1/24 interface=bridge_local network=100.64.0.0
 /ip address add address=172.31.0.50/16 interface=wg_rotko network=172.31.0.0
+/ip address add address=100.64.1.1/24 interface=bridge_local network=100.64.1.0
 /ip dhcp-server lease add address=192.168.69.232 client-id=1:48:da:35:6f:6b:66 comment="bkk09nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:6B:66 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.231 client-id=1:e4:5f:1:de:47:96 comment="blikvm nixos" mac-address=E4:5F:01:DE:47:96 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.230 comment=bkk09 mac-address=58:47:CA:78:CD:48 server=dhcp1
@@ -201,6 +202,7 @@
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=25011 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=22901 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10901 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=8233 protocol=tcp
@@ -885,7 +887,9 @@
 /ip firewall filter add action=accept chain=forward dst-port=30433 protocol=tcp
 /ip firewall filter add action=drop chain=forward comment="Drop all other forward"
 /ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi https - disabled" dst-address=160.22.181.181 dst-port=17845 protocol=tcp to-addresses=192.168.69.204 to-ports=443
-/ip firewall nat add action=masquerade chain=srcnat out-interface-list=WAN src-address=100.64.0.0/24
+/ip firewall nat add action=masquerade chain=srcnat comment="ibp github runner vm" disabled=yes out-interface-list=WAN src-address=100.64.0.0/24
+/ip firewall nat add action=src-nat chain=srcnat comment="ibp github runner vm" out-interface-list=WAN src-address=100.64.0.0/24 to-addresses=160.22.181.254
+/ip firewall nat add action=src-nat chain=srcnat comment="geodns vm" out-interface-list=WAN src-address=100.64.1.0/24 to-addresses=160.22.181.250
 /ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi http - disabled" dst-address=160.22.181.181 dst-port=17846 protocol=tcp to-addresses=192.168.69.204 to-ports=80
 /ip firewall nat add action=masquerade chain=srcnat out-interface-list=WAN src-address=172.31.0.0/24
 /ip firewall nat add action=src-nat chain=srcnat out-interface-list=WAN src-address=192.168.0.0/16 to-addresses=160.22.181.181
@@ -1547,6 +1551,7 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.60 to-ports=30435
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22901 protocol=tcp to-addresses=192.168.77.201 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=8233 protocol=tcp to-addresses=192.168.77.201 to-ports=8233
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=25011 protocol=tcp to-addresses=100.64.1.2 to-ports=22
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
@@ -1573,9 +1578,10 @@
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
 /ip route add disabled=no dst-address=160.22.181.254/32 gateway=100.64.0.2
 /ip route add disabled=no dst-address=160.22.181.252/32 gateway=192.168.77.82
+/ip route add disabled=no dst-address=160.22.181.250/32 gateway=100.64.1.2
 /ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
 /ip service set ftp disabled=yes
-/ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,158.140.0.0/16,95.217.134.129/32
+/ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,182.10.0.0/16,95.217.134.129/32
 /ip service set telnet disabled=yes
 /ip service set www disabled=yes
 /ip service set winbox address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
