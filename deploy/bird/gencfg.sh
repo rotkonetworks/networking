@@ -109,11 +109,13 @@ ANYCAST_SITE_V6_PREFIX=$(jq -r '.networks.anycast_v6.site // empty' "$CONFIG_FIL
 ANYCAST_GLOBAL_V6_PREFIX=$(jq -r '.networks.anycast_v6.global // empty' "$CONFIG_FILE")
 
 # extract VM public IPs from services.json
-VM_IPS=()
+VM_IP4S=()
+VM_IP6S=()
 if [[ -f "$SERVICES_FILE" ]] && jq -e ".vms.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
-  while IFS= read -r ip; do
-    [[ -n "$ip" ]] && VM_IPS+=("$ip")
-  done < <(jq -r ".vms.$SITE | to_entries[] | .value.public_ip // empty" "$SERVICES_FILE" 2>/dev/null)
+  while IFS='|' read -r ip4 ip6; do
+    [[ -n "$ip4" ]] && VM_IP4S+=("$ip4")
+    [[ -n "$ip6" ]] && VM_IP6S+=("$ip6")
+  done < <(jq -r ".vms.$SITE | to_entries[] | \"\(.value.public_ip.ip4 // empty)|\(.value.public_ip.ip6 // empty)\"" "$SERVICES_FILE" 2>/dev/null)
 fi
 
 # extract global config
@@ -190,12 +192,17 @@ CONSTANTS
   fi
 
   # VM public IPs (VMs with direct public IP on vmbr2)
-  if [[ ${#VM_IPS[@]} -gt 0 ]]; then
+  if [[ ${#VM_IP4S[@]} -gt 0 ]] || [[ ${#VM_IP6S[@]} -gt 0 ]]; then
     echo ""
     echo "# VM public IPs"
     local idx=1
-    for ip in "${VM_IPS[@]}"; do
+    for ip in "${VM_IP4S[@]}"; do
       echo "define VM_IP4_${idx} = ${ip}/32;"
+      ((idx++))
+    done
+    idx=1
+    for ip in "${VM_IP6S[@]}"; do
+      echo "define VM_IP6_${idx} = ${ip}/128;"
       ((idx++))
     done
   fi
@@ -348,10 +355,10 @@ STATIC
   [[ -n "$ANYCAST_SITE_V4" ]] && echo "    route ${ANYCAST_SITE_V4}/32 unreachable;    # Bangkok site-local"
   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "    route ${ANYCAST_GLOBAL_V4}/32 unreachable;  # Global multi-site"
 
-  # Add VM static routes
-  if [[ ${#VM_IPS[@]} -gt 0 ]]; then
+  # Add VM static routes (IPv4)
+  if [[ ${#VM_IP4S[@]} -gt 0 ]]; then
     local idx=1
-    for ip in "${VM_IPS[@]}"; do
+    for ip in "${VM_IP4S[@]}"; do
       echo "    route VM_IP4_${idx} unreachable;  # VM public IP"
       ((idx++))
     done
@@ -383,6 +390,16 @@ STATIC_CONT
     echo "    # Global anycast (GUA) - multi-site"
     echo "    route ${ANYCAST_GLOBAL_V6}/128 unreachable;"
     [[ -n "$ANYCAST_GLOBAL_V6_PREFIX" ]] && echo "    route ${ANYCAST_GLOBAL_V6_PREFIX} unreachable;"
+  fi
+
+  # Add VM static routes (IPv6)
+  if [[ ${#VM_IP6S[@]} -gt 0 ]]; then
+    echo "    # VM public IPv6"
+    local idx=1
+    for ip in "${VM_IP6S[@]}"; do
+      echo "    route VM_IP6_${idx} unreachable;  # VM public IPv6"
+      ((idx++))
+    done
   fi
 
   cat <<'STATIC_V6_CONT'
@@ -496,7 +513,7 @@ protocol bgp RR1_v4 from BGP_COMMON {
 BGP_V4_RR1
 
   # Add VM IP exports
-  for i in $(seq 1 ${#VM_IPS[@]}); do
+  for i in $(seq 1 ${#VM_IP4S[@]}); do
     echo "            if net = VM_IP4_${i} then accept;  # VM public IP"
   done
 
@@ -549,6 +566,14 @@ protocol bgp RR2_v6 from BGP_COMMON {
             # ULA anycast stays internal only (not exported to eBGP)
             # But we can export to iBGP for internal routing
             if net = ANYCAST_LOCAL_V6_PREFIX then accept;
+BGP_V6_RR2
+
+  # Add VM IPv6 exports
+  for i in $(seq 1 ${#VM_IP6S[@]}); do
+    echo "            if net = VM_IP6_${i} then accept;  # VM public IPv6"
+  done
+
+  cat <<'BGP_V6_RR2_END'
 
             # Internal networks
             if net ~ INTERNAL_NET6 then accept;
@@ -558,7 +583,7 @@ protocol bgp RR2_v6 from BGP_COMMON {
         };
     };
 }
-BGP_V6_RR2
+BGP_V6_RR2_END
 
   # Generate IPv4 session to RR2 (point-to-point)
   cat <<'BGP_V4_RR2'
@@ -591,7 +616,7 @@ protocol bgp RR2_v4 from BGP_COMMON {
 BGP_V4_RR2
 
   # Add VM IP exports
-  for i in $(seq 1 ${#VM_IPS[@]}); do
+  for i in $(seq 1 ${#VM_IP4S[@]}); do
     echo "            if net = VM_IP4_${i} then accept;  # VM public IP"
   done
 
@@ -625,7 +650,7 @@ protocol bgp RR1_UNIFIED_v4 from BGP_COMMON {
     ipv4 {
         next hop self;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IPS[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 
@@ -636,7 +661,7 @@ protocol bgp RR1_UNIFIED_v6 from BGP_COMMON {
     ipv6 {
         next hop self;
         import filter { preference = PREF_IPV6; if net = ::/0 then { bgp_local_pref = LOCAL_PREF_PRIMARY; accept; } accept; };
-        export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; if net ~ INTERNAL_NET6 then accept; reject; };
+        export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; $(for i in $(seq 1 ${#VM_IP6S[@]}); do echo -n "if net = VM_IP6_${i} then accept; "; done)if net ~ INTERNAL_NET6 then accept; reject; };
     };
 }
 
@@ -647,7 +672,7 @@ protocol bgp RR2_UNIFIED_v4 from BGP_COMMON {
     ipv4 {
         next hop self;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IPS[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 
@@ -658,7 +683,7 @@ protocol bgp RR2_UNIFIED_v6 from BGP_COMMON {
     ipv6 {
         next hop self;
         import filter { preference = PREF_IPV6; if net = ::/0 then { bgp_local_pref = LOCAL_PREF_PRIMARY; accept; } accept; };
-        export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; if net ~ INTERNAL_NET6 then accept; reject; };
+        export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; $(for i in $(seq 1 ${#VM_IP6S[@]}); do echo -n "if net = VM_IP6_${i} then accept; "; done)if net ~ INTERNAL_NET6 then accept; reject; };
     };
 }
 UNIFIED

@@ -415,9 +415,11 @@ FORWARD
  # VM forward rules - allow public IP range on vmbr2
  cat <<'VM_FORWARD'
 
-        # VM forward rules (public IP VMs on vmbr2)
-        iifname "vmbr2" ip saddr 160.22.180.0/23 accept  # VM outbound
-        oifname "vmbr2" ip daddr 160.22.180.0/23 accept  # VM inbound
+        # VM forward rules (public IP on vmbr2)
+        iifname "vmbr2" ip saddr 160.22.180.0/23 accept
+        oifname "vmbr2" ip daddr 160.22.180.0/23 accept
+        iifname "vmbr2" ip6 saddr 2401:a860::/32 accept
+        oifname "vmbr2" ip6 daddr 2401:a860::/32 accept
 VM_FORWARD
 
  cat <<'FORWARD_END'

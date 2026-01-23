@@ -87,12 +87,13 @@ ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' | 
 ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | sed 's|/128||')
 
 # VM public IPs and bridges from services.json
-VM_IPS=()
+VM_IP4S=()
+VM_IP6S=()
 VM_BRIDGES=()
 if [[ -f "$SERVICES_FILE" ]] && jq -e ".vms.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
-  while IFS='|' read -r ip bridge; do
-    [[ -n "$ip" ]] && VM_IPS+=("$ip") && VM_BRIDGES+=("${bridge:-vmbr2}")
-  done < <(jq -r ".vms.$SITE | to_entries[] | \"\(.value.public_ip // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
+  while IFS='|' read -r ip4 ip6 bridge; do
+    [[ -n "$ip4" ]] && VM_IP4S+=("$ip4") && VM_IP6S+=("$ip6") && VM_BRIDGES+=("${bridge:-vmbr2}")
+  done < <(jq -r ".vms.$SITE | to_entries[] | \"\(.value.public_ip.ip4 // empty)|\(.value.public_ip.ip6 // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
 fi
 
 # physical interfaces
@@ -364,12 +365,12 @@ COMMON_CONFIG
   echo "    post-up ip route add default table anycast nexthop via ${RR1_GW_V4} dev vmbr2 weight 1 nexthop via ${RR2_GW_V4} dev vmbr2 weight 1 2>/dev/null || true"
 
   # Add VM routes (VMs with public IPs on vmbr2)
-  for i in "${!VM_IPS[@]}"; do
-    local ip="${VM_IPS[$i]}"
+  for i in "${!VM_IP4S[@]}"; do
+    local ip4="${VM_IP4S[$i]}"
     local bridge="${VM_BRIDGES[$i]}"
-    if [[ "$bridge" == "vmbr2" ]]; then
+    if [[ "$bridge" == "vmbr2" && -n "$ip4" ]]; then
       echo "    # VM public IP route"
-      echo "    post-up ip route add ${ip}/32 dev vmbr2 2>/dev/null || true"
+      echo "    post-up ip route add ${ip4}/32 dev vmbr2 2>/dev/null || true"
     fi
   done
 
@@ -402,11 +403,11 @@ COMMON_CONFIG
   echo "    pre-down ip rule del iif vmbr2 lookup main 2>/dev/null || true"
 
   # Cleanup VM routes
-  for i in "${!VM_IPS[@]}"; do
-    local ip="${VM_IPS[$i]}"
+  for i in "${!VM_IP4S[@]}"; do
+    local ip4="${VM_IP4S[$i]}"
     local bridge="${VM_BRIDGES[$i]}"
-    if [[ "$bridge" == "vmbr2" ]]; then
-      echo "    pre-down ip route del ${ip}/32 dev vmbr2 2>/dev/null || true"
+    if [[ "$bridge" == "vmbr2" && -n "$ip4" ]]; then
+      echo "    pre-down ip route del ${ip4}/32 dev vmbr2 2>/dev/null || true"
     fi
   done
 
@@ -445,6 +446,16 @@ COMMON_CONFIG
 
   echo "    post-up ip -6 route add default table anycast nexthop via ${RR1_GW_V6} dev vmbr2 weight 1 nexthop via ${RR2_GW_V6} dev vmbr2 weight 1 2>/dev/null || true"
 
+  # Add VM IPv6 routes
+  for i in "${!VM_IP6S[@]}"; do
+    local ip6="${VM_IP6S[$i]}"
+    local bridge="${VM_BRIDGES[$i]}"
+    if [[ "$bridge" == "vmbr2" && -n "$ip6" ]]; then
+      echo "    # VM public IPv6 route"
+      echo "    post-up ip -6 route add ${ip6}/128 dev vmbr2 2>/dev/null || true"
+    fi
+  done
+
   cat <<POLICY_V6
     # critical: ensure return traffic uses the same interface
     post-up ip -6 rule add iif vmbr2 lookup main priority 60
@@ -472,6 +483,15 @@ POLICY_V6
 
   echo "    pre-down ip -6 route flush table anycast 2>/dev/null || true"
   echo "    pre-down ip -6 rule del iif vmbr2 lookup main 2>/dev/null || true"
+
+  # Cleanup VM IPv6 routes
+  for i in "${!VM_IP6S[@]}"; do
+    local ip6="${VM_IP6S[$i]}"
+    local bridge="${VM_BRIDGES[$i]}"
+    if [[ "$bridge" == "vmbr2" && -n "$ip6" ]]; then
+      echo "    pre-down ip -6 route del ${ip6}/128 dev vmbr2 2>/dev/null || true"
+    fi
+  done
 }
 
 # main execution
