@@ -128,9 +128,13 @@ VARS
     [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6 = ${ANYCAST_GLOBAL_V6} # GUA - global"
   fi
 
-  # Add BGP peers - extract site-specific IPs for current site
-  local bgp_peers_v6=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v6) | join(", ")' "$CONFIG_FILE")
-  local bgp_peers_v4=$(jq -r --arg site "$SITE_UPPER" '.route_reflectors | to_entries | map(.value[$site].v4) | join(", ")' "$CONFIG_FILE")
+  # Add BGP peers - RR IPs from bkk00 and bkk20
+  local rr1_v4=$(jq -r '.sites.bkk00.bgp_rr_v4 // empty' "$CONFIG_FILE")
+  local rr2_v4=$(jq -r '.sites.bkk20.bgp_rr_v4 // empty' "$CONFIG_FILE")
+  local rr1_v6=$(jq -r '.sites.bkk00.bgp_rr_v6 // empty' "$CONFIG_FILE")
+  local rr2_v6=$(jq -r '.sites.bkk20.bgp_rr_v6 // empty' "$CONFIG_FILE")
+  local bgp_peers_v4="${rr1_v4}, ${rr2_v4}"
+  local bgp_peers_v6="${rr1_v6}, ${rr2_v6}"
 
  echo ""
  echo "# BGP peers"
