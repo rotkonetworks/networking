@@ -412,17 +412,13 @@ generate_forward_chain() {
        ip saddr $MGMT_NET accept
 FORWARD
 
- # Add VM forward rules
- if [[ ${#VM_IPS[@]} -gt 0 ]]; then
-   echo ""
-   echo "        # VM forward rules (public IP VMs)"
-   for i in "${!VM_IPS[@]}"; do
-     local ip="${VM_IPS[$i]}"
-     local bridge="${VM_BRIDGES[$i]}"
-     echo "        iifname \"${bridge}\" ip saddr ${ip} accept  # VM outbound"
-     echo "        oifname \"${bridge}\" ip daddr ${ip} accept  # VM inbound"
-   done
- fi
+ # VM forward rules - allow public IP range on vmbr2
+ cat <<'VM_FORWARD'
+
+        # VM forward rules (public IP VMs on vmbr2)
+        iifname "vmbr2" ip saddr 160.22.180.0/23 accept  # VM outbound
+        oifname "vmbr2" ip daddr 160.22.180.0/23 accept  # VM inbound
+VM_FORWARD
 
  cat <<'FORWARD_END'
 
