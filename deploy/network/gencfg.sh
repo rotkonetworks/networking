@@ -4,6 +4,7 @@ set -euo pipefail
 # Find script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${CONFIG_FILE:-${SCRIPT_DIR}/../config/network.json}"
+SERVICES_FILE="${SERVICES_FILE:-${SCRIPT_DIR}/../config/services.json}"
 
 # Parse options
 while getopts ':c:' opt; do
@@ -84,6 +85,15 @@ ANYCAST_SITE_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v4 // empty' | sed 
 ANYCAST_SITE_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v6 // empty' | sed 's|/128||')
 ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' | sed 's|/32||')
 ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | sed 's|/128||')
+
+# VM public IPs and bridges from services.json
+VM_IPS=()
+VM_BRIDGES=()
+if [[ -f "$SERVICES_FILE" ]] && jq -e ".vms.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
+  while IFS='|' read -r ip bridge; do
+    [[ -n "$ip" ]] && VM_IPS+=("$ip") && VM_BRIDGES+=("${bridge:-vmbr2}")
+  done < <(jq -r ".vms.$SITE | to_entries[] | \"\(.value.public_ip // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
+fi
 
 # physical interfaces
 MGMT_IFACE=$(echo "$SITE_CONFIG" | jq -r '.physical_interfaces.management // "eno2"')
@@ -353,6 +363,16 @@ COMMON_CONFIG
   # Add default route to anycast table
   echo "    post-up ip route add default table anycast nexthop via ${RR1_GW_V4} dev vmbr2 weight 1 nexthop via ${RR2_GW_V4} dev vmbr2 weight 1 2>/dev/null || true"
 
+  # Add VM routes (VMs with public IPs on vmbr2)
+  for i in "${!VM_IPS[@]}"; do
+    local ip="${VM_IPS[$i]}"
+    local bridge="${VM_BRIDGES[$i]}"
+    if [[ "$bridge" == "vmbr2" ]]; then
+      echo "    # VM public IP route"
+      echo "    post-up ip route add ${ip}/32 dev vmbr2 2>/dev/null || true"
+    fi
+  done
+
   cat <<COMMON_CONFIG
     # critical: ensure return traffic uses the same interface
     post-up ip rule add iif vmbr2 lookup main priority 60
@@ -380,6 +400,15 @@ COMMON_CONFIG
 
   echo "    pre-down ip route flush table anycast 2>/dev/null || true"
   echo "    pre-down ip rule del iif vmbr2 lookup main 2>/dev/null || true"
+
+  # Cleanup VM routes
+  for i in "${!VM_IPS[@]}"; do
+    local ip="${VM_IPS[$i]}"
+    local bridge="${VM_BRIDGES[$i]}"
+    if [[ "$bridge" == "vmbr2" ]]; then
+      echo "    pre-down ip route del ${ip}/32 dev vmbr2 2>/dev/null || true"
+    fi
+  done
 
   cat <<COMMON_CONFIG
 

@@ -60,6 +60,15 @@ ANYCAST_SITE_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v6 // empty' | sed 
 ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' | sed 's|/32||')
 ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | sed 's|/128||')
 
+# Extract VM IPs and bridges from services.json
+VM_IPS=()
+VM_BRIDGES=()
+if jq -e ".vms.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
+  while IFS='|' read -r ip bridge; do
+    [[ -n "$ip" ]] && VM_IPS+=("$ip") && VM_BRIDGES+=("${bridge:-vmbr2}")
+  done < <(jq -r ".vms.$SITE | to_entries[] | \"\(.value.public_ip // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
+fi
+
 # Generate nftables configuration
 generate_nftables_config() {
  cat <<NFT
@@ -397,11 +406,26 @@ generate_forward_chain() {
 
        # Allow forwarding from NAT network
        ip saddr $MGMT_NET accept
+FORWARD
+
+ # Add VM forward rules
+ if [[ ${#VM_IPS[@]} -gt 0 ]]; then
+   echo ""
+   echo "        # VM forward rules (public IP VMs)"
+   for i in "${!VM_IPS[@]}"; do
+     local ip="${VM_IPS[$i]}"
+     local bridge="${VM_BRIDGES[$i]}"
+     echo "        iifname \"${bridge}\" ip saddr ${ip} accept  # VM outbound"
+     echo "        oifname \"${bridge}\" ip daddr ${ip} accept  # VM inbound"
+   done
+ fi
+
+ cat <<'FORWARD_END'
 
        # Log drops
        limit rate 5/minute log prefix "[DROP-FWD] "
    }
-FORWARD
+FORWARD_END
 }
 
 # Generate output chain

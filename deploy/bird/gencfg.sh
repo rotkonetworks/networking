@@ -12,6 +12,7 @@ if [[ ! -f "$DEFAULT_CONFIG" ]] && [[ -f "${SCRIPT_DIR}/config/network.json" ]];
 fi
 
 CONFIG_FILE="${CONFIG_FILE:-$DEFAULT_CONFIG}"
+SERVICES_FILE="${SCRIPT_DIR}/../config/services.json"
 
 # Parse options
 while getopts ':c:' opt; do
@@ -107,6 +108,14 @@ ANYCAST_LOCAL_V6_PREFIX=$(jq -r '.networks.anycast_v6.local // empty' "$CONFIG_F
 ANYCAST_SITE_V6_PREFIX=$(jq -r '.networks.anycast_v6.site // empty' "$CONFIG_FILE")
 ANYCAST_GLOBAL_V6_PREFIX=$(jq -r '.networks.anycast_v6.global // empty' "$CONFIG_FILE")
 
+# extract VM public IPs from services.json
+VM_IPS=()
+if [[ -f "$SERVICES_FILE" ]] && jq -e ".vms.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
+  while IFS= read -r ip; do
+    [[ -n "$ip" ]] && VM_IPS+=("$ip")
+  done < <(jq -r ".vms.$SITE | to_entries[] | .value.public_ip // empty" "$SERVICES_FILE" 2>/dev/null)
+fi
+
 # extract global config
 AS_NUMBER=$(jq -r '.as_number' "$CONFIG_FILE")
 
@@ -178,6 +187,17 @@ CONSTANTS
     [[ -n "$ANYCAST_LOCAL_V6_PREFIX" ]] && echo "define ANYCAST_LOCAL_V6_PREFIX = ${ANYCAST_LOCAL_V6_PREFIX};  # ULA /48 - internal only"
     [[ -n "$ANYCAST_SITE_V6_PREFIX" ]] && echo "define ANYCAST_SITE_V6_PREFIX = ${ANYCAST_SITE_V6_PREFIX};    # GUA /48 - Bangkok"
     [[ -n "$ANYCAST_GLOBAL_V6_PREFIX" ]] && echo "define ANYCAST_GLOBAL_V6_PREFIX = ${ANYCAST_GLOBAL_V6_PREFIX}; # GUA /36 - global"
+  fi
+
+  # VM public IPs (VMs with direct public IP on vmbr2)
+  if [[ ${#VM_IPS[@]} -gt 0 ]]; then
+    echo ""
+    echo "# VM public IPs"
+    local idx=1
+    for ip in "${VM_IPS[@]}"; do
+      echo "define VM_IP4_${idx} = ${ip}/32;"
+      ((idx++))
+    done
   fi
 
   # Point-to-point RR IPs
@@ -328,6 +348,15 @@ STATIC
   [[ -n "$ANYCAST_SITE_V4" ]] && echo "    route ${ANYCAST_SITE_V4}/32 unreachable;    # Bangkok site-local"
   [[ -n "$ANYCAST_GLOBAL_V4" ]] && echo "    route ${ANYCAST_GLOBAL_V4}/32 unreachable;  # Global multi-site"
 
+  # Add VM static routes
+  if [[ ${#VM_IPS[@]} -gt 0 ]]; then
+    local idx=1
+    for ip in "${VM_IPS[@]}"; do
+      echo "    route VM_IP4_${idx} unreachable;  # VM public IP"
+      ((idx++))
+    done
+  fi
+
   cat <<'STATIC_CONT'
     route INTERNAL_NET4 unreachable;
 }
@@ -464,13 +493,21 @@ protocol bgp RR1_v4 from BGP_COMMON {
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
             if net = ANYCAST_SITE_V4 then accept;   # Bangkok only
             if net = ANYCAST_GLOBAL_V4 then accept; # Global
+BGP_V4_RR1
+
+  # Add VM IP exports
+  for i in $(seq 1 ${#VM_IPS[@]}); do
+    echo "            if net = VM_IP4_${i} then accept;  # VM public IP"
+  done
+
+  cat <<'BGP_V4_RR1_END'
 
             if net ~ INTERNAL_NET4 then accept;
             reject;
         };
     };
 }
-BGP_V4_RR1
+BGP_V4_RR1_END
 
   # Generate IPv6 session to RR2 (point-to-point)
   cat <<'BGP_V6_RR2'
@@ -551,13 +588,21 @@ protocol bgp RR2_v4 from BGP_COMMON {
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
             if net = ANYCAST_SITE_V4 then accept;   # Bangkok only
             if net = ANYCAST_GLOBAL_V4 then accept; # Global
+BGP_V4_RR2
+
+  # Add VM IP exports
+  for i in $(seq 1 ${#VM_IPS[@]}); do
+    echo "            if net = VM_IP4_${i} then accept;  # VM public IP"
+  done
+
+  cat <<'BGP_V4_RR2_END'
 
             if net ~ INTERNAL_NET4 then accept;
             reject;
         };
     };
 }
-BGP_V4_RR2
+BGP_V4_RR2_END
 
   # Generate unified network sessions
   cat <<UNIFIED
@@ -580,7 +625,7 @@ protocol bgp RR1_UNIFIED_v4 from BGP_COMMON {
     ipv4 {
         next hop self;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IPS[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 
@@ -602,7 +647,7 @@ protocol bgp RR2_UNIFIED_v4 from BGP_COMMON {
     ipv4 {
         next hop self;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IPS[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 
