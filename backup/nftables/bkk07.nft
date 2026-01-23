@@ -14,6 +14,7 @@ table inet filter {
 
 	chain input {
 		type filter hook input priority filter; policy drop;
+		iifname "veth1102i1" accept
 		ct state established,related accept
 		ct state invalid drop
 		iif "lo" accept
@@ -58,6 +59,7 @@ table inet filter {
 		udp dport 5000 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
 		udp dport 5000 accept
+		iifname "vmbr2" accept
 	}
 
 	chain forward {
@@ -66,9 +68,11 @@ table inet filter {
 		ct state invalid drop
 		iifname "vmbr1" accept
 		iifname "vmbr0" accept
+		iifname "veth*" accept
 		ct status dnat accept
 		ip saddr 192.168.0.0/16 accept
 		limit rate 5/minute log prefix "[DROP-FWD] "
+		iifname "vmbr2" accept
 	}
 
 	chain output {

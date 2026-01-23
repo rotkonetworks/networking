@@ -59,8 +59,12 @@ table inet filter {
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
+		oifname "vmbr2" ip daddr 160.22.181.250 accept
+		iifname "vmbr2" ip saddr 160.22.181.250 accept
 		ct state established,related accept
 		ct state invalid drop
+		iifname "vmbr3" ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } drop
+		iifname "vmbr3" accept
 		iifname "vmbr1" accept
 		iifname "vmbr0" accept
 		ct status dnat accept
