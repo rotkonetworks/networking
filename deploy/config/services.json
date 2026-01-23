@@ -881,6 +881,12 @@
     }
   },
   "vms": {
+    "bkk07": {
+      "penumbra-02": {
+        "public_ip": "160.22.181.252",
+        "bridge": "vmbr2"
+      }
+    },
     "bkk08": {
       "ibp-geodns-01": {
         "public_ip": "160.22.181.250",
