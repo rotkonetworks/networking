@@ -1,4 +1,4 @@
-# 2026-01-22 23:11:51 by RouterOS 7.20beta2
+# 2026-01-23 23:07:03 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1577,7 +1577,7 @@
 /ip route add blackhole distance=220 dst-address=160.22.181.169/29
 /ip route add blackhole distance=220 dst-address=160.22.181.181/29
 /ip route add disabled=no dst-address=160.22.181.254/32 gateway=100.64.0.2
-/ip route add disabled=no dst-address=160.22.181.252/32 gateway=192.168.77.82
+/ip route add disabled=yes dst-address=160.22.181.252/32 gateway=192.168.77.82
 /ip route add disabled=yes dst-address=160.22.181.250/32 gateway=100.64.1.2
 /ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
 /ip service set ftp disabled=yes

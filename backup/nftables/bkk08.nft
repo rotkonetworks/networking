@@ -19,10 +19,10 @@ table inet filter {
 		iif "lo" accept
 		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
 		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10000/second accept
-		tcp dport 179 ip saddr { 10.155.108.0, 10.155.208.0 } accept
-		tcp dport 179 ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
-		udp dport { 3784, 4784 } ip saddr { 10.155.108.0, 10.155.208.0 } accept
-		udp dport { 3784, 4784 } ip6 saddr { fd00:155:108::, fd00:155:208:: } accept
+		tcp dport 179 ip saddr { 10.155.100.1, 10.155.100.2 } accept
+		tcp dport 179 ip6 saddr { fd00:155:100::1, fd00:155:100::2 } accept
+		udp dport { 3784, 4784 } ip saddr { 10.155.100.1, 10.155.100.2 } accept
+		udp dport { 3784, 4784 } ip6 saddr { fd00:155:100::1, fd00:155:100::2 } accept
 		ip protocol ospf accept
 		ip6 nexthdr ospf accept
 		tcp dport 22 ip saddr 0.0.0.0/0 accept
@@ -51,6 +51,7 @@ table inet filter {
 		ip6 daddr 2401:a860:: udp dport 53 accept
 		tcp dport { 80, 443 } accept
 		iif "lo" tcp dport 8404 accept
+		udp dport 4433 accept
 		tcp dport { 30335, 31003, 31202, 31212, 31232, 31242, 31252, 31262, 31272, 31282, 31292, 31311, 31322, 34032, 34072 } accept
 		udp dport { 30335, 31003, 31202, 31212, 31232, 31242, 31252, 31262, 31272, 31282, 31292, 31311, 31322, 34032, 34072 } accept
 		tcp dport 30435 accept
@@ -59,16 +60,16 @@ table inet filter {
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
-		oifname "vmbr2" ip daddr 160.22.181.250 accept
-		iifname "vmbr2" ip saddr 160.22.181.250 accept
 		ct state established,related accept
 		ct state invalid drop
-		iifname "vmbr3" ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } drop
-		iifname "vmbr3" accept
 		iifname "vmbr1" accept
 		iifname "vmbr0" accept
 		ct status dnat accept
 		ip saddr 192.168.0.0/16 accept
+		iifname "vmbr2" ip saddr 160.22.180.0/23 accept
+		oifname "vmbr2" ip daddr 160.22.180.0/23 accept
+		iifname "vmbr2" ip6 saddr 2401:a860::/32 accept
+		oifname "vmbr2" ip6 daddr 2401:a860::/32 accept
 		limit rate 5/minute log prefix "[DROP-FWD] "
 	}
 
