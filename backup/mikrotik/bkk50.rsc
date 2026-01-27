@@ -1,4 +1,4 @@
-# 2026-01-25 23:14:57 by RouterOS 7.20beta2
+# 2026-01-26 23:14:07 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -124,7 +124,7 @@
 /ip address add address=100.64.1.1/24 interface=bridge_local network=100.64.1.0
 /ip dhcp-server lease add address=192.168.69.232 client-id=1:48:da:35:6f:6b:66 comment="bkk09nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:6B:66 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.231 client-id=1:e4:5f:1:de:47:96 comment="blikvm nixos" mac-address=E4:5F:01:DE:47:96 server=dhcp1
-/ip dhcp-server lease add address=192.168.69.230 comment=bkk09 mac-address=58:47:CA:78:CD:48 server=dhcp1
+/ip dhcp-server lease add address=192.168.69.230 comment=bkk09 disabled=yes mac-address=58:47:CA:78:CD:48 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.221 client-id=1:9c:6b:0:1c:e3:a1 comment="bkk03 ipmi" mac-address=9C:6B:00:1C:E3:A1 server=dhcp1
 /ip dhcp-server lease add address=10.69.169.2 client-id=1:9c:6b:0:6d:8b:21 comment=saxembergkvm mac-address=9C:6B:00:6D:8B:21 server=saxemberg-kvm
 /ip dhcp-server lease add address=192.168.69.227 client-id=1:3c:ec:ef:e3:5c:bf comment="bkk07 ipmi" mac-address=3C:EC:EF:E3:5C:BF server=dhcp1
