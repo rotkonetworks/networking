@@ -1,4 +1,4 @@
-# 2026-01-26 23:14:07 by RouterOS 7.20beta2
+# 2026-01-27 23:12:25 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -939,7 +939,7 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22788 protocol=tcp to-addresses=192.168.69.218 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22798 protocol=tcp to-addresses=192.168.69.208 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=22789 protocol=tcp to-addresses=192.168.69.109 to-ports=22
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22789 protocol=tcp to-addresses=192.168.69.230 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22789 protocol=tcp to-addresses=192.168.79.1 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22801 protocol=tcp to-addresses=192.168.69.201 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22802 protocol=tcp to-addresses=192.168.69.202 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22803 protocol=tcp to-addresses=192.168.69.212 to-ports=22
@@ -1303,8 +1303,8 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32022 protocol=tcp to-addresses=192.168.227.125 to-ports=32022
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30334 protocol=tcp to-addresses=192.168.227.125 to-ports=30334
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=172.30.50.103 dst-port=4443 protocol=tcp to-addresses=192.168.69.233 to-ports=443
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=172.30.50.39 dst-port=80 protocol=tcp to-addresses=192.168.69.230 to-ports=80
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=172.30.50.39 protocol=tcp to-addresses=192.168.69.230
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=172.30.50.39 dst-port=80 protocol=tcp to-addresses=192.168.79.1 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=172.30.50.39 protocol=tcp to-addresses=192.168.79.1
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=172.30.50.72 dst-port=22 protocol=tcp to-addresses=192.168.72.1 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2651 protocol=tcp to-addresses=192.168.122.12 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32022 protocol=tcp to-addresses=192.168.122.12 to-ports=32022
@@ -1377,12 +1377,12 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34234 protocol=tcp to-addresses=192.168.131.10 to-ports=34234
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=35234 protocol=tcp to-addresses=192.168.131.10 to-ports=35234
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2992 protocol=tcp to-addresses=192.168.77.92 to-ports=22
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39111 protocol=tcp to-addresses=192.168.69.230 to-ports=39111
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39112 protocol=tcp to-addresses=192.168.69.230 to-ports=39112
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39113 protocol=tcp to-addresses=192.168.69.230 to-ports=39113
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39121 protocol=tcp to-addresses=192.168.69.230 to-ports=39121
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39122 protocol=tcp to-addresses=192.168.69.230 to-ports=39122
-/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39123 protocol=tcp to-addresses=192.168.69.230 to-ports=39123
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39111 protocol=tcp to-addresses=192.168.79.1 to-ports=39111
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39112 protocol=tcp to-addresses=192.168.79.1 to-ports=39112
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39113 protocol=tcp to-addresses=192.168.79.1 to-ports=39113
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39121 protocol=tcp to-addresses=192.168.79.1 to-ports=39121
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39122 protocol=tcp to-addresses=192.168.79.1 to-ports=39122
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=39123 protocol=tcp to-addresses=192.168.79.1 to-ports=39123
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30434 protocol=tcp to-addresses=192.168.112.11 to-ports=30434
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30434 protocol=tcp to-addresses=192.168.112.12 to-ports=30434
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30434 protocol=tcp to-addresses=192.168.132.12 to-ports=30434
