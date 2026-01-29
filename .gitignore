@@ -1,0 +1,11 @@
+# rust build artifacts
+bgpctl/target/
+
+# editor
+*.swp
+*.swo
+*~
+
+# secrets
+*.age
+!*.age.example
