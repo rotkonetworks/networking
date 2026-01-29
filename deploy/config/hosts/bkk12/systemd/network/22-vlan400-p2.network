@@ -1,0 +1,9 @@
+# Outer Q-in-Q VLAN on uplink 2 (bkk20)
+[Match]
+Name=enp2s0f1np1.400
+
+[Link]
+MTUBytes=9000
+
+[Network]
+VLAN=vlan212-p2

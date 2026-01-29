@@ -1,0 +1,9 @@
+# Outer Q-in-Q VLAN on uplink 1 (bkk00)
+[Match]
+Name=enp2s0f0np0.400
+
+[Link]
+MTUBytes=9000
+
+[Network]
+VLAN=vlan112-p1

@@ -1,0 +1,41 @@
+# Management interface for bkk12
+# Updated 2026-01-20 for RR-based routing
+
+[Match]
+Name=enp6s0
+
+[Network]
+Address=192.168.69.202/16
+# No default gateway here - use vmbr2 RR path
+DNS=9.9.9.9
+DNS=1.1.1.1
+Address=2401:a860:1181:50:82::1/64
+DNS=2620:fe::9
+DNS=2606:4700:4700::1111
+
+[Route]
+# Management routing table - backup default
+Destination=0.0.0.0/0
+Gateway=192.168.69.1
+Table=102
+
+[Route]
+Destination=192.168.0.0/16
+Scope=link
+Table=102
+
+[Route]
+# Backup default in main table with high metric
+Destination=0.0.0.0/0
+Gateway=192.168.69.1
+Metric=200
+
+[RoutingPolicyRule]
+From=192.168.69.202
+Table=102
+Priority=300
+
+[RoutingPolicyRule]
+To=192.168.69.202
+Table=102
+Priority=301

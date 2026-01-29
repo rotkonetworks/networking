@@ -30,6 +30,7 @@
       "bgp_rr_v4": "10.155.100.6",
       "bgp_rr_v6": "fd00:155:100::6",
       "public_v4": "160.22.181.6",
+      "public_v4_alt": "160.22.180.6",
       "public_v6": "2401:a860:1006::",
       "internal_v4": "10.6.0.0/16",
       "internal_v6": "2401:a860:1006::/48",
@@ -57,6 +58,7 @@
       "bgp_rr_v4": "10.155.100.7",
       "bgp_rr_v6": "fd00:155:100::7",
       "public_v4": "160.22.181.7",
+      "public_v4_alt": "160.22.180.7",
       "public_v6": "2401:a860:1007::",
       "internal_v4": "10.7.0.0/16",
       "internal_v6": "2401:a860:1007::/48",
@@ -86,6 +88,7 @@
       "bgp_rr_v4": "10.155.100.8",
       "bgp_rr_v6": "fd00:155:100::8",
       "public_v4": "160.22.181.8",
+      "public_v4_alt": "160.22.180.8",
       "public_v6": "2401:a860:1008::",
       "internal_v4": "10.8.0.0/16",
       "internal_v6": "2401:a860:1008::/48",
@@ -107,6 +110,48 @@
         "uplink_split": {
           "enp193s0f1np1": "bkk30",
           "eno1": "bkk10"
+        }
+      }
+    },
+    "bkk12": {
+      "router_id": "10.155.255.12",
+      "bgp_rr_v4": "10.155.100.12",
+      "bgp_rr_v6": "fd00:155:100::12",
+      "public_v4": "160.22.181.12",
+      "public_v4_alt": "160.22.180.12",
+      "public_v6": "2401:a860:1012::",
+      "internal_v4": "10.12.0.0/16",
+      "internal_v6": "2401:a860:1012::/48",
+      "management": "192.168.69.202/16",
+      "management_gateway": "192.168.69.1",
+      "management_v6": "2401:a860:1181:50:82::1/64",
+      "management_v6_gateway": "2401:a860:1181:50::1",
+      "anycast_local_v4": "10.155.181.81/32",
+      "anycast_local_v6": "fd00:a860:1081::",
+      "anycast_site_v4": "160.22.181.81/32",
+      "anycast_site_v6": "2401:a860:1081::",
+      "anycast_global_v4": "160.22.180.180/32",
+      "anycast_global_v6": "2401:a860::",
+      "physical_interfaces": {
+        "management": "enp6s0",
+        "uplinks": ["enp2s0f0np0", "enp2s0f1np1"],
+        "unused": ["enp7s0", "enp12s0u4u3c2"],
+        "p2p_vlans": true
+      },
+      "p2p_links": {
+        "rr1": {
+          "interface": "enp2s0f0np0",
+          "vlan": 112,
+          "v4": "10.155.112.1/30",
+          "v6": "fd00:155:112::1/64",
+          "peer": "bkk00"
+        },
+        "rr2": {
+          "interface": "enp2s0f1np1",
+          "vlan": 212,
+          "v4": "10.155.212.1/30",
+          "v6": "fd00:155:212::1/64",
+          "peer": "bkk20"
         }
       }
     },

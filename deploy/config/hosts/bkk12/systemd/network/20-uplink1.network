@@ -1,0 +1,9 @@
+# Physical uplink 1
+[Match]
+Name=enp2s0f0np0
+
+[Link]
+MTUBytes=9000
+
+[Network]
+VLAN=enp2s0f0np0.400

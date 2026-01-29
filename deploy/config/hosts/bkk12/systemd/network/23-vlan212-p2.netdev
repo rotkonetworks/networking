@@ -1,0 +1,6 @@
+[NetDev]
+Name=vlan212-p2
+Kind=vlan
+
+[VLAN]
+Id=212

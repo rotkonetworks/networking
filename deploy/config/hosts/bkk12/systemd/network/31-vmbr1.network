@@ -1,0 +1,8 @@
+# Internal services bridge
+[Match]
+Name=vmbr1
+
+[Network]
+Address=10.12.0.1/16
+Address=2401:a860:1012::1/48
+IPv6AcceptRA=false

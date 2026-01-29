@@ -1,0 +1,30 @@
+[Unit]
+Description=Bulletin Chain
+After=network.target
+
+[Service]
+Type=simple
+User=bulletin
+Group=bulletin
+Restart=always
+RestartSec=10
+WorkingDirectory=/opt/bulletin
+ExecStart=/opt/bulletin/bin/polkadot-bulletin-chain \
+    --validator \
+    --name "rotko-net-bulletin01" \
+    --chain /opt/bulletin/bulletin-polkadot.json \
+    --listen-addr /ip4/0.0.0.0/tcp/32301 \
+    --listen-addr /ip6/::/tcp/32301 \
+    --public-addr /ip4/160.22.181.12/tcp/32301 \
+    --public-addr /ip6/2401:a860:1012::/tcp/32301 \
+    --base-path=/opt/bulletin/storage \
+    --prometheus-external \
+    --prometheus-port 7400 \
+    --rpc-port 9510 \
+    --ipfs-server \
+    --network-backend=litep2p \
+    --telemetry-url 'wss://telemetry.polkadot.io/submit/ 1' \
+    --node-key-file /opt/bulletin/storage/chains/bulletin-polkadot/network/secret_ed25519
+
+[Install]
+WantedBy=multi-user.target
