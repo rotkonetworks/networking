@@ -1,4 +1,4 @@
-# 2026-02-02 14:41:11 by RouterOS 7.21
+# 2026-02-03 14:33:35 by RouterOS 7.21
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -323,6 +323,7 @@
 /ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.10.2
 /ip route add comment="bkk50 loopback via p2p" distance=1 dst-address=160.22.181.181/32 gateway=172.16.10.2%BKK50-LAG
 /ip route add comment=temp-bkk20-recovery dst-address=160.22.181.178/32 gateway=10.155.255.2
+/ip route add dst-address=159.148.147.0/24 gateway=172.16.30.2 pref-src=160.22.181.180
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
