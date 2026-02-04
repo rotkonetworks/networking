@@ -174,3 +174,93 @@ groups:
           (endpoint:haproxy_bandwidth:rate5m)
           / on(proxy) group_left(chain)
           (chain:node_network_bandwidth:rate5m > 0)
+
+  # ============================================
+  # Edge Router Uplink Traffic (MikroTik SNMP)
+  # ============================================
+  # Transit = paid bandwidth (HGC)
+  # IXP = peering traffic (BKNIX, AMS-IX) - essentially free
+  - name: edge_uplink_traffic
+    interval: 30s
+    rules:
+      # Ingress rate per uplink interface
+      - record: uplink:ifHCInOctets:rate5m
+        expr: |
+          rate(ifHCInOctets{uplink_type!=""}[5m])
+
+      # Egress rate per uplink interface
+      - record: uplink:ifHCOutOctets:rate5m
+        expr: |
+          rate(ifHCOutOctets{uplink_type!=""}[5m])
+
+      # Total bandwidth per uplink
+      - record: uplink:bandwidth:rate5m
+        expr: |
+          uplink:ifHCInOctets:rate5m + uplink:ifHCOutOctets:rate5m
+
+      # Total transit traffic (paid - HGC)
+      - record: uplink_type:bandwidth:rate5m
+        expr: |
+          sum by (uplink_type) (uplink:bandwidth:rate5m)
+
+      # Per-provider traffic
+      - record: provider:bandwidth:rate5m
+        expr: |
+          sum by (provider) (uplink:bandwidth:rate5m)
+
+      # Per-router traffic (for failover analysis)
+      - record: router:bandwidth:rate5m
+        expr: |
+          sum by (router) (uplink:bandwidth:rate5m)
+
+      # Transit vs IXP ratio (cost efficiency metric)
+      # Lower is better - means more traffic via free peering
+      - record: cluster:transit_to_ixp_ratio:rate5m
+        expr: |
+          sum(uplink:bandwidth:rate5m{uplink_type="transit"})
+          / (sum(uplink:bandwidth:rate5m{uplink_type="ixp"}) > 0)
+
+      # Total edge bandwidth (what actually leaves your network)
+      - record: cluster:edge_bandwidth:rate5m
+        expr: |
+          sum(uplink:bandwidth:rate5m)
+
+      # Utilization per uplink (requires ifHighSpeed)
+      - record: uplink:utilization:ratio
+        expr: |
+          (uplink:bandwidth:rate5m * 8)  # Convert to bits
+          / (ifHighSpeed * 1000000)       # ifHighSpeed is in Mbps
+
+  # ============================================
+  # Geographic Traffic Distribution
+  # ============================================
+  - name: geographic_traffic
+    interval: 1m
+    rules:
+      # Traffic by location (HK, SG, BKK, EU)
+      - record: location:bandwidth:rate5m
+        expr: |
+          sum by (location) (uplink:bandwidth:rate5m)
+
+  # ============================================
+  # Cost Analysis (Transit vs Peering)
+  # ============================================
+  - name: traffic_cost_analysis
+    interval: 5m
+    rules:
+      # Daily transit traffic (for billing estimates)
+      # Transit providers typically bill on 95th percentile
+      - record: provider:daily_bytes:increase24h
+        expr: |
+          increase(ifHCInOctets{uplink_type="transit"}[24h])
+          + increase(ifHCOutOctets{uplink_type="transit"}[24h])
+
+      # 95th percentile transit bandwidth (5m samples over 24h)
+      - record: provider:bandwidth:p95_24h
+        expr: |
+          quantile_over_time(0.95, provider:bandwidth:rate5m[24h])
+
+      # IXP traffic savings (traffic that would have been transit)
+      - record: cluster:ixp_savings:rate5m
+        expr: |
+          sum(uplink:bandwidth:rate5m{uplink_type="ixp"})
