@@ -272,49 +272,6 @@ EOF
   echo ""
   echo "    # Default backend"
   echo "    default_backend no-access"
-
-  # Generate domain ACLs only for configured chains
-  echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
-    local chain=$(echo "$entry" | jq -r '.key')
-    local chain_type=$(echo "$entry" | jq -r '.value.type')
-    echo "    # ${chain} ACLs"
-    if [[ "$chain_type" == "misc" ]]; then
-      # Misc services only use rotko.net
-      echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net"
-    else
-      # Substrate chains use all domain suffixes
-      echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
-    fi
-  done
-
-  # Path-based ACLs for centralized endpoints (excludes misc type)
-  echo ""
-  echo "    # Centralized endpoint ACLs"
-  echo "    acl is_rpc hdr_beg(host) -i rpc."
-  echo "    acl is_sys hdr_beg(host) -i sys."
-
-  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
-    echo "    acl path_${chain} path_beg -i /${chain}"
-  done
-
-  echo ""
-  echo "    # Backend routing"
-
-  # Direct domain routing
-  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
-    echo "    use_backend ${chain}-backend if is_${chain}"
-  done
-
-  echo ""
-  # Path-based routing (excludes misc type - those only use direct domain)
-  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
-    echo "    use_backend ${chain}-backend if is_rpc path_${chain}"
-    echo "    use_backend ${chain}-backend if is_sys path_${chain}"
-  done
-
-  echo ""
-  echo "    # Default backend"
-  echo "    default_backend no-access"
 }
 
 # Generate backends
