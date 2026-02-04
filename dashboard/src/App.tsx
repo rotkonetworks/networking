@@ -1,7 +1,8 @@
-import { createSignal, createResource, For, Show, onCleanup } from 'solid-js'
-import { query, fmtRate, fmtBytes, fmtNum } from './lib/prometheus'
+import { createSignal, createResource, createMemo, For, onCleanup } from 'solid-js'
+import { query, queryRange, fmtRate, fmtBytes, fmtNum } from './lib/prometheus'
+import { Chart, Sparkline } from './components/Chart'
 
-// Queries
+// Instant queries
 const Q = {
   totalBw: 'sum(rate(haproxy_frontend_bytes_in_total{proxy=~"ssl-frontend-v."}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy=~"ssl-frontend-v."}[5m]))',
   v4Bw: 'ip_version:frontend_bandwidth:rate5m{ip_version="v4"}',
@@ -24,7 +25,15 @@ const Q = {
   uplinks: 'sum by (provider, uplink_type) (uplink:bandwidth:rate5m)',
 }
 
-// Extract value from prometheus result
+// Time ranges
+const ranges = [
+  { label: '1h', seconds: 3600, step: 60 },
+  { label: '6h', seconds: 21600, step: 120 },
+  { label: '24h', seconds: 86400, step: 300 },
+  { label: '7d', seconds: 604800, step: 1800 },
+  { label: '30d', seconds: 2592000, step: 7200 },
+]
+
 const val = (r: any[], key?: string) => {
   if (!r?.length) return 0
   if (key) {
@@ -34,20 +43,25 @@ const val = (r: any[], key?: string) => {
   return parseFloat(r[0].value[1])
 }
 
-// Extract all metrics as array
-const all = (r: any[]) => r?.map(x => ({
-  ...x.metric,
-  value: parseFloat(x.value[1])
-})) ?? []
+const all = (r: any[]) => r?.map(x => ({ ...x.metric, value: parseFloat(x.value[1]) })) ?? []
 
 export default function App() {
   const [tick, setTick] = createSignal(0)
+  const [rangeIdx, setRangeIdx] = createSignal(2) // default 24h
+  const range = () => ranges[rangeIdx()]
 
-  // Auto-refresh every 15s
+  // Auto-refresh
   const interval = setInterval(() => setTick(t => t + 1), 15000)
   onCleanup(() => clearInterval(interval))
 
-  // Fetch all metrics
+  // Time params for range queries
+  const timeParams = createMemo(() => {
+    tick() // depend on tick for refresh
+    const now = Date.now() / 1000
+    return { start: now - range().seconds, end: now, step: range().step }
+  })
+
+  // Instant metrics
   const [totalBw] = createResource(tick, () => query(Q.totalBw))
   const [v4Bw] = createResource(tick, () => query(Q.v4Bw))
   const [v6Bw] = createResource(tick, () => query(Q.v6Bw))
@@ -68,27 +82,32 @@ export default function App() {
   const [haproxyV6] = createResource(tick, () => query(Q.haproxyV6))
   const [uplinks] = createResource(tick, () => query(Q.uplinks))
 
+  // Historical data for charts
+  const [totalBwHist] = createResource(timeParams, p => queryRange(Q.totalBw, p.start, p.end, p.step))
+  const [v4BwHist] = createResource(timeParams, p => queryRange(Q.v4Bw, p.start, p.end, p.step))
+  const [v6BwHist] = createResource(timeParams, p => queryRange(Q.v6Bw, p.start, p.end, p.step))
+  const [reqHist] = createResource(timeParams, p => queryRange(Q.reqRate, p.start, p.end, p.step))
+  const [ecosystemHist] = createResource(timeParams, p => queryRange(Q.ecosystem, p.start, p.end, p.step))
+  const [transitHist] = createResource(timeParams, p => queryRange(Q.transit, p.start, p.end, p.step))
+  const [ixpHist] = createResource(timeParams, p => queryRange(Q.ixp, p.start, p.end, p.step))
+
+  // Sparkline data (1h)
+  const [totalSparkline] = createResource(tick, () => queryRange(Q.totalBw, Date.now()/1000 - 3600, Date.now()/1000, 60))
+
   // Merge endpoint data
   const endpointData = () => {
     const bw = all(endpoints())
-    const inB = all(endpointsIn())
-    const outB = all(endpointsOut())
-    const req = all(endpointsReq())
-    const sess = all(endpointsSess())
-    const h24 = all(endpoints24h())
-
     return bw.map(e => ({
       name: e.proxy?.replace('-backend', '') ?? '',
       bw: e.value,
-      in: inB.find(x => x.proxy === e.proxy)?.value ?? 0,
-      out: outB.find(x => x.proxy === e.proxy)?.value ?? 0,
-      req: req.find(x => x.proxy === e.proxy)?.value ?? 0,
-      sess: sess.find(x => x.proxy === e.proxy)?.value ?? 0,
-      h24: h24.find(x => x.proxy === e.proxy)?.value ?? 0,
+      in: all(endpointsIn()).find(x => x.proxy === e.proxy)?.value ?? 0,
+      out: all(endpointsOut()).find(x => x.proxy === e.proxy)?.value ?? 0,
+      req: all(endpointsReq()).find(x => x.proxy === e.proxy)?.value ?? 0,
+      sess: all(endpointsSess()).find(x => x.proxy === e.proxy)?.value ?? 0,
+      h24: all(endpoints24h()).find(x => x.proxy === e.proxy)?.value ?? 0,
     })).sort((a, b) => b.bw - a.bw)
   }
 
-  // Ecosystem data
   const ecoData = () => {
     const bw = all(ecosystem())
     const req = all(ecosystemReq())
@@ -99,7 +118,6 @@ export default function App() {
     })).sort((a, b) => b.bw - a.bw)
   }
 
-  // HAProxy instance data
   const haproxyData = () => {
     const v4 = all(haproxyV4())
     const v6 = all(haproxyV6())
@@ -111,36 +129,90 @@ export default function App() {
     }))
   }
 
-  // Filter state
   const [filter, setFilter] = createSignal('')
   const filteredEndpoints = () => {
     const f = filter().toLowerCase()
     return f ? endpointData().filter(e => e.name.includes(f)) : endpointData()
   }
 
+  // Chart series builders
+  const bwSeries = () => [
+    { label: 'Total', color: '#3b82f6', data: totalBwHist()?.[0]?.values ?? [] },
+  ]
+
+  const ipSeries = () => [
+    { label: 'IPv4', color: '#22c55e', data: v4BwHist()?.[0]?.values ?? [] },
+    { label: 'IPv6', color: '#8b5cf6', data: v6BwHist()?.[0]?.values ?? [] },
+  ]
+
+  const ecoSeries = () => (ecosystemHist() ?? []).map((s, i) => ({
+    label: s.metric.ecosystem,
+    color: ['#3b82f6', '#22c55e', '#eab308'][i] ?? '#737373',
+    data: s.values,
+  }))
+
+  const uplinkSeries = () => [
+    { label: 'Transit', color: '#eab308', data: transitHist()?.[0]?.values ?? [] },
+    { label: 'IXP', color: '#22c55e', data: ixpHist()?.[0]?.values ?? [] },
+  ]
+
   return (
     <div class="min-h-screen bg-bg text-text p-4 font-sans">
       {/* Header */}
       <div class="flex justify-between items-center mb-4">
         <h1 class="text-lg font-semibold">RPC Traffic</h1>
-        <span class="text-muted text-xs">Updated: {new Date().toLocaleTimeString()}</span>
+        <div class="flex items-center gap-4">
+          <div class="flex gap-1">
+            <For each={ranges}>{(r, i) => (
+              <button
+                class={`px-2 py-0.5 text-xs rounded ${i() === rangeIdx() ? 'bg-accent text-white' : 'bg-surface text-muted hover:text-text'}`}
+                onClick={() => setRangeIdx(i())}
+              >
+                {r.label}
+              </button>
+            )}</For>
+          </div>
+          <span class="text-muted text-xs">{new Date().toLocaleTimeString()}</span>
+        </div>
       </div>
 
       {/* Top Stats */}
       <div class="grid grid-cols-8 gap-2 mb-4">
-        <Stat label="Total" value={fmtRate(val(totalBw()))} />
-        <Stat label="IPv4" value={fmtRate(val(v4Bw()))} />
-        <Stat label="IPv6" value={fmtRate(val(v6Bw()))} />
+        <Stat label="Total" value={fmtRate(val(totalBw()))} sparkline={totalSparkline()?.[0]?.values} />
+        <Stat label="IPv4" value={fmtRate(val(v4Bw()))} color="#22c55e" />
+        <Stat label="IPv6" value={fmtRate(val(v6Bw()))} color="#8b5cf6" />
         <Stat label="Req/s" value={fmtNum(val(reqRate()))} />
         <Stat label="Sessions" value={fmtNum(val(sessions()))} />
-        <Stat label="Transit" value={fmtRate(val(transit()))} />
-        <Stat label="IXP" value={fmtRate(val(ixp()))} />
+        <Stat label="Transit" value={fmtRate(val(transit()))} color="#eab308" />
+        <Stat label="IXP" value={fmtRate(val(ixp()))} color="#22c55e" />
         <Stat label="TX/IX" value={val(ratio()).toFixed(2)} warn={val(ratio()) > 1} />
       </div>
 
-      {/* Middle Row */}
+      {/* Charts Row */}
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="card p-2">
+          <div class="text-xs text-muted mb-2">Total Bandwidth</div>
+          <Chart series={bwSeries()} height={140} />
+        </div>
+        <div class="card p-2">
+          <div class="text-xs text-muted mb-2">IPv4 vs IPv6</div>
+          <Chart series={ipSeries()} height={140} showLegend />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="card p-2">
+          <div class="text-xs text-muted mb-2">By Ecosystem</div>
+          <Chart series={ecoSeries()} height={140} showLegend />
+        </div>
+        <div class="card p-2">
+          <div class="text-xs text-muted mb-2">Transit vs IXP</div>
+          <Chart series={uplinkSeries()} height={140} showLegend />
+        </div>
+      </div>
+
+      {/* Tables Row */}
       <div class="grid grid-cols-3 gap-4 mb-4">
-        {/* Ecosystem */}
         <div class="card">
           <div class="px-2 py-1 border-b border-border text-xs text-muted uppercase">Ecosystem</div>
           <table class="w-full text-sm">
@@ -157,7 +229,6 @@ export default function App() {
           </table>
         </div>
 
-        {/* HAProxy Instances */}
         <div class="card">
           <div class="px-2 py-1 border-b border-border text-xs text-muted uppercase">HAProxy Nodes</div>
           <table class="w-full text-sm">
@@ -175,7 +246,6 @@ export default function App() {
           </table>
         </div>
 
-        {/* Uplinks */}
         <div class="card">
           <div class="px-2 py-1 border-b border-border text-xs text-muted uppercase">Uplinks</div>
           <table class="w-full text-sm">
@@ -205,7 +275,7 @@ export default function App() {
             onInput={e => setFilter(e.currentTarget.value)}
           />
         </div>
-        <div class="overflow-auto max-h-96">
+        <div class="overflow-auto max-h-80">
           <table class="w-full text-sm">
             <thead class="sticky top-0 bg-surface">
               <tr>
@@ -249,11 +319,19 @@ export default function App() {
   )
 }
 
-function Stat(props: { label: string; value: string; warn?: boolean }) {
+function Stat(props: { label: string; value: string; warn?: boolean; color?: string; sparkline?: [number, string][] }) {
   return (
     <div class="card px-2 py-1">
-      <div class="text-xs text-muted">{props.label}</div>
-      <div class={`stat text-lg ${props.warn ? 'text-yellow' : ''}`}>{props.value}</div>
+      <div class="flex justify-between items-center">
+        <span class="text-xs text-muted">{props.label}</span>
+        {props.sparkline && <Sparkline data={props.sparkline} color={props.color} />}
+      </div>
+      <div
+        class="stat text-lg"
+        style={{ color: props.warn ? '#eab308' : props.color }}
+      >
+        {props.value}
+      </div>
     </div>
   )
 }
