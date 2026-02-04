@@ -1,0 +1,259 @@
+import { createSignal, createResource, For, Show, onCleanup } from 'solid-js'
+import { query, fmtRate, fmtBytes, fmtNum } from './lib/prometheus'
+
+// Queries
+const Q = {
+  totalBw: 'sum(rate(haproxy_frontend_bytes_in_total{proxy=~"ssl-frontend-v."}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy=~"ssl-frontend-v."}[5m]))',
+  v4Bw: 'ip_version:frontend_bandwidth:rate5m{ip_version="v4"}',
+  v6Bw: 'ip_version:frontend_bandwidth:rate5m{ip_version="v6"}',
+  reqRate: 'sum(rate(haproxy_frontend_http_requests_total{proxy=~"ssl-frontend-v."}[5m]))',
+  sessions: 'sum(haproxy_frontend_current_sessions{proxy=~"ssl-frontend-v."})',
+  transit: 'uplink_type:bandwidth:rate5m{uplink_type="transit"}',
+  ixp: 'uplink_type:bandwidth:rate5m{uplink_type="ixp"}',
+  ratio: 'cluster:transit_to_ixp_ratio:rate5m',
+  ecosystem: 'ecosystem:haproxy_bandwidth:rate5m',
+  ecosystemReq: 'ecosystem:haproxy_requests:rate5m',
+  endpoints: 'endpoint:haproxy_bandwidth:rate5m',
+  endpointsIn: 'endpoint:haproxy_bytes_in:rate5m',
+  endpointsOut: 'endpoint:haproxy_bytes_out:rate5m',
+  endpointsReq: 'endpoint:haproxy_requests:rate5m',
+  endpointsSess: 'sum by (proxy) (haproxy_backend_current_sessions)',
+  endpoints24h: 'sum by (proxy) (increase(haproxy_backend_bytes_in_total[24h]) + increase(haproxy_backend_bytes_out_total[24h]))',
+  haproxyV4: 'sum by (instance) (rate(haproxy_frontend_bytes_in_total{proxy="ssl-frontend-v4"}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy="ssl-frontend-v4"}[5m]))',
+  haproxyV6: 'sum by (instance) (rate(haproxy_frontend_bytes_in_total{proxy="ssl-frontend-v6"}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy="ssl-frontend-v6"}[5m]))',
+  uplinks: 'sum by (provider, uplink_type) (uplink:bandwidth:rate5m)',
+}
+
+// Extract value from prometheus result
+const val = (r: any[], key?: string) => {
+  if (!r?.length) return 0
+  if (key) {
+    const m = r.find(x => x.metric[Object.keys(x.metric)[0]] === key)
+    return m ? parseFloat(m.value[1]) : 0
+  }
+  return parseFloat(r[0].value[1])
+}
+
+// Extract all metrics as array
+const all = (r: any[]) => r?.map(x => ({
+  ...x.metric,
+  value: parseFloat(x.value[1])
+})) ?? []
+
+export default function App() {
+  const [tick, setTick] = createSignal(0)
+
+  // Auto-refresh every 15s
+  const interval = setInterval(() => setTick(t => t + 1), 15000)
+  onCleanup(() => clearInterval(interval))
+
+  // Fetch all metrics
+  const [totalBw] = createResource(tick, () => query(Q.totalBw))
+  const [v4Bw] = createResource(tick, () => query(Q.v4Bw))
+  const [v6Bw] = createResource(tick, () => query(Q.v6Bw))
+  const [reqRate] = createResource(tick, () => query(Q.reqRate))
+  const [sessions] = createResource(tick, () => query(Q.sessions))
+  const [transit] = createResource(tick, () => query(Q.transit))
+  const [ixp] = createResource(tick, () => query(Q.ixp))
+  const [ratio] = createResource(tick, () => query(Q.ratio))
+  const [ecosystem] = createResource(tick, () => query(Q.ecosystem))
+  const [ecosystemReq] = createResource(tick, () => query(Q.ecosystemReq))
+  const [endpoints] = createResource(tick, () => query(Q.endpoints))
+  const [endpointsIn] = createResource(tick, () => query(Q.endpointsIn))
+  const [endpointsOut] = createResource(tick, () => query(Q.endpointsOut))
+  const [endpointsReq] = createResource(tick, () => query(Q.endpointsReq))
+  const [endpointsSess] = createResource(tick, () => query(Q.endpointsSess))
+  const [endpoints24h] = createResource(tick, () => query(Q.endpoints24h))
+  const [haproxyV4] = createResource(tick, () => query(Q.haproxyV4))
+  const [haproxyV6] = createResource(tick, () => query(Q.haproxyV6))
+  const [uplinks] = createResource(tick, () => query(Q.uplinks))
+
+  // Merge endpoint data
+  const endpointData = () => {
+    const bw = all(endpoints())
+    const inB = all(endpointsIn())
+    const outB = all(endpointsOut())
+    const req = all(endpointsReq())
+    const sess = all(endpointsSess())
+    const h24 = all(endpoints24h())
+
+    return bw.map(e => ({
+      name: e.proxy?.replace('-backend', '') ?? '',
+      bw: e.value,
+      in: inB.find(x => x.proxy === e.proxy)?.value ?? 0,
+      out: outB.find(x => x.proxy === e.proxy)?.value ?? 0,
+      req: req.find(x => x.proxy === e.proxy)?.value ?? 0,
+      sess: sess.find(x => x.proxy === e.proxy)?.value ?? 0,
+      h24: h24.find(x => x.proxy === e.proxy)?.value ?? 0,
+    })).sort((a, b) => b.bw - a.bw)
+  }
+
+  // Ecosystem data
+  const ecoData = () => {
+    const bw = all(ecosystem())
+    const req = all(ecosystemReq())
+    return bw.map(e => ({
+      name: e.ecosystem,
+      bw: e.value,
+      req: req.find(x => x.ecosystem === e.ecosystem)?.value ?? 0,
+    })).sort((a, b) => b.bw - a.bw)
+  }
+
+  // HAProxy instance data
+  const haproxyData = () => {
+    const v4 = all(haproxyV4())
+    const v6 = all(haproxyV6())
+    const instances = [...new Set([...v4.map(x => x.instance), ...v6.map(x => x.instance)])]
+    return instances.map(i => ({
+      name: i,
+      v4: v4.find(x => x.instance === i)?.value ?? 0,
+      v6: v6.find(x => x.instance === i)?.value ?? 0,
+    }))
+  }
+
+  // Filter state
+  const [filter, setFilter] = createSignal('')
+  const filteredEndpoints = () => {
+    const f = filter().toLowerCase()
+    return f ? endpointData().filter(e => e.name.includes(f)) : endpointData()
+  }
+
+  return (
+    <div class="min-h-screen bg-bg text-text p-4 font-sans">
+      {/* Header */}
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-lg font-semibold">RPC Traffic</h1>
+        <span class="text-muted text-xs">Updated: {new Date().toLocaleTimeString()}</span>
+      </div>
+
+      {/* Top Stats */}
+      <div class="grid grid-cols-8 gap-2 mb-4">
+        <Stat label="Total" value={fmtRate(val(totalBw()))} />
+        <Stat label="IPv4" value={fmtRate(val(v4Bw()))} />
+        <Stat label="IPv6" value={fmtRate(val(v6Bw()))} />
+        <Stat label="Req/s" value={fmtNum(val(reqRate()))} />
+        <Stat label="Sessions" value={fmtNum(val(sessions()))} />
+        <Stat label="Transit" value={fmtRate(val(transit()))} />
+        <Stat label="IXP" value={fmtRate(val(ixp()))} />
+        <Stat label="TX/IX" value={val(ratio()).toFixed(2)} warn={val(ratio()) > 1} />
+      </div>
+
+      {/* Middle Row */}
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        {/* Ecosystem */}
+        <div class="card">
+          <div class="px-2 py-1 border-b border-border text-xs text-muted uppercase">Ecosystem</div>
+          <table class="w-full text-sm">
+            <thead><tr><th class="th">Name</th><th class="th text-right">BW</th><th class="th text-right">Req/s</th></tr></thead>
+            <tbody>
+              <For each={ecoData()}>{e => (
+                <tr class="border-t border-border/50">
+                  <td class="td">{e.name}</td>
+                  <td class="td text-right">{fmtRate(e.bw)}</td>
+                  <td class="td text-right">{fmtNum(e.req)}</td>
+                </tr>
+              )}</For>
+            </tbody>
+          </table>
+        </div>
+
+        {/* HAProxy Instances */}
+        <div class="card">
+          <div class="px-2 py-1 border-b border-border text-xs text-muted uppercase">HAProxy Nodes</div>
+          <table class="w-full text-sm">
+            <thead><tr><th class="th">Node</th><th class="th text-right">v4</th><th class="th text-right">v6</th><th class="th text-right">Total</th></tr></thead>
+            <tbody>
+              <For each={haproxyData()}>{h => (
+                <tr class="border-t border-border/50">
+                  <td class="td">{h.name}</td>
+                  <td class="td text-right">{fmtRate(h.v4)}</td>
+                  <td class="td text-right">{fmtRate(h.v6)}</td>
+                  <td class="td text-right">{fmtRate(h.v4 + h.v6)}</td>
+                </tr>
+              )}</For>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Uplinks */}
+        <div class="card">
+          <div class="px-2 py-1 border-b border-border text-xs text-muted uppercase">Uplinks</div>
+          <table class="w-full text-sm">
+            <thead><tr><th class="th">Provider</th><th class="th">Type</th><th class="th text-right">BW</th></tr></thead>
+            <tbody>
+              <For each={all(uplinks()).sort((a,b) => b.value - a.value)}>{u => (
+                <tr class="border-t border-border/50">
+                  <td class="td">{u.provider}</td>
+                  <td class="td"><span class={u.uplink_type === 'transit' ? 'text-yellow' : 'text-green'}>{u.uplink_type}</span></td>
+                  <td class="td text-right">{fmtRate(u.value)}</td>
+                </tr>
+              )}</For>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Endpoints Table */}
+      <div class="card">
+        <div class="px-2 py-1 border-b border-border flex justify-between items-center">
+          <span class="text-xs text-muted uppercase">Endpoints</span>
+          <input
+            type="text"
+            placeholder="Filter..."
+            class="bg-bg border border-border rounded px-2 py-0.5 text-xs w-40"
+            value={filter()}
+            onInput={e => setFilter(e.currentTarget.value)}
+          />
+        </div>
+        <div class="overflow-auto max-h-96">
+          <table class="w-full text-sm">
+            <thead class="sticky top-0 bg-surface">
+              <tr>
+                <th class="th">Endpoint</th>
+                <th class="th text-right">In</th>
+                <th class="th text-right">Out</th>
+                <th class="th text-right">Total</th>
+                <th class="th text-right">Req/s</th>
+                <th class="th text-right">Sess</th>
+                <th class="th text-right">24h</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={filteredEndpoints()}>{e => (
+                <tr class="border-t border-border/50 hover:bg-border/20">
+                  <td class="td font-medium">{e.name}</td>
+                  <td class="td text-right text-muted">{fmtRate(e.in)}</td>
+                  <td class="td text-right text-muted">{fmtRate(e.out)}</td>
+                  <td class="td text-right">{fmtRate(e.bw)}</td>
+                  <td class="td text-right">{fmtNum(e.req)}</td>
+                  <td class="td text-right">{Math.round(e.sess)}</td>
+                  <td class="td text-right">{fmtBytes(e.h24)}</td>
+                </tr>
+              )}</For>
+            </tbody>
+            <tfoot class="border-t border-border bg-surface/50">
+              <tr>
+                <td class="td font-medium">Total ({filteredEndpoints().length})</td>
+                <td class="td text-right">{fmtRate(filteredEndpoints().reduce((a, e) => a + e.in, 0))}</td>
+                <td class="td text-right">{fmtRate(filteredEndpoints().reduce((a, e) => a + e.out, 0))}</td>
+                <td class="td text-right font-medium">{fmtRate(filteredEndpoints().reduce((a, e) => a + e.bw, 0))}</td>
+                <td class="td text-right">{fmtNum(filteredEndpoints().reduce((a, e) => a + e.req, 0))}</td>
+                <td class="td text-right">{Math.round(filteredEndpoints().reduce((a, e) => a + e.sess, 0))}</td>
+                <td class="td text-right">{fmtBytes(filteredEndpoints().reduce((a, e) => a + e.h24, 0))}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Stat(props: { label: string; value: string; warn?: boolean }) {
+  return (
+    <div class="card px-2 py-1">
+      <div class="text-xs text-muted">{props.label}</div>
+      <div class={`stat text-lg ${props.warn ? 'text-yellow' : ''}`}>{props.value}</div>
+    </div>
+  )
+}
