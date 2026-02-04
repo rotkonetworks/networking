@@ -128,57 +128,150 @@ frontend http-frontend
 EOF
 }
 
-# Generate SSL frontend
-generate_ssl_frontend() {
-  local chains="$1"
-  local domain_suffixes=$(jq -r '.haproxy.domain_suffixes[]' "$SERVICES_CONFIG" | tr '\n' ' ')
-
+# Generate SSL frontend (shared config for both v4 and v6)
+generate_ssl_frontend_common() {
   cat <<'EOF'
-# SSL Frontend
-frontend ssl-frontend
-    bind *:443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko alpn h2,http/1.1
     mode http
-    
+
     # Security headers
     http-response set-header X-Frame-Options "DENY"
     http-response set-header X-Content-Type-Options "nosniff"
     http-response set-header X-XSS-Protection "1; mode=block"
     http-response set-header Referrer-Policy "no-referrer-when-downgrade"
     http-response set-header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-    
+
     # Remove server headers
     http-response del-header Server
     http-response del-header X-Powered-By
-    
+
     # Track requests for monitoring/alerting (NO rate limiting)
     stick-table type ip size 10m expire 60s store http_req_rate(10s),http_req_cnt,bytes_out_rate(10s)
     http-request track-sc0 src
-    
+
     # Log high-rate IPs for alerting (but don't block)
     http-request set-var(txn.req_rate) sc_http_req_rate(0)
     http-request capture var(txn.req_rate) len 10 if { var(txn.req_rate) -m int gt 1000 }
-    
+
     # Compression
     compression algo gzip
     compression type text/html text/plain text/css application/json application/javascript
-    
+
     # ACLs
     acl is_websocket hdr(Upgrade) -i websocket
     acl is_options method OPTIONS
-    
+
     # CORS for public RPC
     http-response set-header Access-Control-Allow-Origin "*"
     http-response set-header Access-Control-Allow-Methods "POST, GET, OPTIONS"
     http-response set-header Access-Control-Allow-Headers "Content-Type"
     http-response set-header Access-Control-Max-Age "86400"
-    
+
     # CORS preflight
     http-request return status 200 if is_options
-    
+
     # Let's Encrypt ACME challenge
     acl letsencrypt-acl path_beg -i .well-known/acme-challenge/
     use_backend letsencrypt if letsencrypt-acl
 EOF
+}
+
+# Generate SSL frontend
+generate_ssl_frontend() {
+  local chains="$1"
+  local domain_suffixes=$(jq -r '.haproxy.domain_suffixes[]' "$SERVICES_CONFIG" | tr '\n' ' ')
+
+  # IPv4 Frontend
+  cat <<'EOF'
+# SSL Frontend - IPv4
+# Metrics: haproxy_frontend_bytes_{in,out}_total{proxy="ssl-frontend-v4"}
+frontend ssl-frontend-v4
+    bind 0.0.0.0:443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko alpn h2,http/1.1
+EOF
+  generate_ssl_frontend_common
+
+  # Generate domain ACLs for v4
+  echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
+    local chain=$(echo "$entry" | jq -r '.key')
+    local chain_type=$(echo "$entry" | jq -r '.value.type')
+    echo "    # ${chain} ACLs"
+    if [[ "$chain_type" == "misc" ]]; then
+      echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net"
+    else
+      echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
+    fi
+  done
+
+  echo ""
+  echo "    # Centralized endpoint ACLs"
+  echo "    acl is_rpc hdr_beg(host) -i rpc."
+  echo "    acl is_sys hdr_beg(host) -i sys."
+
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
+    echo "    acl path_${chain} path_beg -i /${chain}"
+  done
+
+  echo ""
+  echo "    # Backend routing"
+  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+    echo "    use_backend ${chain}-backend if is_${chain}"
+  done
+
+  echo ""
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
+    echo "    use_backend ${chain}-backend if is_rpc path_${chain}"
+    echo "    use_backend ${chain}-backend if is_sys path_${chain}"
+  done
+
+  echo ""
+  echo "    # Default backend"
+  echo "    default_backend no-access"
+
+  # IPv6 Frontend
+  cat <<'EOF'
+
+# SSL Frontend - IPv6
+# Metrics: haproxy_frontend_bytes_{in,out}_total{proxy="ssl-frontend-v6"}
+frontend ssl-frontend-v6
+    bind :::443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko alpn h2,http/1.1
+EOF
+  generate_ssl_frontend_common
+
+  # Generate domain ACLs for v6 (same as v4)
+  echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do
+    local chain=$(echo "$entry" | jq -r '.key')
+    local chain_type=$(echo "$entry" | jq -r '.value.type')
+    echo "    # ${chain} ACLs"
+    if [[ "$chain_type" == "misc" ]]; then
+      echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net"
+    else
+      echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
+    fi
+  done
+
+  echo ""
+  echo "    # Centralized endpoint ACLs"
+  echo "    acl is_rpc hdr_beg(host) -i rpc."
+  echo "    acl is_sys hdr_beg(host) -i sys."
+
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
+    echo "    acl path_${chain} path_beg -i /${chain}"
+  done
+
+  echo ""
+  echo "    # Backend routing"
+  echo "$chains" | jq -r 'keys[]' | while read -r chain; do
+    echo "    use_backend ${chain}-backend if is_${chain}"
+  done
+
+  echo ""
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
+    echo "    use_backend ${chain}-backend if is_rpc path_${chain}"
+    echo "    use_backend ${chain}-backend if is_sys path_${chain}"
+  done
+
+  echo ""
+  echo "    # Default backend"
+  echo "    default_backend no-access"
 
   # Generate domain ACLs only for configured chains
   echo "$chains" | jq -c 'to_entries[]' | while read -r entry; do

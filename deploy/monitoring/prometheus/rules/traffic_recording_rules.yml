@@ -1,8 +1,119 @@
 # Prometheus Recording Rules for Traffic Monitoring
 # These rules aggregate HAProxy and P2P traffic metrics for analysis
 # of network consumption patterns and peak hours
+#
+# Labels used for filtering:
+#   - proxy: backend name (e.g., polkadot-backend)
+#   - ecosystem: polkadot, kusama, paseo
+#   - chain_type: relay, system-parachain, parachain, misc
+#   - ip_version: v4, v6 (from frontend name)
 
 groups:
+  # ============================================
+  # IPv4 vs IPv6 Traffic Split
+  # ============================================
+  - name: ip_version_traffic
+    interval: 15s
+    rules:
+      # IPv4 frontend traffic
+      - record: ip_version:frontend_bytes_in:rate5m
+        expr: |
+          sum(rate(haproxy_frontend_bytes_in_total{proxy="ssl-frontend-v4"}[5m]))
+        labels:
+          ip_version: v4
+
+      - record: ip_version:frontend_bytes_out:rate5m
+        expr: |
+          sum(rate(haproxy_frontend_bytes_out_total{proxy="ssl-frontend-v4"}[5m]))
+        labels:
+          ip_version: v4
+
+      # IPv6 frontend traffic
+      - record: ip_version:frontend_bytes_in:rate5m
+        expr: |
+          sum(rate(haproxy_frontend_bytes_in_total{proxy="ssl-frontend-v6"}[5m]))
+        labels:
+          ip_version: v6
+
+      - record: ip_version:frontend_bytes_out:rate5m
+        expr: |
+          sum(rate(haproxy_frontend_bytes_out_total{proxy="ssl-frontend-v6"}[5m]))
+        labels:
+          ip_version: v6
+
+      # Total bandwidth by IP version
+      - record: ip_version:frontend_bandwidth:rate5m
+        expr: |
+          ip_version:frontend_bytes_in:rate5m + ip_version:frontend_bytes_out:rate5m
+
+      # Requests by IP version
+      - record: ip_version:frontend_requests:rate5m
+        expr: |
+          sum(rate(haproxy_frontend_http_requests_total{proxy="ssl-frontend-v4"}[5m]))
+        labels:
+          ip_version: v4
+
+      - record: ip_version:frontend_requests:rate5m
+        expr: |
+          sum(rate(haproxy_frontend_http_requests_total{proxy="ssl-frontend-v6"}[5m]))
+        labels:
+          ip_version: v6
+
+  # ============================================
+  # Ecosystem Labels (derived from proxy name)
+  # ============================================
+  - name: ecosystem_labels
+    interval: 15s
+    rules:
+      # Polkadot ecosystem (polkadot + polkadot parachains)
+      - record: ecosystem:haproxy_bandwidth:rate5m
+        expr: |
+          sum(
+            rate(haproxy_backend_bytes_in_total{proxy=~"polkadot-backend|.*-polkadot-backend|hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-polkadot-backend"}[5m])
+            + rate(haproxy_backend_bytes_out_total{proxy=~"polkadot-backend|.*-polkadot-backend|hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-polkadot-backend"}[5m])
+          )
+        labels:
+          ecosystem: polkadot
+
+      # Kusama ecosystem
+      - record: ecosystem:haproxy_bandwidth:rate5m
+        expr: |
+          sum(
+            rate(haproxy_backend_bytes_in_total{proxy=~"kusama-backend|.*-kusama-backend"}[5m])
+            + rate(haproxy_backend_bytes_out_total{proxy=~"kusama-backend|.*-kusama-backend"}[5m])
+          )
+        labels:
+          ecosystem: kusama
+
+      # Paseo ecosystem (testnet)
+      - record: ecosystem:haproxy_bandwidth:rate5m
+        expr: |
+          sum(
+            rate(haproxy_backend_bytes_in_total{proxy=~"paseo-backend|.*-paseo-backend"}[5m])
+            + rate(haproxy_backend_bytes_out_total{proxy=~"paseo-backend|.*-paseo-backend"}[5m])
+          )
+        labels:
+          ecosystem: paseo
+
+      # Requests per ecosystem
+      - record: ecosystem:haproxy_requests:rate5m
+        expr: |
+          sum(rate(haproxy_backend_http_requests_total{proxy=~"polkadot-backend|.*-polkadot-backend|hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-polkadot-backend"}[5m]))
+        labels:
+          ecosystem: polkadot
+
+      - record: ecosystem:haproxy_requests:rate5m
+        expr: |
+          sum(rate(haproxy_backend_http_requests_total{proxy=~"kusama-backend|.*-kusama-backend"}[5m]))
+        labels:
+          ecosystem: kusama
+
+      - record: ecosystem:haproxy_requests:rate5m
+        expr: |
+          sum(rate(haproxy_backend_http_requests_total{proxy=~"paseo-backend|.*-paseo-backend"}[5m]))
+        labels:
+          ecosystem: paseo
+
   # ============================================
   # HAProxy RPC Traffic Aggregation
   # ============================================

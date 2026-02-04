@@ -1,0 +1,358 @@
+{
+  "annotations": {"list": []},
+  "description": "RPC Traffic Monitoring - Info Dense View",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": {"h": 2, "w": 24, "x": 0, "y": 0},
+      "id": 100,
+      "options": {"content": "## RPC Traffic Overview | Updated: $__to | Range: $__from to $__to", "mode": "markdown"},
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {"decimals": 2, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}, "unit": "Bps"},
+        "overrides": []
+      },
+      "gridPos": {"h": 3, "w": 3, "x": 0, "y": 2},
+      "id": 1,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "sum(rate(haproxy_frontend_bytes_in_total{proxy=~\"ssl-frontend-v.\"}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy=~\"ssl-frontend-v.\"}[5m]))", "legendFormat": "Total BW", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"decimals": 2, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 3, "w": 3, "x": 3, "y": 2},
+      "id": 2,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "ip_version:frontend_bandwidth:rate5m{ip_version=\"v4\"}", "legendFormat": "IPv4", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"decimals": 2, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 3, "w": 3, "x": 6, "y": 2},
+      "id": 3,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "ip_version:frontend_bandwidth:rate5m{ip_version=\"v6\"}", "legendFormat": "IPv6", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"decimals": 0, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}, "unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 3, "w": 3, "x": 9, "y": 2},
+      "id": 4,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "sum(rate(haproxy_frontend_http_requests_total{proxy=~\"ssl-frontend-v.\"}[5m]))", "legendFormat": "Req/s", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"decimals": 0, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 3, "w": 3, "x": 12, "y": 2},
+      "id": 5,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "sum(haproxy_frontend_current_sessions{proxy=~\"ssl-frontend-v.\"})", "legendFormat": "Sessions", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"decimals": 2, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 3, "w": 3, "x": 15, "y": 2},
+      "id": 6,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "uplink_type:bandwidth:rate5m{uplink_type=\"transit\"}", "legendFormat": "Transit", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"decimals": 2, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 3, "w": 3, "x": 18, "y": 2},
+      "id": 7,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "uplink_type:bandwidth:rate5m{uplink_type=\"ixp\"}", "legendFormat": "IXP", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"decimals": 2, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 2}]}, "unit": "none"}, "overrides": []},
+      "gridPos": {"h": 3, "w": 3, "x": 21, "y": 2},
+      "id": 8,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"expr": "cluster:transit_to_ixp_ratio:rate5m", "legendFormat": "TX/IX Ratio", "refId": "A"}],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "id": 10,
+      "options": {"content": "### Ecosystem Traffic", "mode": "markdown"},
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "custom": {"align": "right", "cellOptions": {"type": "auto"}, "filterable": false, "inspect": false},
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Ecosystem"}, "properties": [{"id": "custom.width", "value": 100}, {"id": "custom.align", "value": "left"}]},
+          {"matcher": {"id": "byName", "options": "Bandwidth"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Requests"}, "properties": [{"id": "unit", "value": "reqps"}]},
+          {"matcher": {"id": "byName", "options": "In"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Out"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "24h Total"}, "properties": [{"id": "unit", "value": "decbytes"}]}
+        ]
+      },
+      "gridPos": {"h": 5, "w": 12, "x": 0, "y": 6},
+      "id": 11,
+      "options": {"cellHeight": "sm", "footer": {"countRows": false, "reducer": ["sum"], "show": true, "fields": ["Bandwidth", "Requests", "24h Total"]}, "showHeader": true, "sortBy": [{"desc": true, "displayName": "Bandwidth"}]},
+      "targets": [
+        {"expr": "ecosystem:haproxy_bandwidth:rate5m", "format": "table", "instant": true, "legendFormat": "", "refId": "A"},
+        {"expr": "ecosystem:haproxy_requests:rate5m", "format": "table", "instant": true, "legendFormat": "", "refId": "B"},
+        {"expr": "sum by (ecosystem) (increase(haproxy_backend_bytes_in_total[24h]) + increase(haproxy_backend_bytes_out_total[24h]))", "format": "table", "instant": true, "legendFormat": "", "refId": "C"}
+      ],
+      "title": "By Ecosystem",
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"Value #A": "Bandwidth", "Value #B": "Requests", "Value #C": "24h Total", "ecosystem": "Ecosystem"}}}
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "custom": {"align": "right", "cellOptions": {"type": "auto"}, "filterable": false, "inspect": false},
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Type"}, "properties": [{"id": "custom.width", "value": 140}, {"id": "custom.align", "value": "left"}]},
+          {"matcher": {"id": "byName", "options": "Bandwidth"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Requests"}, "properties": [{"id": "unit", "value": "reqps"}]}
+        ]
+      },
+      "gridPos": {"h": 5, "w": 12, "x": 12, "y": 6},
+      "id": 12,
+      "options": {"cellHeight": "sm", "footer": {"countRows": false, "reducer": ["sum"], "show": true, "fields": ["Bandwidth", "Requests"]}, "showHeader": true, "sortBy": [{"desc": true, "displayName": "Bandwidth"}]},
+      "targets": [
+        {"expr": "chain_type:haproxy_bandwidth:rate5m", "format": "table", "instant": true, "refId": "A"},
+        {"expr": "sum by (chain_type) (rate(haproxy_backend_http_requests_total[5m]))", "format": "table", "instant": true, "refId": "B"}
+      ],
+      "title": "By Chain Type",
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"Value #A": "Bandwidth", "Value #B": "Requests", "chain_type": "Type"}}}
+      ],
+      "type": "table"
+    },
+    {
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 11},
+      "id": 20,
+      "options": {"content": "### Per-Endpoint Traffic (filter: ecosystem=$ecosystem, type=$chain_type)", "mode": "markdown"},
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "custom": {"align": "right", "cellOptions": {"type": "auto"}, "filterable": true, "inspect": false},
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Endpoint"}, "properties": [{"id": "custom.width", "value": 200}, {"id": "custom.align", "value": "left"}]},
+          {"matcher": {"id": "byName", "options": "In"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Out"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Total"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Req/s"}, "properties": [{"id": "unit", "value": "reqps"}, {"id": "decimals", "value": 1}]},
+          {"matcher": {"id": "byName", "options": "24h"}, "properties": [{"id": "unit", "value": "decbytes"}]},
+          {"matcher": {"id": "byName", "options": "7d"}, "properties": [{"id": "unit", "value": "decbytes"}]},
+          {"matcher": {"id": "byName", "options": "Sessions"}, "properties": [{"id": "unit", "value": "short"}, {"id": "decimals", "value": 0}]}
+        ]
+      },
+      "gridPos": {"h": 12, "w": 24, "x": 0, "y": 12},
+      "id": 21,
+      "options": {"cellHeight": "sm", "footer": {"countRows": false, "reducer": ["sum"], "show": true, "fields": ["In", "Out", "Total", "Req/s", "24h", "7d"]}, "showHeader": true, "sortBy": [{"desc": true, "displayName": "Total"}]},
+      "targets": [
+        {"expr": "endpoint:haproxy_bytes_in:rate5m{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}", "format": "table", "instant": true, "legendFormat": "", "refId": "A"},
+        {"expr": "endpoint:haproxy_bytes_out:rate5m{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}", "format": "table", "instant": true, "legendFormat": "", "refId": "B"},
+        {"expr": "endpoint:haproxy_bandwidth:rate5m{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}", "format": "table", "instant": true, "legendFormat": "", "refId": "C"},
+        {"expr": "endpoint:haproxy_requests:rate5m{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}", "format": "table", "instant": true, "legendFormat": "", "refId": "D"},
+        {"expr": "sum by (proxy) (increase(haproxy_backend_bytes_in_total{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}[24h]) + increase(haproxy_backend_bytes_out_total{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}[24h]))", "format": "table", "instant": true, "legendFormat": "", "refId": "E"},
+        {"expr": "sum by (proxy) (increase(haproxy_backend_bytes_in_total{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}[7d]) + increase(haproxy_backend_bytes_out_total{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"}[7d]))", "format": "table", "instant": true, "legendFormat": "", "refId": "F"},
+        {"expr": "sum by (proxy) (haproxy_backend_current_sessions{proxy=~\"${endpoint}\",proxy=~\"${ecosystem_filter}\",proxy=~\"${type_filter}\"})", "format": "table", "instant": true, "legendFormat": "", "refId": "G"}
+      ],
+      "title": "All Endpoints",
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"Value #A": "In", "Value #B": "Out", "Value #C": "Total", "Value #D": "Req/s", "Value #E": "24h", "Value #F": "7d", "Value #G": "Sessions", "proxy": "Endpoint"}}}
+      ],
+      "type": "table"
+    },
+    {
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 24},
+      "id": 30,
+      "options": {"content": "### HAProxy Instances", "mode": "markdown"},
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "custom": {"align": "right", "cellOptions": {"type": "auto"}, "filterable": false, "inspect": false},
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Instance"}, "properties": [{"id": "custom.width", "value": 80}, {"id": "custom.align", "value": "left"}]},
+          {"matcher": {"id": "byName", "options": "v4 BW"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "v6 BW"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Total BW"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "v4 Req/s"}, "properties": [{"id": "unit", "value": "reqps"}]},
+          {"matcher": {"id": "byName", "options": "v6 Req/s"}, "properties": [{"id": "unit", "value": "reqps"}]},
+          {"matcher": {"id": "byName", "options": "Sessions"}, "properties": [{"id": "unit", "value": "short"}, {"id": "decimals", "value": 0}]}
+        ]
+      },
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 25},
+      "id": 31,
+      "options": {"cellHeight": "sm", "footer": {"countRows": false, "reducer": ["sum"], "show": true, "fields": ["v4 BW", "v6 BW", "Total BW", "v4 Req/s", "v6 Req/s", "Sessions"]}, "showHeader": true},
+      "targets": [
+        {"expr": "sum by (instance) (rate(haproxy_frontend_bytes_in_total{proxy=\"ssl-frontend-v4\"}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy=\"ssl-frontend-v4\"}[5m]))", "format": "table", "instant": true, "refId": "A"},
+        {"expr": "sum by (instance) (rate(haproxy_frontend_bytes_in_total{proxy=\"ssl-frontend-v6\"}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy=\"ssl-frontend-v6\"}[5m]))", "format": "table", "instant": true, "refId": "B"},
+        {"expr": "sum by (instance) (rate(haproxy_frontend_bytes_in_total{proxy=~\"ssl-frontend-v.\"}[5m]) + rate(haproxy_frontend_bytes_out_total{proxy=~\"ssl-frontend-v.\"}[5m]))", "format": "table", "instant": true, "refId": "C"},
+        {"expr": "sum by (instance) (rate(haproxy_frontend_http_requests_total{proxy=\"ssl-frontend-v4\"}[5m]))", "format": "table", "instant": true, "refId": "D"},
+        {"expr": "sum by (instance) (rate(haproxy_frontend_http_requests_total{proxy=\"ssl-frontend-v6\"}[5m]))", "format": "table", "instant": true, "refId": "E"},
+        {"expr": "sum by (instance) (haproxy_frontend_current_sessions{proxy=~\"ssl-frontend-v.\"})", "format": "table", "instant": true, "refId": "F"}
+      ],
+      "title": "HAProxy Load Distribution",
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"Value #A": "v4 BW", "Value #B": "v6 BW", "Value #C": "Total BW", "Value #D": "v4 Req/s", "Value #E": "v6 Req/s", "Value #F": "Sessions", "instance": "Instance"}}}
+      ],
+      "type": "table"
+    },
+    {
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 30},
+      "id": 40,
+      "options": {"content": "### Edge Router Uplinks", "mode": "markdown"},
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "custom": {"align": "right", "cellOptions": {"type": "auto"}, "filterable": false, "inspect": false},
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Provider"}, "properties": [{"id": "custom.width", "value": 80}, {"id": "custom.align", "value": "left"}]},
+          {"matcher": {"id": "byName", "options": "Type"}, "properties": [{"id": "custom.width", "value": 60}, {"id": "custom.align", "value": "left"}]},
+          {"matcher": {"id": "byName", "options": "In"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Out"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "Total"}, "properties": [{"id": "unit", "value": "Bps"}]},
+          {"matcher": {"id": "byName", "options": "24h"}, "properties": [{"id": "unit", "value": "decbytes"}]},
+          {"matcher": {"id": "byName", "options": "P95 24h"}, "properties": [{"id": "unit", "value": "Bps"}]}
+        ]
+      },
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 31},
+      "id": 41,
+      "options": {"cellHeight": "sm", "footer": {"countRows": false, "reducer": ["sum"], "show": true, "fields": ["In", "Out", "Total", "24h"]}, "showHeader": true, "sortBy": [{"desc": true, "displayName": "Total"}]},
+      "targets": [
+        {"expr": "sum by (provider, uplink_type) (uplink:ifHCInOctets:rate5m)", "format": "table", "instant": true, "refId": "A"},
+        {"expr": "sum by (provider, uplink_type) (uplink:ifHCOutOctets:rate5m)", "format": "table", "instant": true, "refId": "B"},
+        {"expr": "sum by (provider, uplink_type) (uplink:bandwidth:rate5m)", "format": "table", "instant": true, "refId": "C"},
+        {"expr": "sum by (provider) (increase(ifHCInOctets{uplink_type!=\"\"}[24h]) + increase(ifHCOutOctets{uplink_type!=\"\"}[24h]))", "format": "table", "instant": true, "refId": "D"},
+        {"expr": "provider:bandwidth:p95_24h", "format": "table", "instant": true, "refId": "E"}
+      ],
+      "title": "Uplink Traffic by Provider",
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"Value #A": "In", "Value #B": "Out", "Value #C": "Total", "Value #D": "24h", "Value #E": "P95 24h", "provider": "Provider", "uplink_type": "Type"}}}
+      ],
+      "type": "table"
+    },
+    {
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 36},
+      "id": 50,
+      "options": {"content": "### Traffic Timeline", "mode": "markdown"},
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "never", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}, "thresholdsStyle": {"mode": "off"}}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 37},
+      "id": 51,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"expr": "ecosystem:haproxy_bandwidth:rate5m", "legendFormat": "{{ecosystem}}", "refId": "A"}
+      ],
+      "title": "Bandwidth by Ecosystem",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "never", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}, "thresholdsStyle": {"mode": "off"}}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 37},
+      "id": 52,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"expr": "ip_version:frontend_bandwidth:rate5m", "legendFormat": "{{ip_version}}", "refId": "A"}
+      ],
+      "title": "IPv4 vs IPv6",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["haproxy", "traffic", "rpc", "polkadot", "infodense"],
+  "templating": {
+    "list": [
+      {"current": {"selected": false, "text": "Prometheus", "value": "prometheus"}, "hide": 0, "includeAll": false, "label": "Datasource", "multi": false, "name": "datasource", "options": [], "query": "prometheus", "refresh": 1, "type": "datasource"},
+      {"allValue": ".*", "current": {"selected": true, "text": "All", "value": "$__all"}, "datasource": {"type": "prometheus", "uid": "${datasource}"}, "definition": "label_values(haproxy_backend_bytes_in_total, proxy)", "hide": 0, "includeAll": true, "label": "Endpoint", "multi": false, "name": "endpoint", "options": [], "query": {"query": "label_values(haproxy_backend_bytes_in_total, proxy)"}, "refresh": 2, "regex": "", "type": "query"},
+      {"current": {"selected": false, "text": "All", "value": ".*"}, "hide": 0, "includeAll": false, "label": "Ecosystem", "multi": false, "name": "ecosystem", "options": [{"selected": true, "text": "All", "value": ".*"}, {"selected": false, "text": "Polkadot", "value": "polkadot-backend|.*-polkadot-backend|hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-polkadot-backend"}, {"selected": false, "text": "Kusama", "value": "kusama-backend|.*-kusama-backend"}, {"selected": false, "text": "Paseo", "value": "paseo-backend|.*-paseo-backend"}], "type": "custom", "query": "All : .*, Polkadot : polkadot-backend|.*-polkadot-backend|hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-polkadot-backend, Kusama : kusama-backend|.*-kusama-backend, Paseo : paseo-backend|.*-paseo-backend"},
+      {"allValue": ".*", "current": {"selected": false, "text": "All", "value": "$__all"}, "hide": 0, "includeAll": true, "label": "Chain Type", "multi": false, "name": "chain_type", "options": [{"selected": true, "text": "All", "value": "$__all"}, {"selected": false, "text": "relay", "value": "polkadot-backend|kusama-backend|paseo-backend"}, {"selected": false, "text": "system-parachain", "value": ".*-hub-.*|collectives-.*|coretime-.*|people-.*|encointer-.*"}, {"selected": false, "text": "parachain", "value": "hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-.*"}], "type": "custom"},
+      {"hide": 2, "name": "ecosystem_filter", "query": "${ecosystem}", "type": "constant"},
+      {"hide": 2, "name": "type_filter", "query": "${chain_type}", "type": "constant"}
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "RPC Traffic - Info Dense",
+  "uid": "rpc-traffic-infodense",
+  "version": 1
+}
