@@ -1,0 +1,176 @@
+# Prometheus Recording Rules for Traffic Monitoring
+# These rules aggregate HAProxy and P2P traffic metrics for analysis
+# of network consumption patterns and peak hours
+
+groups:
+  # ============================================
+  # HAProxy RPC Traffic Aggregation
+  # ============================================
+  - name: haproxy_traffic_aggregation
+    interval: 15s
+    rules:
+      # Total bytes in per endpoint (aggregated across all HAProxy nodes)
+      - record: endpoint:haproxy_bytes_in_total:sum
+        expr: |
+          sum by (proxy) (
+            haproxy_backend_bytes_in_total
+          )
+
+      # Total bytes out per endpoint (aggregated across all HAProxy nodes)
+      - record: endpoint:haproxy_bytes_out_total:sum
+        expr: |
+          sum by (proxy) (
+            haproxy_backend_bytes_out_total
+          )
+
+      # Total traffic (in + out) per endpoint
+      - record: endpoint:haproxy_bytes_total:sum
+        expr: |
+          endpoint:haproxy_bytes_in_total:sum + endpoint:haproxy_bytes_out_total:sum
+
+      # Request rate per endpoint (requests/second over 5m window)
+      - record: endpoint:haproxy_requests:rate5m
+        expr: |
+          sum by (proxy) (
+            rate(haproxy_backend_http_requests_total[5m])
+          )
+
+      # Bytes in rate per endpoint (bytes/second over 5m window)
+      - record: endpoint:haproxy_bytes_in:rate5m
+        expr: |
+          sum by (proxy) (
+            rate(haproxy_backend_bytes_in_total[5m])
+          )
+
+      # Bytes out rate per endpoint (bytes/second over 5m window)
+      - record: endpoint:haproxy_bytes_out:rate5m
+        expr: |
+          sum by (proxy) (
+            rate(haproxy_backend_bytes_out_total[5m])
+          )
+
+      # Total bandwidth rate per endpoint
+      - record: endpoint:haproxy_bandwidth:rate5m
+        expr: |
+          endpoint:haproxy_bytes_in:rate5m + endpoint:haproxy_bytes_out:rate5m
+
+      # Per-HAProxy instance traffic rate (for load distribution analysis)
+      - record: instance:haproxy_bytes_in:rate5m
+        expr: |
+          sum by (instance, proxy) (
+            rate(haproxy_backend_bytes_in_total[5m])
+          )
+
+      - record: instance:haproxy_bytes_out:rate5m
+        expr: |
+          sum by (instance, proxy) (
+            rate(haproxy_backend_bytes_out_total[5m])
+          )
+
+  # ============================================
+  # Traffic by Chain Type
+  # ============================================
+  - name: haproxy_traffic_by_type
+    interval: 1m
+    rules:
+      # Relay chain traffic (polkadot, kusama, paseo)
+      - record: chain_type:haproxy_bandwidth:rate5m
+        expr: |
+          sum by (proxy) (
+            rate(haproxy_backend_bytes_in_total{proxy=~"polkadot-backend|kusama-backend|paseo-backend"}[5m])
+            + rate(haproxy_backend_bytes_out_total{proxy=~"polkadot-backend|kusama-backend|paseo-backend"}[5m])
+          )
+        labels:
+          chain_type: relay
+
+      # System parachain traffic
+      - record: chain_type:haproxy_bandwidth:rate5m
+        expr: |
+          sum by (proxy) (
+            rate(haproxy_backend_bytes_in_total{proxy=~".*-hub-.*-backend|collectives-.*-backend|coretime-.*-backend|people-.*-backend|encointer-.*-backend"}[5m])
+            + rate(haproxy_backend_bytes_out_total{proxy=~".*-hub-.*-backend|collectives-.*-backend|coretime-.*-backend|people-.*-backend|encointer-.*-backend"}[5m])
+          )
+        labels:
+          chain_type: system-parachain
+
+      # Commercial parachain traffic
+      - record: chain_type:haproxy_bandwidth:rate5m
+        expr: |
+          sum by (proxy) (
+            rate(haproxy_backend_bytes_in_total{proxy=~"hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-.*-backend"}[5m])
+            + rate(haproxy_backend_bytes_out_total{proxy=~"hydration-backend|acala-backend|moonbeam-backend|kilt-backend|mythos-backend|nexus-backend|polimec-backend|unique-backend|xcavate-backend|ajuna-backend|bifrost-.*-backend"}[5m])
+          )
+        labels:
+          chain_type: parachain
+
+  # ============================================
+  # Hourly Traffic Aggregation (for peak analysis)
+  # ============================================
+  - name: haproxy_hourly_traffic
+    interval: 1m
+    rules:
+      # Total cluster RPC bandwidth
+      - record: cluster:haproxy_bandwidth:rate5m
+        expr: |
+          sum(
+            rate(haproxy_backend_bytes_in_total[5m]) + rate(haproxy_backend_bytes_out_total[5m])
+          )
+
+      # Total cluster RPC requests per second
+      - record: cluster:haproxy_requests:rate5m
+        expr: |
+          sum(rate(haproxy_backend_http_requests_total[5m]))
+
+      # Active connections across cluster
+      - record: cluster:haproxy_sessions:current
+        expr: |
+          sum(haproxy_backend_current_sessions)
+
+  # ============================================
+  # P2P Node Traffic Aggregation
+  # ============================================
+  - name: node_p2p_traffic
+    interval: 15s
+    rules:
+      # Total network receive rate per chain (all interfaces)
+      - record: chain:node_network_receive:rate5m
+        expr: |
+          sum by (chain, chain_type) (
+            rate(node_network_receive_bytes_total{device!~"lo|veth.*|docker.*|br-.*"}[5m])
+          )
+
+      # Total network transmit rate per chain
+      - record: chain:node_network_transmit:rate5m
+        expr: |
+          sum by (chain, chain_type) (
+            rate(node_network_transmit_bytes_total{device!~"lo|veth.*|docker.*|br-.*"}[5m])
+          )
+
+      # Total P2P bandwidth per chain
+      - record: chain:node_network_bandwidth:rate5m
+        expr: |
+          chain:node_network_receive:rate5m + chain:node_network_transmit:rate5m
+
+      # Total P2P traffic per chain type
+      - record: chain_type:node_network_bandwidth:rate5m
+        expr: |
+          sum by (chain_type) (chain:node_network_bandwidth:rate5m)
+
+  # ============================================
+  # Combined RPC + P2P Traffic Analysis
+  # ============================================
+  - name: combined_traffic_analysis
+    interval: 1m
+    rules:
+      # Total infrastructure bandwidth (RPC + estimated P2P)
+      - record: cluster:total_bandwidth:rate5m
+        expr: |
+          cluster:haproxy_bandwidth:rate5m
+          + sum(chain:node_network_bandwidth:rate5m)
+
+      # RPC to P2P traffic ratio per chain
+      - record: chain:rpc_to_p2p_ratio:rate5m
+        expr: |
+          (endpoint:haproxy_bandwidth:rate5m)
+          / on(proxy) group_left(chain)
+          (chain:node_network_bandwidth:rate5m > 0)

@@ -77,16 +77,32 @@ defaults
 EOF
 }
 
-# Generate minimal stats
+# Generate stats and Prometheus metrics endpoint
 generate_stats() {
   cat <<'EOF'
-# Stats - internal only
+# Stats - internal only (HTML dashboard)
 listen stats
     bind 127.0.0.1:8404
     stats enable
     stats uri /stats
     stats refresh 30s
     stats admin if TRUE
+
+# Prometheus metrics endpoint
+# Exposes per-backend and per-server metrics including:
+#   - haproxy_backend_bytes_in_total / haproxy_backend_bytes_out_total (network consumption)
+#   - haproxy_backend_http_requests_total (request counts per backend/endpoint)
+#   - haproxy_server_bytes_in_total / haproxy_server_bytes_out_total (per-server traffic)
+#   - haproxy_backend_current_sessions / haproxy_server_current_sessions
+#   - haproxy_backend_http_responses_total (by status code: 1xx, 2xx, 3xx, 4xx, 5xx)
+#   - haproxy_backend_response_time_average_seconds
+frontend prometheus
+    bind 127.0.0.1:8405
+    mode http
+    http-request use-service prometheus-exporter if { path /metrics }
+    no log
+    stats enable
+    stats uri /stats
 EOF
 }
 

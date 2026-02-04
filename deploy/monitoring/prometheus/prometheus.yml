@@ -1,0 +1,160 @@
+# Prometheus configuration for HAProxy and P2P traffic monitoring
+# This config scrapes all HAProxy nodes and blockchain nodes to measure:
+# - RPC traffic (via HAProxy) per endpoint
+# - P2P traffic (via node_exporter) per blockchain node
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'rotko-bkk'
+    environment: 'production'
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  # ============================================
+  # HAProxy metrics - RPC traffic monitoring
+  # ============================================
+  # Scrapes built-in HAProxy Prometheus exporter
+  # Metrics include:
+  #   - haproxy_backend_bytes_in_total / haproxy_backend_bytes_out_total
+  #   - haproxy_backend_http_requests_total
+  #   - haproxy_server_bytes_in_total / haproxy_server_bytes_out_total
+  #   - haproxy_backend_current_sessions
+  #   - haproxy_backend_http_responses_total{code="2xx|4xx|5xx"}
+
+  - job_name: 'haproxy'
+    static_configs:
+      - targets:
+          - '192.168.6.1:8405'   # bkk06 HAProxy
+          - '192.168.7.1:8405'   # bkk07 HAProxy
+          - '192.168.8.1:8405'   # bkk08 HAProxy
+        labels:
+          service: 'haproxy'
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '192\.168\.6\..*'
+        target_label: instance
+        replacement: 'bkk06'
+      - source_labels: [__address__]
+        regex: '192\.168\.7\..*'
+        target_label: instance
+        replacement: 'bkk07'
+      - source_labels: [__address__]
+        regex: '192\.168\.8\..*'
+        target_label: instance
+        replacement: 'bkk08'
+
+  # ============================================
+  # Node Exporter - P2P and system traffic
+  # ============================================
+  # Scrapes node_exporter on each blockchain node for:
+  #   - node_network_receive_bytes_total
+  #   - node_network_transmit_bytes_total
+  # Filter by interface to isolate P2P traffic
+
+  # Relay chain nodes
+  - job_name: 'node-relay'
+    static_configs:
+      # Polkadot nodes
+      - targets:
+          - '192.168.111.10:9100'  # polkadot-bkk06
+          - '192.168.77.12:9100'   # polkadot-bkk07
+          - '192.168.113.10:9100'  # polkadot-bkk08
+        labels:
+          chain: 'polkadot'
+          chain_type: 'relay'
+      # Kusama nodes
+      - targets:
+          - '192.168.121.10:9100'  # kusama-bkk06
+          - '192.168.77.22:9100'   # kusama-bkk07
+        labels:
+          chain: 'kusama'
+          chain_type: 'relay'
+      # Paseo nodes
+      - targets:
+          - '192.168.141.10:9100'  # paseo-bkk06
+          - '192.168.77.42:9100'   # paseo-bkk07
+        labels:
+          chain: 'paseo'
+          chain_type: 'relay'
+
+  # System parachain nodes
+  - job_name: 'node-system-parachain'
+    static_configs:
+      # Asset Hub Polkadot
+      - targets:
+          - '192.168.111.11:9100'
+          - '192.168.112.11:9100'
+        labels:
+          chain: 'asset-hub-polkadot'
+          chain_type: 'system-parachain'
+      # Bridge Hub Polkadot
+      - targets:
+          - '192.168.111.12:9100'
+          - '192.168.112.12:9100'
+        labels:
+          chain: 'bridge-hub-polkadot'
+          chain_type: 'system-parachain'
+      # Collectives Polkadot
+      - targets:
+          - '192.168.111.13:9100'
+          - '192.168.112.13:9100'
+        labels:
+          chain: 'collectives-polkadot'
+          chain_type: 'system-parachain'
+      # Asset Hub Kusama
+      - targets:
+          - '192.168.121.11:9100'
+          - '192.168.122.11:9100'
+        labels:
+          chain: 'asset-hub-kusama'
+          chain_type: 'system-parachain'
+      # Bridge Hub Kusama
+      - targets:
+          - '192.168.121.12:9100'
+          - '192.168.122.12:9100'
+        labels:
+          chain: 'bridge-hub-kusama'
+          chain_type: 'system-parachain'
+      # Asset Hub Paseo
+      - targets:
+          - '192.168.141.11:9100'
+          - '192.168.77.50:9100'
+        labels:
+          chain: 'asset-hub-paseo'
+          chain_type: 'system-parachain'
+
+  # Commercial parachain nodes
+  - job_name: 'node-parachain'
+    static_configs:
+      # Hydration
+      - targets:
+          - '192.168.111.35:9100'
+          - '192.168.112.35:9100'
+        labels:
+          chain: 'hydration'
+          chain_type: 'parachain'
+      # Acala
+      - targets:
+          - '192.168.111.33:9100'
+          - '192.168.112.33:9100'
+        labels:
+          chain: 'acala'
+          chain_type: 'parachain'
+      # Moonbeam
+      - targets:
+          - '192.168.111.30:9100'
+          - '192.168.112.30:9100'
+        labels:
+          chain: 'moonbeam'
+          chain_type: 'parachain'
+      # KILT
+      - targets:
+          - '192.168.86.86:9100'
+          - '192.168.112.34:9100'
+        labels:
+          chain: 'kilt'
+          chain_type: 'parachain'
