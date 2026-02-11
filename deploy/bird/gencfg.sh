@@ -294,7 +294,7 @@ TEMPLATES
 
 # generate kernel protocols
 generate_kernel_protocols() {
-  cat <<'KERNEL'
+  cat <<KERNEL
 #
 # Kernel Protocols
 #
@@ -304,6 +304,7 @@ protocol kernel kernel4 {
             # Don't export kernel routes back
             if source = RTS_DEVICE then reject;
             if source = RTS_STATIC then reject;
+            krt_prefsrc = PUBLIC_IP4;
             accept;
         };
         import all;
@@ -318,6 +319,7 @@ protocol kernel kernel6 {
         export filter {
             if source = RTS_DEVICE then reject;
             if source = RTS_STATIC then reject;
+            krt_prefsrc = PUBLIC_IP6;
             accept;
         };
         import all;
