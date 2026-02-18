@@ -1,4 +1,4 @@
-# 2026-02-17 14:41:24 by RouterOS 7.22beta3
+# 2026-02-18 14:41:49 by RouterOS 7.22beta3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -276,36 +276,8 @@
 /ip firewall raw add action=drop chain=prerouting comment="everything else dies" disabled=yes log=yes log-prefix=DEFAULT-DROP
 /ip firewall raw add action=drop chain=prerouting comment="drop rest of junk" disabled=yes
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
-/ip route add blackhole distance=240 dst-address=160.22.180.0/23
-/ip route add distance=220 gateway=172.16.30.1 pref-src=160.22.181.178
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=0.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=172.16.0.0/12
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.168.0.0/16
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=10.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=169.254.0.0/16
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=127.0.0.0/8
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=224.0.0.0/4
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.18.0.0/15
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.0.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.0.2.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=198.51.100.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=203.0.113.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=100.64.0.0/10
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
-/ip route add comment="Force src-IP for BKNIX RPKI v4" dst-address=203.159.70.26/32 gateway=172.16.30.1 pref-src=160.22.181.178
-/ip route add blackhole comment=global_unicast_v4 distance=240 dst-address=160.22.181.0/24
-/ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
-/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" dst-address=240.0.0.0/4
-/ip route add disabled=yes distance=150 dst-address=160.22.181.81 gateway=10.155.208.1
-/ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.20.2
-/ip route add comment="route to atomman via bkk00 WG" dst-address=172.31.0.4/32 gateway=172.31.0.100
-/ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
-/ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
-/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
-/ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
-/ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
-/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
+#error exporting "/ip/route" (timeout)
+#error exporting "/ipv6/route" (timeout)
 /ip service set ftp address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,158.140.0.0/16,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32
 /ip service set telnet address=10.0.0.0/8,192.168.88.0/24 disabled=yes
