@@ -1,4 +1,4 @@
-# 2026-02-18 14:41:25 by RouterOS 7.21
+# 2026-02-19 14:40:03 by RouterOS 7.21
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -300,8 +300,36 @@
 /ip firewall raw add action=drop chain=prerouting comment="Block external access to BGP loopbacks" dst-address-list=bgp-loopback-ips in-interface-list=WAN
 /ip firewall raw add action=accept chain=prerouting comment="Accept from WAN" in-interface-list=WAN
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
-#error exporting "/ip/route" (timeout)
-#error exporting "/ipv6/route" (timeout)
+/ip route add blackhole comment=global_ipv4_resources distance=240 dst-address=160.22.180.0/23
+/ip route add distance=220 gateway=172.16.30.2 pref-src=160.22.181.180
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=0.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=172.16.0.0/12
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.168.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=10.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=169.254.0.0/16
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=127.0.0.0/8
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=yes distance=240 dst-address=224.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=198.18.0.0/15
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.0.0.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.0.2.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=198.51.100.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=203.0.113.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=100.64.0.0/10
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=240.0.0.0/4
+/ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=192.88.99.0/24
+/ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no distance=240 dst-address=255.255.255.255/32
+/ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.181.0/24
+/ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
+/ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.10.2
+/ip route add comment="bkk50 loopback via p2p" distance=1 dst-address=160.22.181.181/32 gateway=172.16.10.2%BKK50-LAG
+/ip route add comment=temp-bkk20-recovery dst-address=160.22.181.178/32 gateway=10.155.255.2
+/ip route add dst-address=159.148.147.0/24 gateway=172.16.30.2 pref-src=160.22.181.180
+/ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
+/ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
+/ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
+/ipv6 route add blackhole comment="ipv6 discard prefix rfc6666" distance=240 dst-address=100::/64
+/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
+/ipv6 route add blackhole comment=global_unicast_ipv6 disabled=no distance=240 dst-address=2401:a860:1000::/36
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128,172.31.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
