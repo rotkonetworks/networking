@@ -402,6 +402,19 @@
         }
       }
     },
+    "eth-asset-hub-polkadot": {
+      "type": "system-parachain",
+      "instances": {
+        "revive-rpc-01": {
+          "address": "192.168.111.11",
+          "port": 9450
+        },
+        "revive-rpc-02": {
+          "address": "192.168.112.11",
+          "port": 9450
+        }
+      }
+    },
     "eth-asset-hub-kusama": {
       "type": "system-parachain",
       "instances": {
@@ -411,6 +424,19 @@
         },
         "revive-rpc-02": {
           "address": "192.168.122.11",
+          "port": 9450
+        }
+      }
+    },
+    "eth-asset-hub-paseo": {
+      "type": "system-parachain",
+      "instances": {
+        "revive-rpc-01": {
+          "address": "192.168.141.11",
+          "port": 9450
+        },
+        "revive-rpc-02": {
+          "address": "192.168.77.50",
           "port": 9450
         }
       }
