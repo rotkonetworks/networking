@@ -1,4 +1,4 @@
-# 2026-03-09 23:27:48 by RouterOS 7.20beta2
+# 2026-03-10 23:31:01 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1242,12 +1242,12 @@
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34051 protocol=tcp to-addresses=192.168.46.90 to-ports=34051
 /ip firewall nat add action=dst-nat chain=dstnat comment="testing 30435 to bkk03 haproxy -al" disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.69.103 to-ports=30435
 /ip firewall nat add action=dst-nat chain=dstnat comment="routing wss 30335 to haproxy" disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.69.103 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.77.91 to-ports=30435
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.77.91 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.76.91 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.91 to-ports=30435
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.78.91 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.78.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.77.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.77.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.76.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.78.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.78.91 to-ports=30435
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=2725 protocol=tcp to-addresses=192.168.77.125 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=30334 protocol=tcp to-addresses=192.168.77.125 to-ports=30334
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=2715 protocol=tcp to-addresses=192.168.77.115 to-ports=22
@@ -1678,7 +1678,7 @@
 /system ntp client servers add address=1.asia.pool.ntp.org
 /system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
-/tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
-/tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
-/tool netwatch add down-script="/ip firewall nat disable [find comment=\"haproxy-bkk06\"]" host=192.168.76.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk06\"]"
+/tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
+/tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
+/tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk06\"]" host=192.168.76.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk06\"]"
 /tool traffic-generator packet-template add name=blast-template
