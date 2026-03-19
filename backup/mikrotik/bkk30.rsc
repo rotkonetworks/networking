@@ -1,4 +1,4 @@
-# 2026-03-18 14:39:36 by RouterOS 7.20beta4
+# 2026-03-19 09:38:01 by RouterOS 7.22
 # software id = VMHP-N1T8
 #
 # model = CRS504-4XQ
@@ -7,16 +7,19 @@
 /interface bridge add disabled=yes forward-delay=6s max-message-age=10s name=ceph vlan-filtering=yes
 /interface ethernet set [ find default-name=ether1 ] l2mtu=2028
 /interface ethernet set [ find default-name=qsfp28-1-1 ] advertise=100G-baseCR4 comment=BKK00-LAG fec-mode=off l2mtu=9100 mtu=9000
+/interface ethernet set [ find default-name=qsfp28-1-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2
 /interface ethernet set [ find default-name=qsfp28-2-1 ] auto-negotiation=no comment=BKK40-LAG l2mtu=9100 mtu=9000
+/interface ethernet set [ find default-name=qsfp28-2-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2
 /interface ethernet set [ find default-name=qsfp28-3-1 ] advertise=100G-baseCR4 comment=bkk06 fec-mode=off l2mtu=9100 mtu=9000
+/interface ethernet set [ find default-name=qsfp28-3-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2
 /interface ethernet set [ find default-name=qsfp28-4-1 ] advertise=100G-baseCR4 fec-mode=off l2mtu=9100 mtu=9000
+/interface ethernet set [ find default-name=qsfp28-4-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2
 /interface vlan add disabled=yes interface=ceph name=ceph_private vlan-id=200
 /interface vlan add disabled=yes interface=ceph name=ceph_public vlan-id=100
 /interface vlan add disabled=yes interface=ceph name=ceph_untagged vlan-id=1
 /interface vlan add interface=bridge name=vlan400-bgp vlan-id=400
 /interface vlan add disabled=yes interface=vlan400-bgp name=qnq-108-400 vlan-id=108
 /interface vlan add disabled=yes interface=vlan400-bgp name=qnq-208-400 vlan-id=208
-/port set 0 name=serial0
 /routing bgp template set default as=65530
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged ingress-filtering=no interface=qsfp28-1-1
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged ingress-filtering=no interface=qsfp28-2-1
@@ -50,7 +53,6 @@
 /ip service set api-ssl disabled=yes
 /ipv6 address add address=fd12:3456:abcd:255::30 advertise=no interface=ceph_untagged
 /ipv6 address add address=2401:a860:1181::30 interface=ether1
-/system clock set time-zone-name=Asia/Bangkok
+/system clock set time-zone-name=Europe/Tallinn
 /system identity set name=bkk30
-/system package update set channel=testing
 /system routerboard settings set auto-upgrade=yes enter-setup-on=delete-key

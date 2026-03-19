@@ -1,4 +1,4 @@
-# 2026-03-18 14:42:56 by RouterOS 7.21
+# 2026-03-19 14:37:35 by RouterOS 7.21
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -873,6 +873,68 @@
     \n}\r\
     \n:put \"BGP sessions: \$established/\$total established\"\r\
     \n"
+/system script add dont-require-permissions=no name=maintenance-al owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+    \n  # Disable HE connections\
+    \n  :foreach connId in=[/routing/bgp/connection find where name~\"HE\"] do={\
+    \n      :local n [/routing/bgp/connection get \$connId name]\
+    \n      /routing/bgp/connection set \$connId disabled=yes\
+    \n      :log info \"BCP214: disabled \$n\"\
+    \n  }\
+    \n\
+    \n  # Wait for HE sessions to fully tear down\
+    \n  :log info \"BCP214: waiting 30s for HE teardown...\"\
+    \n  :delay 30s\
+    \n\
+    \n  # Add GSHUT to all eBGP OUT chains\
+    \n  :foreach ruleId in=[/routing filter rule find] do={\
+    \n      :local ch [/routing filter rule get \$ruleId chain]\
+    \n      :if (\$ch~\"-OUT-v4\\\$\" or \$ch~\"-OUT-v6\\\$\") do={\
+    \n          :if ([:len [/routing filter rule find where chain=\$ch comment=\"BCP214\"]] = 0) do={\
+    \n              /routing filter rule add chain=\$ch place-before=0 rule=\"jump graceful-shutdown\" comment=\"BCP214\"\
+    \n          }\
+    \n      }\
+    \n  }\
+    \n\
+    \n  # Block BGP on firewall\
+    \n  /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
+    \n  /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
+    \n\
+    \n  # Schedule reboot T+5min\
+    \n  :local now [/system clock get time]\
+    \n  :local nowSec ([:pick \$now 0 2] * 3600 + [:pick \$now 3 5] * 60 + [:pick \$now 6 8])\
+    \n  :local rSec (\$nowSec + 300)\
+    \n  :if (\$rSec >= 86400) do={ :set rSec (\$rSec - 86400) }\
+    \n  :local rH (\$rSec / 3600)\
+    \n  :local rM ((\$rSec % 3600) / 60)\
+    \n  :local rS (\$rSec % 60)\
+    \n  :local rTime \"\$[:pick (100 + \$rH) 1 3]:\$[:pick (100 + \$rM) 1 3]:\$[:pick (100 + \$rS) 1 3]\"\
+    \n  :local today [/system clock get date]\
+    \n\
+    \n  /system scheduler remove [find name~\"bcp214-sched-\"]\
+    \n  /system scheduler add name=bcp214-sched-reboot start-date=\$today start-time=\$rTime interval=0 on-event=\"/system scheduler remove [find name~\\\"bcp214-sched-\\\"]; /system reboot\" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon\
+    \n\
+    \n  :log warning \"BCP214: maintenance active - HE disabled, GSHUT sent, BGP blocked, reboot at \$rTime\"\
+    \n  "
+/system script add dont-require-permissions=no name=restore-al owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+    \n  # Cancel pending reboot if any\
+    \n  /system scheduler remove [find name~\"bcp214-sched-\"]\
+    \n\
+    \n  # Remove GSHUT filter rules\
+    \n  /routing filter rule remove [find comment=\"BCP214\"]\
+    \n\
+    \n  # Unblock BGP\
+    \n  /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n  /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n\
+    \n  # Re-enable HE connections\
+    \n  :foreach connId in=[/routing/bgp/connection find where name~\"HE\" and disabled=yes] do={\
+    \n      :local n [/routing/bgp/connection get \$connId name]\
+    \n      /routing/bgp/connection set \$connId disabled=no\
+    \n      :log info \"BCP214: re-enabled \$n\"\
+    \n  }\
+    \n\
+    \n  :log warning \"BCP214: service restored\"\
+    \n  "
 /system watchdog set watchdog-timer=no
 /tool traffic-monitor add disabled=yes interface=BKNIX-10G-BKK00-LAG name=bknix
 /tool traffic-monitor add disabled=yes interface=vAMSIX-EU name=amsix

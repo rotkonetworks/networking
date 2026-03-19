@@ -1,4 +1,4 @@
-# 2026-03-18 02:44:10 by RouterOS 7.20beta4
+# 2026-03-19 07:38:01 by RouterOS 7.22
 # software id = VILU-XVN6
 #
 # model = CRS354-48G-4S+2Q+
@@ -35,7 +35,6 @@
 /interface vlan add interface=bridge name=vlan400-bgp vlan-id=400
 /interface bonding add mode=802.3ad name=BKK10-SFP24-LAG slaves=qsfpplus2-1,qsfpplus2-2
 /interface bonding add mode=802.3ad name=BKK40-QSFP3-LAG slaves=qsfpplus1-1,qsfpplus1-2,qsfpplus1-3,qsfpplus1-4
-/port set 0 name=serial0
 /routing bgp template set default as=65530
 /interface bridge port add bridge=bridge comment=defconf interface=ether1
 /interface bridge port add bridge=bridge comment=defconf interface=ether2
@@ -121,8 +120,6 @@
 /ip service set api-ssl disabled=yes
 /ipv6 address add address=2401:a860:1181::60 disabled=yes interface=lo
 /ipv6 address add address=2401:a860:1181::60 interface=bridge
-/system clock set time-zone-name=America/Chicago
 /system identity set name=bkk60
-/system package update set channel=development
 /system routerboard settings set enter-setup-on=delete-key
 /tool sniffer set filter-direction=rx filter-interface=ether23
