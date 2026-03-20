@@ -1,4 +1,4 @@
-# 2026-03-19 14:38:00 by RouterOS 7.22beta3
+# 2026-03-20 14:37:34 by RouterOS 7.22
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -111,6 +111,90 @@
     \n      /system package update download\
     \n      /system package update install\
     \n    "
+/system script add dont-require-permissions=no name=maintenance-al owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+    \n  # Disable HE connections\
+    \n  :foreach connId in=[/routing/bgp/connection find where name~\"HE\"] do={\
+    \n      :local n [/routing/bgp/connection get \$connId name]\
+    \n      /routing/bgp/connection set \$connId disabled=yes\
+    \n      :log info \"BCP214: disabled \$n\"\
+    \n  }\
+    \n  \
+    \n  # Wait for HE sessions to fully tear down\
+    \n  :log info \"BCP214: waiting 30s for HE teardown...\"\
+    \n  :delay 30s\
+    \n\
+    \n  # Add GSHUT to all eBGP OUT chains\
+    \n  :foreach ruleId in=[/routing filter rule find] do={\
+    \n      :local ch [/routing filter rule get \$ruleId chain]\
+    \n      :if (\$ch~\"-OUT-v4\\\$\" or \$ch~\"-OUT-v6\\\$\") do={\
+    \n          :if ([:len [/routing filter rule find where chain=\$ch comment=\"BCP214\"]] = 0) do={\
+    \n              /routing filter rule add chain=\$ch place-before=0 rule=\"jump graceful-shutdown\" comment=\"BCP214\"\
+    \n          }\
+    \n      }\
+    \n  }\
+    \n\
+    \n  # Block BGP on firewall\
+    \n  /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
+    \n  /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=no\
+    \n\
+    \n  # Schedule reboot T+5min\
+    \n  :local now [/system clock get time]\
+    \n  :local nowSec ([:pick \$now 0 2] * 3600 + [:pick \$now 3 5] * 60 + [:pick \$now 6 8])\
+    \n  :local rSec (\$nowSec + 300)\
+    \n  :if (\$rSec >= 86400) do={ :set rSec (\$rSec - 86400) }\
+    \n  :local rH (\$rSec / 3600)\
+    \n  :local rM ((\$rSec % 3600) / 60)\
+    \n  :local rS (\$rSec % 60)\
+    \n  :local rTime \"\$[:pick (100 + \$rH) 1 3]:\$[:pick (100 + \$rM) 1 3]:\$[:pick (100 + \$rS) 1 3]\"\
+    \n  :local today [/system clock get date]\
+    \n\
+    \n  /system scheduler remove [find name~\"bcp214-sched-\"]\
+    \n  /system scheduler add name=bcp214-sched-reboot start-date=\$today start-time=\$rTime interval=0 on-event=\"/system scheduler remove [find name~\\\"bcp214-sched-\\\"]; /system reboot\" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon\
+    \n\
+    \n  :log warning \"BCP214: maintenance active - HE disabled, GSHUT sent, BGP blocked, reboot at \$rTime\"\
+    \n  "
+/system script add dont-require-permissions=no name=restore-al owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+    \n  # Cancel pending reboot if any\
+    \n  /system scheduler remove [find name~\"bcp214-sched-\"]\
+    \n\
+    \n  # Remove GSHUT filter rules\
+    \n  /routing filter rule remove [find comment=\"BCP214\"]\
+    \n\
+    \n  # Unblock BGP\
+    \n  /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n  /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n\
+    \n  # Re-enable HE connections\
+    \n  :foreach connId in=[/routing/bgp/connection find where name~\"HE\" and disabled=yes] do={\
+    \n      :local n [/routing/bgp/connection get \$connId name]\
+    \n      /routing/bgp/connection set \$connId disabled=no\
+    \n      :log info \"BCP214: re-enabled \$n\"\
+    \n  }\
+    \n\
+    \n  :log warning \"BCP214: service restored\"\
+    \n  "
+/system script add dont-require-permissions=no name=maintenance-on-startup owner=al policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="\
+    \n  :log warning \"STARTUP: waiting 60s for system to initialize...\"\
+    \n  :delay 60s\
+    \n\
+    \n  # Remove leftover BCP214 GSHUT rules\
+    \n  /routing filter rule remove [find comment=\"BCP214\"]\
+    \n\
+    \n  # Unblock BGP firewall\
+    \n  /ip firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n  /ipv6 firewall raw set [find comment~\"BGP-MAINTENANCE-MODE\"] disabled=yes\
+    \n\
+    \n  # HE stays disabled - re-enable manually with restore-al\
+    \n\
+    \n  :delay 30s\
+    \n  :local established 0\
+    \n  :local total 0\
+    \n  :foreach sess in=[/routing/bgp/session find] do={\
+    \n      :set total (\$total + 1)\
+    \n      :if ([/routing/bgp/session get \$sess established]) do={ :set established (\$established + 1) }\
+    \n  }\
+    \n  :log warning \"STARTUP: BGP \$established/\$total sessions established (HE still disabled)\"\
+    \n  "
 /user group add name=mktxp_group policy=ssh,read,write,api,!local,!telnet,!ftp,!reboot,!policy,!test,!winbox,!password,!web,!sniff,!sensitive,!romon,!rest-api
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
@@ -741,12 +825,12 @@
 /system ntp client servers add address=0.th.pool.ntp.org
 /system ntp client servers add address=0.asia.pool.ntp.org
 /system ntp client servers add address=1.asia.pool.ntp.org
-/system package update set channel=development
 /system routerboard settings set enter-setup-on=delete-key
 /system scheduler add interval=1h name=sync-ntp-list on-event="/system script run \"update-ntp-clients\"" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-06-02 start-time=17:50:20
 /system scheduler add name=bcp214-start on-event="/system script run bcp214-start" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:00:00
 /system scheduler add name=bcp214-block on-event="/system script run bcp214-block" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:00:10
 /system scheduler add disabled=yes name=bcp214-restore on-event="/system script run bcp214-restore" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:15:00
 /system scheduler add name=bcp214-downgrade on-event="/system script run bcp214-downgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:01:00
+/system scheduler add disabled=yes name=mainetnance-on-startup-al on-event="/system script run maintenance-on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
 /system watchdog set watchdog-timer=no
 /tool traffic-generator port add interface=BKK00-LAG name=test-port

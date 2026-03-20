@@ -1,4 +1,4 @@
-# 2026-02-12 07:29:02 by RouterOS 7.20beta4
+# 2026-03-20 09:37:34 by RouterOS 7.22
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -15,13 +15,11 @@
 /interface list add name=WAN
 /interface list add name=LAN
 /interface wireless security-profiles set [ find default=yes ] supplicant-identity=MikroTik
-/port set 0 name=serial0
 /routing bgp template set default as=65530
 /routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never router-id=10.155.255.10
 /routing ospf instance add comment="OSPFv3 instance for LocalGW" disabled=no name=ospf-instance-v3 originate-default=never router-id=10.155.255.10 version=3
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
-/certificate settings set builtin-trust-anchors=not-trusted
 /interface bridge port add bridge=bridge_vlan interface=BKK00-LAG
 /interface bridge port add bridge=bridge_vlan interface=BKK60-LAG
 /interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=ether6
@@ -37,8 +35,10 @@ add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK00-LAG,bridge_vlan vlan-ids=110
 /interface bridge vlan add bridge=bridge_vlan tagged=bridge_vlan vlan-ids=210
 /interface list member add interface=bridge_local list=LAN
-/interface list member add interface=BKK00-LAG list=WAN
-/interface list member add interface=BKK20-LAG list=WAN
+/interface list member add disabled=yes interface=BKK00-LAG list=WAN
+/interface list member add disabled=yes interface=BKK20-LAG list=WAN
+/interface list member add interface=vlan-p2p-bkk00 list=WAN
+/interface list member add interface=vlan-direct-bkk20 list=WAN
 /ip address add address=192.168.88.10/24 comment=defconf disabled=yes interface=ether13 network=192.168.88.0
 /ip address add address=10.155.255.1 interface=lo network=10.155.255.1
 /ip address add address=160.22.181.179 interface=lo network=160.22.181.179
@@ -46,6 +46,9 @@ add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG
 /ip address add address=172.16.110.1/31 interface=vlan-p2p-bkk00 network=172.16.110.0
 /ip address add address=172.16.210.1/31 interface=vlan-direct-bkk20 network=172.16.210.0
 /ip dns set servers=9.9.9.9,1.0.0.1,8.8.4.4
+/ip firewall nat add action=accept chain=srcnat dst-address=224.0.0.0/4
+/ip firewall nat add action=accept chain=srcnat dst-address=10.0.0.0/8
+/ip firewall nat add action=accept chain=srcnat dst-address=172.16.0.0/12
 /ip firewall nat add action=src-nat chain=srcnat out-interface-list=WAN src-address=172.16.0.0/16 to-addresses=160.22.181.179
 /ip route add disabled=yes distance=220 gateway=172.16.210.0
 /ip route add distance=220 gateway=172.16.110.0
@@ -73,6 +76,7 @@ add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG
 /ipv6 address add address=fd00:dead:beef:2010::1/127 advertise=no interface=BKK20-LAG
 /ipv6 address add address=2401:a860:1181:2010::1/127 advertise=no interface=BKK20-LAG
 /ipv6 address add address=2401:a860:1181::10/128 advertise=no interface=lo
+/ipv6 nd set [ find default=yes ] advertise-dns=yes
 /routing ospf interface-template add area=backbone comment=loopback-v4 disabled=no networks=10.155.255.10/32 passive
 /routing ospf interface-template add area=backbone comment=p2p-bkk00-v4 disabled=no networks=172.16.110.0/31
 /routing ospf interface-template add area=backbone comment=p2p-bkk20-v4 disabled=no networks=172.16.210.0/31
@@ -81,5 +85,6 @@ add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG
 /routing ospf interface-template add area=backbone-v6 comment=loopback-v6 disabled=no networks=fd00:dead:beef::10/128 passive
 /routing ospf interface-template add area=backbone-v6 comment=p2p-bkk00-v6 disabled=no interfaces=BKK00-LAG
 /routing ospf interface-template add area=backbone-v6 comment=p2p-bkk20-v6 disabled=no interfaces=BKK20-LAG
+/system clock set time-zone-name=Europe/Tallinn
 /system identity set name=bkk10
 /system routerboard settings set enter-setup-on=delete-key

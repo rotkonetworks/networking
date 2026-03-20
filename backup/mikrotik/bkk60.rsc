@@ -1,4 +1,4 @@
-# 2026-03-19 07:38:01 by RouterOS 7.22
+# 2026-03-20 09:37:34 by RouterOS 7.22
 # software id = VILU-XVN6
 #
 # model = CRS354-48G-4S+2Q+
@@ -120,6 +120,7 @@
 /ip service set api-ssl disabled=yes
 /ipv6 address add address=2401:a860:1181::60 disabled=yes interface=lo
 /ipv6 address add address=2401:a860:1181::60 interface=bridge
+/system clock set time-zone-name=Europe/Tallinn
 /system identity set name=bkk60
 /system routerboard settings set enter-setup-on=delete-key
 /tool sniffer set filter-direction=rx filter-interface=ether23

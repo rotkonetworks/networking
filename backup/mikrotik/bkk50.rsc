@@ -1,4 +1,4 @@
-# 2026-03-18 23:33:37 by RouterOS 7.20beta2
+# 2026-03-19 23:32:45 by RouterOS 7.20beta2
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -35,7 +35,9 @@
 /ip pool add name=cgnat_pool ranges=100.64.0.10-100.64.0.250
 /ip dhcp-server add address-pool=dhcp69 interface=bridge_local name=dhcp1
 /ip dhcp-server add address-pool=saxbkk interface=SAX-BKK-01-KVM name=saxemberg-kvm
-/ip dhcp-server add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
+/ip dhcp-server
+# No IP address on interface
+add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /port set 0 name=serial0
 /routing bgp instance add as=142108 name=bgp-instance-1 router-id=10.155.255.3
 /routing bgp template add add-path-out=all afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=iBGP-v4 nexthop-choice=default output.filter-chain=iBGP-OUT-v4
@@ -1676,7 +1678,6 @@
 /system ntp client servers add address=0.th.pool.ntp.org
 /system ntp client servers add address=0.asia.pool.ntp.org
 /system ntp client servers add address=1.asia.pool.ntp.org
-/system package update set channel=testing
 /system routerboard settings set enter-setup-on=delete-key
 /tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
 /tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
