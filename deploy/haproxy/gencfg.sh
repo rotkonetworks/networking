@@ -5,9 +5,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_DIR="${SCRIPT_DIR}/../config"
 SERVICES_CONFIG="${CONFIG_DIR}/services.json"
+NETWORK_CONFIG="${CONFIG_DIR}/network.json"
 
 # Generate timestamp
 TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+# Anycast IPs - bind only to these so haproxy CTs on vmbr0 can handle bkk50 NAT traffic
+ANYCAST_SITE_V4=$(jq -r '.networks.anycast_v4.site' "$NETWORK_CONFIG" | sed 's|/.*||')
+ANYCAST_GLOBAL_V4=$(jq -r '.networks.anycast_v4.global' "$NETWORK_CONFIG" | sed 's|/.*||')
+ANYCAST_LOCAL_V4=$(jq -r '.networks.anycast_v4.local' "$NETWORK_CONFIG" | sed 's|/.*||')
+BIND_ADDRS="${ANYCAST_SITE_V4},${ANYCAST_GLOBAL_V4},${ANYCAST_LOCAL_V4}"
 
 # Helper function to normalize chain names
 normalize_chain() {
@@ -92,10 +99,10 @@ EOF
 
 # Generate HTTP frontend
 generate_http_frontend() {
-  cat <<'EOF'
+  cat <<EOF
 # HTTP Frontend - redirect only
 frontend http-frontend
-    bind *:80
+    bind ${ANYCAST_SITE_V4}:80,${ANYCAST_GLOBAL_V4}:80,${ANYCAST_LOCAL_V4}:80
     mode http
     
     # Track requests for monitoring (no limiting)
@@ -117,10 +124,10 @@ generate_ssl_frontend() {
   local chains="$1"
   local domain_suffixes=$(jq -r '.haproxy.domain_suffixes[]' "$SERVICES_CONFIG" | tr '\n' ' ')
 
+  echo "# SSL Frontend"
+  echo "frontend ssl-frontend"
+  echo "    bind ${ANYCAST_SITE_V4}:443,${ANYCAST_GLOBAL_V4}:443,${ANYCAST_LOCAL_V4}:443 ssl crt /etc/pki/certs/ibp crt /etc/pki/certs/rotko crt /etc/pki/certs alpn h2,http/1.1"
   cat <<'EOF'
-# SSL Frontend
-frontend ssl-frontend
-    bind *:443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko alpn h2,http/1.1
     mode http
     
     # Security headers
@@ -184,7 +191,7 @@ EOF
   echo "    acl is_rpc hdr_beg(host) -i rpc."
   echo "    acl is_sys hdr_beg(host) -i sys."
 
-  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc" and .value.type != "grpc") | .key' | while read -r chain; do
     echo "    acl path_${chain} path_beg -i /${chain}"
   done
 
@@ -197,11 +204,27 @@ EOF
   done
 
   echo ""
-  # Path-based routing (excludes misc type - those only use direct domain)
-  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc") | .key' | while read -r chain; do
+  # Path-based routing (excludes misc and grpc types - those only use direct domain)
+  echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc" and .value.type != "grpc") | .key' | while read -r chain; do
     echo "    use_backend ${chain}-backend if is_rpc path_${chain}"
     echo "    use_backend ${chain}-backend if is_sys path_${chain}"
   done
+
+  # Monitoring routes (ibp.rotko.net, ibp-metrics.rotko.net, astrolabe.rotko.net)
+  local monitoring=$(jq -c '.monitoring // empty' "$SERVICES_CONFIG")
+  if [[ -n "$monitoring" ]]; then
+    echo ""
+    echo "    # Monitoring ACLs"
+    echo "    acl is_ibp_rotko_net hdr_end(host) -i ibp.rotko.net"
+    echo "    acl is_ibp_metrics hdr_end(host) -i ibp-metrics.rotko.net"
+    echo "    acl is_astrolabe hdr_end(host) -i astrolabe.rotko.net"
+    echo "    acl url_api path_beg /api"
+    echo ""
+    echo "    use_backend ibp-metrics-backend if is_ibp_metrics"
+    echo "    use_backend ibp-monitor-api-backend if is_ibp_rotko_net url_api"
+    echo "    use_backend ibp-monitor-backend if is_ibp_rotko_net"
+    echo "    use_backend astrolabe-backend if is_astrolabe"
+  fi
 
   echo ""
   echo "    # Default backend"
@@ -225,6 +248,19 @@ generate_backends() {
 
     # Generate backend config based on service type
     case "$chain_type" in
+      grpc)
+        # gRPC services (h2 backend)
+        echo "    mode http"
+        echo "    balance leastconn"
+        echo "    "
+        echo "    # Retry and timeout"
+        echo "    retries 2"
+        echo "    option redispatch"
+        echo "    timeout server 300s"
+        echo "    "
+        echo "    # Servers"
+        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server \($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000 proto h2"'
+        ;;
       misc)
         # Misc services - HTTP mode with simple TCP health check
         echo "    mode http"
@@ -290,7 +326,7 @@ EOF
 
   ### Relay chains on 30335 ###
   echo "frontend p2p-relay-wss-passthrough"
-  echo "    bind *:30335"
+  echo "    bind ${ANYCAST_SITE_V4}:30335,${ANYCAST_GLOBAL_V4}:30335,${ANYCAST_LOCAL_V4}:30335"
   echo "    mode tcp"
   echo "    option tcplog"
   echo "    tcp-request inspect-delay 2s"
@@ -315,7 +351,7 @@ EOF
 
   ### Parachains on 30435 ###
   echo "frontend p2p-parachain-wss-passthrough"
-  echo "    bind *:30435"
+  echo "    bind ${ANYCAST_SITE_V4}:30435,${ANYCAST_GLOBAL_V4}:30435,${ANYCAST_LOCAL_V4}:30435"
   echo "    mode tcp"
   echo "    option tcplog"
   echo "    tcp-request inspect-delay 2s"
@@ -430,6 +466,56 @@ main() {
   generate_wss_frontends "$(jq -c '.bootnodes' "$SERVICES_CONFIG")"
   echo ""
   generate_wss_backends "$bootnodes"
+  echo ""
+  generate_monitoring
+}
+
+# Generate monitoring frontends and backends
+generate_monitoring() {
+  local monitoring=$(jq -c '.monitoring // empty' "$SERVICES_CONFIG")
+  if [[ -z "$monitoring" ]]; then
+    return
+  fi
+
+  local ibp_monitor=$(echo "$monitoring" | jq -r '.ibp_monitor')
+  local ibp_monitor_api=$(echo "$monitoring" | jq -r '.ibp_monitor_api')
+  local ibp_metrics=$(echo "$monitoring" | jq -r '.ibp_metrics')
+  local astrolabe=$(echo "$monitoring" | jq -r '.astrolabe')
+
+  cat <<EOF
+
+# Prometheus/Metrics Frontend (port 9090)
+frontend prometheus-frontend
+    bind ${ANYCAST_SITE_V4}:9090,${ANYCAST_GLOBAL_V4}:9090,${ANYCAST_LOCAL_V4}:9090 ssl crt /etc/pki/certs/ibp crt /etc/pki/certs/rotko crt /etc/pki/certs alpn h2,http/1.1
+    mode http
+    option httplog
+    compression algo gzip deflate
+    compression type text/html text/plain text/css application/javascript application/json
+    compression direction response
+    use_backend ibp-metrics-backend
+
+# IBP Monitor Backend (ibp.rotko.net)
+backend ibp-monitor-backend
+    mode http
+    balance leastconn
+    server ibp-monitor ${ibp_monitor} check inter 2s
+
+# IBP Monitor API Backend
+backend ibp-monitor-api-backend
+    mode http
+    balance leastconn
+    server ibp-monitor-api ${ibp_monitor_api} check inter 2s
+
+# IBP Metrics Backend (ibp-metrics.rotko.net)
+backend ibp-metrics-backend
+    mode http
+    server ibp-metrics ${ibp_metrics} check inter 2s
+
+# Astrolabe Backend (astrolabe.rotko.net)
+backend astrolabe-backend
+    mode http
+    server docker-astrolabe ${astrolabe} check inter 2s
+EOF
 }
 
 # Run main
