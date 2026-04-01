@@ -1,4 +1,4 @@
-# 2026-03-30 23:54:15 by RouterOS 7.20beta2
+# 2026-04-01 00:00:50 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -38,9 +38,8 @@
 /ip dhcp-server
 # No IP address on interface
 add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
-/port set 0 name=serial0
 /routing bgp instance add as=142108 name=bgp-instance-1 router-id=10.155.255.3
-/routing bgp template add add-path-out=all afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=iBGP-v4 nexthop-choice=default output.filter-chain=iBGP-OUT-v4
+/routing bgp template add afi=ip as=142108 input.filter=iBGP-IN-v4 multihop=yes name=iBGP-v4 nexthop-choice=default output.add-path="" .filter-chain=iBGP-OUT-v4
 /routing bgp template add afi=ipv6 as=142108 input.filter=iBGP-IN-v6 multihop=yes name=iBGP-v6 nexthop-choice=default output.filter-chain=iBGP-OUT-v6
 /routing id add id=10.155.255.3 name=main select-dynamic-id=only-static select-from-vrf=main
 /routing ospf instance add comment="OSPF instance for LocalGW" disabled=no name=ospf-instance-1 originate-default=never redistribute=static router-id=10.155.255.3
@@ -201,7 +200,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall address-list add address=8.8.8.8 comment="Google DNS" list=dns_servers
 /ip firewall address-list add address=160.22.181.168/29 list=not_in_internet
 /ip firewall filter add action=drop chain=input dst-port=161 in-interface-list=WAN protocol=udp
-/ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked hw-offload=yes
+/ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
 /ip firewall filter add action=accept chain=forward dst-port=25011 protocol=tcp
@@ -877,6 +876,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall filter add action=accept chain=input comment="Allow DNS" dst-port=53 protocol=udp
 /ip firewall filter add action=accept chain=input comment="Allow NTP" dst-port=123 protocol=udp
 /ip firewall filter add action=accept chain=input comment="Allow OSPF" protocol=ospf
+/ip firewall filter add action=accept chain=input comment="Accept 80/443 for dstnat" dst-port=80,443 protocol=tcp
 /ip firewall filter add action=drop chain=input comment="Drop all other input"
 /ip firewall filter add action=accept chain=forward dst-address-list=WAN
 /ip firewall filter add action=accept chain=forward out-interface-list=WAN
@@ -884,6 +884,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall filter add action=accept chain=forward dst-port=8188 protocol=tcp
 /ip firewall filter add action=accept chain=forward comment="Allow our networks to Internet" src-address-list=our-networks
 /ip firewall filter add action=accept chain=forward comment="Allow CGNAT customers to Internet" src-address-list=cgnat_customers
+/ip firewall filter add action=accept chain=forward comment="Accept NATted traffic" connection-nat-state=dstnat
 /ip firewall filter add action=drop chain=forward comment="Drop traffic from not_in_internet list" src-address-list=not_in_internet
 /ip firewall filter add action=drop chain=forward dst-address-list=not_in_internet
 /ip firewall filter add action=accept chain=forward dst-port=30433 protocol=tcp
@@ -1244,12 +1245,12 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=34051 protocol=tcp to-addresses=192.168.46.90 to-ports=34051
 /ip firewall nat add action=dst-nat chain=dstnat comment="testing 30435 to bkk03 haproxy -al" disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.69.103 to-ports=30435
 /ip firewall nat add action=dst-nat chain=dstnat comment="routing wss 30335 to haproxy" disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.69.103 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.77.91 to-ports=30435
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.77.91 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.76.91 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.91 to-ports=30435
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 disabled=yes dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.78.91 to-ports=30335
-/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 disabled=yes dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.78.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.77.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.77.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.76.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.78.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.78.91 to-ports=30435
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=2725 protocol=tcp to-addresses=192.168.77.125 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=30334 protocol=tcp to-addresses=192.168.77.125 to-ports=30334
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=2715 protocol=tcp to-addresses=192.168.77.115 to-ports=22
@@ -1554,6 +1555,42 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=22901 protocol=tcp to-addresses=192.168.77.201 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=8233 protocol=tcp to-addresses=192.168.77.201 to-ports=8233
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=25011 protocol=tcp to-addresses=100.64.1.2 to-ports=22
+/ip firewall nat add chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.76.91 to-ports=80
+/ip firewall nat add chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.76.91 to-ports=443
+/ip firewall nat add chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.77.91 to-ports=80
+/ip firewall nat add chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.77.91 to-ports=443
+/ip firewall nat add chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.78.91 to-ports=80
+/ip firewall nat add chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.78.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.76.91 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.76.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.77.91 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.77.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.78.91 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.78.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.76.1 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.76.1 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.77.1 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.77.1 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.69.218 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.69.218 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.76.1 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.76.1 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.77.1 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.77.1 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.69.218 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.69.218 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.77.91 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.77.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.76.91 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.76.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.78.91 to-ports=80
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.78.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.77.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk07 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.77.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.76.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.78.91 to-ports=30335
+/ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.78.91 to-ports=30435
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
@@ -1589,7 +1626,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip service set winbox address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 /ip service set api address=192.168.0.0/16
 /ip service set api-ssl disabled=yes
-/ip ssh set always-allow-password-login=yes
+/ip ssh set password-authentication=yes
 /ipv6 address add address=fd00:dead:beef::50/128 advertise=no interface=lo
 /ipv6 address add address=2401:a860:169::50 comment=SAXv6 interface=SAX-BKK-01
 /ipv6 address add address=2401:a860:1181::/128 advertise=no comment="bkk50 ipv6 public address" interface=lo
@@ -1623,9 +1660,10 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ipv6 firewall address-list add address=ff00::/8 comment=Multicast list=bogons-v6
 /ipv6 firewall address-list add address=fd00:dead:beef::/48 list=our-networks-v6
 /ipv6 firewall raw add action=accept chain=prerouting
-/ipv6 nd add interface=bridge_local ra-lifetime=10m
-/ipv6 nd add interface=SAX-BKK-01 ra-lifetime=10m
-/ipv6 nd add interface=SAX-BKK-01-KVM ra-lifetime=10m
+/ipv6 nd set [ find default=yes ] advertise-dns=yes
+/ipv6 nd add advertise-dns=yes interface=bridge_local ra-lifetime=10m
+/ipv6 nd add advertise-dns=yes interface=SAX-BKK-01 ra-lifetime=10m
+/ipv6 nd add advertise-dns=yes interface=SAX-BKK-01-KVM ra-lifetime=10m
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.255.3 .role=ibgp multihop=yes name=ibgp-bkk00-v4 output.redistribute=connected remote.address=10.155.255.4 .as=142108 templates=iBGP-v4
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.255.3 .role=ibgp multihop=yes name=ibgp-bkk20-v4 output.redistribute=connected remote.address=10.155.255.2 .as=142108 templates=iBGP-v4
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:dead:beef::50 .role=ibgp name=ibgp-bkk00-v6 output.redistribute=connected remote.address=fd00:dead:beef::100 .as=142108 templates=iBGP-v6
@@ -1679,7 +1717,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /system ntp client servers add address=0.asia.pool.ntp.org
 /system ntp client servers add address=1.asia.pool.ntp.org
 /system routerboard settings set enter-setup-on=delete-key
-/tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
-/tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
-/tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk06\"]" host=192.168.76.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk06\"]"
+/tool netwatch add disabled=no down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
+/tool netwatch add disabled=no down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
+/tool netwatch add disabled=no down-script="/ip firewall nat disable [find comment=\"haproxy-bkk06\"]" host=192.168.76.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk06\"]"
 /tool traffic-generator packet-template add name=blast-template
