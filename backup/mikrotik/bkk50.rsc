@@ -1,4 +1,4 @@
-# 2026-04-01 00:00:50 by RouterOS 7.22
+# 2026-04-01 23:50:42 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -203,6 +203,8 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=2484 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=26684 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=25011 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=22901 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10901 protocol=tcp
@@ -1591,6 +1593,8 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk06 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.76.91 to-ports=30435
 /ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30335 protocol=tcp to-addresses=192.168.78.91 to-ports=30335
 /ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.78.91 to-ports=30435
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2484 protocol=tcp to-addresses=192.168.78.84 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=26684 protocol=tcp to-addresses=192.168.78.84 to-ports=26684
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
@@ -1717,7 +1721,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /system ntp client servers add address=0.asia.pool.ntp.org
 /system ntp client servers add address=1.asia.pool.ntp.org
 /system routerboard settings set enter-setup-on=delete-key
-/tool netwatch add disabled=no down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
+/tool netwatch add disabled=yes down-script="/ip firewall nat disable [find comment=\"haproxy-bkk08\"]" host=192.168.78.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk08\"]"
 /tool netwatch add disabled=no down-script="/ip firewall nat disable [find comment=\"haproxy-bkk07\"]" host=192.168.77.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk07\"]"
 /tool netwatch add disabled=no down-script="/ip firewall nat disable [find comment=\"haproxy-bkk06\"]" host=192.168.76.91 http-codes=200 interval=10s port=6404 timeout=5s type=http-get up-script="/ip firewall nat enable [find comment=\"haproxy-bkk06\"]"
 /tool traffic-generator packet-template add name=blast-template
