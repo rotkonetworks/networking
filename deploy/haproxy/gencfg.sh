@@ -210,6 +210,22 @@ EOF
     echo "    use_backend ${chain}-backend if is_sys path_${chain}"
   done
 
+  # Legacy path aliases (old names still used by monitoring probes)
+  echo ""
+  echo "    # Legacy path aliases"
+  echo "    acl path_statemint path_beg -i /statemint"
+  echo "    acl path_statemine path_beg -i /statemine"
+  echo "    acl path_bridgehub-polkadot path_beg -i /bridgehub-polkadot"
+  echo "    acl path_bridgehub-kusama path_beg -i /bridgehub-kusama"
+  echo "    use_backend asset-hub-polkadot-backend if is_rpc path_statemint"
+  echo "    use_backend asset-hub-polkadot-backend if is_sys path_statemint"
+  echo "    use_backend asset-hub-kusama-backend if is_rpc path_statemine"
+  echo "    use_backend asset-hub-kusama-backend if is_sys path_statemine"
+  echo "    use_backend bridge-hub-polkadot-backend if is_rpc path_bridgehub-polkadot"
+  echo "    use_backend bridge-hub-polkadot-backend if is_sys path_bridgehub-polkadot"
+  echo "    use_backend bridge-hub-kusama-backend if is_rpc path_bridgehub-kusama"
+  echo "    use_backend bridge-hub-kusama-backend if is_sys path_bridgehub-kusama"
+
   # Monitoring routes (ibp.rotko.net, ibp-metrics.rotko.net, astrolabe.rotko.net)
   local monitoring=$(jq -c '.monitoring // empty' "$SERVICES_CONFIG")
   if [[ -n "$monitoring" ]]; then

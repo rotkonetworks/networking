@@ -455,14 +455,20 @@
       }
     },
     "zcash": {
-      "type": "misc",
+      "type": "grpc",
       "instances": {
         "zcash-01": {
           "address": "192.168.77.201",
-          "port": 50050
+          "port": 50051
         }
       }
     }
+  },
+  "monitoring": {
+    "ibp_monitor": "192.168.77.97:80",
+    "ibp_monitor_api": "192.168.77.97:8080",
+    "ibp_metrics": "192.168.77.97:80",
+    "astrolabe": "192.168.77.97:80"
   },
   "port_forwards": {
     "bkk07": [
