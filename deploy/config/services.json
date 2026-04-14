@@ -264,7 +264,8 @@
       "instances": {
         "hydration-polkadot-rpc-01": {
           "address": "192.168.111.35",
-          "port": 9400
+          "port": 9400,
+          "backup": true
         },
         "hydration-polkadot-rpc-02": {
           "address": "192.168.112.35",
@@ -802,13 +803,13 @@
     "hydration": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.111.35",
-        "bkk06": "10.6.111.35",
+        "haproxy": "192.168.112.35",
+        "bkk07": "10.7.111.35",
         "bkk08": "10.8.112.35"
       },
       "ports": {
         "p2p": {
-          "bkk06": 31251,
+          "bkk07": 31251,
           "bkk08": 31252
         }
       }

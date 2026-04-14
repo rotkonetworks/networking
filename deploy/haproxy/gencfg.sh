@@ -310,7 +310,7 @@ generate_backends() {
         echo "    timeout server 30s"
         echo "    "
         echo "    # Servers"
-        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'
+        echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server rpc-\($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000\(if .value.backup then " backup" else "" end)"'
         ;;
     esac
   done
