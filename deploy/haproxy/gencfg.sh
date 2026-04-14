@@ -126,7 +126,7 @@ generate_ssl_frontend() {
 
   echo "# SSL Frontend"
   echo "frontend ssl-frontend"
-  echo "    bind ${ANYCAST_SITE_V4}:443,${ANYCAST_GLOBAL_V4}:443,${ANYCAST_LOCAL_V4}:443 ssl crt /etc/pki/certs/ibp crt /etc/pki/certs/rotko crt /etc/pki/certs alpn h2,http/1.1"
+  echo "    bind ${ANYCAST_SITE_V4}:443,${ANYCAST_GLOBAL_V4}:443,${ANYCAST_LOCAL_V4}:443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1"
   cat <<'EOF'
     mode http
     
@@ -502,7 +502,7 @@ generate_monitoring() {
 
 # Prometheus/Metrics Frontend (port 9090)
 frontend prometheus-frontend
-    bind ${ANYCAST_SITE_V4}:9090,${ANYCAST_GLOBAL_V4}:9090,${ANYCAST_LOCAL_V4}:9090 ssl crt /etc/pki/certs/ibp crt /etc/pki/certs/rotko crt /etc/pki/certs alpn h2,http/1.1
+    bind ${ANYCAST_SITE_V4}:9090,${ANYCAST_GLOBAL_V4}:9090,${ANYCAST_LOCAL_V4}:9090 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1
     mode http
     option httplog
     compression algo gzip deflate
