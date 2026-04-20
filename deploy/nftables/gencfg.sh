@@ -61,13 +61,13 @@ ANYCAST_SITE_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v6 // empty' | sed 
 ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' | sed 's|/32||')
 ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | sed 's|/128||')
 
-# Extract VM IPs and bridges from services.json
+# Extract public guest IPs and bridges from services.json
 VM_IPS=()
 VM_BRIDGES=()
-if jq -e ".vms.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
+if jq -e ".public_guests.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
   while IFS='|' read -r ip bridge; do
     [[ -n "$ip" ]] && VM_IPS+=("$ip") && VM_BRIDGES+=("${bridge:-vmbr2}")
-  done < <(jq -r ".vms.$SITE | to_entries[] | \"\(.value.public_ip // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
+  done < <(jq -r ".public_guests.$SITE | to_entries[] | \"\(.value.public_ip // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
 fi
 
 # Generate nftables configuration

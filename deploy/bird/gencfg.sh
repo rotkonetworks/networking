@@ -109,14 +109,14 @@ ANYCAST_LOCAL_V6_PREFIX=$(jq -r '.networks.anycast_v6.local // empty' "$CONFIG_F
 ANYCAST_SITE_V6_PREFIX=$(jq -r '.networks.anycast_v6.site // empty' "$CONFIG_FILE")
 ANYCAST_GLOBAL_V6_PREFIX=$(jq -r '.networks.anycast_v6.global // empty' "$CONFIG_FILE")
 
-# extract VM public IPs from services.json
+# extract public guest IPs from services.json
 VM_IP4S=()
 VM_IP6S=()
-if [[ -f "$SERVICES_FILE" ]] && jq -e ".vms.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
+if [[ -f "$SERVICES_FILE" ]] && jq -e ".public_guests.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
   while IFS='|' read -r ip4 ip6; do
     [[ -n "$ip4" ]] && VM_IP4S+=("$ip4")
     [[ -n "$ip6" ]] && VM_IP6S+=("$ip6")
-  done < <(jq -r ".vms.$SITE | to_entries[] | \"\(.value.public_ip.ip4 // empty)|\(.value.public_ip.ip6 // empty)\"" "$SERVICES_FILE" 2>/dev/null)
+  done < <(jq -r ".public_guests.$SITE | to_entries[] | \"\(.value.public_ip.ip4 // empty)|\(.value.public_ip.ip6 // empty)\"" "$SERVICES_FILE" 2>/dev/null)
 fi
 
 # extract global config

@@ -643,7 +643,16 @@
       }
     }
   },
-  "vms": {
+  "public_guests": {
+    "bkk06": {
+      "rpc-asset-hub-paseo-01": {
+        "public_ip": {
+          "ip4": "160.22.181.141",
+          "ip6": "2401:a860:1050:141::"
+        },
+        "bridge": "vmbr2"
+      }
+    },
     "bkk07": {
       "penumbra-02": {
         "public_ip": {
