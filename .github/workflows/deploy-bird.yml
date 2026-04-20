@@ -15,6 +15,11 @@ on:
         required: false
         type: boolean
         default: false
+      validate_only:
+        description: "Validate configs only (no deploy)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -31,9 +36,32 @@ jobs:
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Deploy BIRD
+      - name: Validate generator script syntax
+        run: bash -n ./deploy/bird/gencfg.sh
+
+      - name: Generate config and check for shell leakage
         run: |
-          # nc: port mapping for ssh access
+          set -euo pipefail
+          SERVER="${{ github.event.inputs.server }}"
+          echo "Generating BIRD config for $SERVER"
+          ./deploy/bird/gencfg.sh -c ./deploy/config/network.json "$SERVER" > /tmp/bird.conf
+
+          if [[ ! -s /tmp/bird.conf ]]; then
+            echo "error: generated config is empty" >&2
+            exit 1
+          fi
+
+          # Catch bash control-flow / echo leaking into the config
+          if grep -nE '^[[:space:]]*(if[[:space:]]+\[\[|fi[[:space:]]*$|cat[[:space:]]+<<|echo[[:space:]])' /tmp/bird.conf; then
+            echo "error: generated config contains shell control-flow at line start" >&2
+            echo "this indicates bash code leaked into the rendered bird config" >&2
+            exit 1
+          fi
+
+      - name: Install BIRD3 if requested
+        if: ${{ github.event.inputs.install_bird == 'true' }}
+        run: |
+          set -euo pipefail
           declare -A ports
           ports[bkk06]=22786
           ports[bkk07]=22787
@@ -42,46 +70,75 @@ jobs:
           SERVER="${{ github.event.inputs.server }}"
           PORT=${ports[$SERVER]}
 
-          # nc: install bird if requested
-          if [[ "${{ github.event.inputs.install_bird }}" == "true" ]]; then
-            echo "Installing BIRD3 on $SERVER"
-            scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
-              ./deploy/bird/install-bird3.sh root@160.22.181.181:/tmp/
-            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
-              root@160.22.181.181 'bash /tmp/install-bird3.sh && rm /tmp/install-bird3.sh'
+          echo "Installing BIRD3 on $SERVER"
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
+            ./deploy/bird/install-bird3.sh root@160.22.181.181:/tmp/
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'bash /tmp/install-bird3.sh && rm /tmp/install-bird3.sh'
+
+      - name: Remote configure check
+        run: |
+          set -euo pipefail
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
+
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
+            /tmp/bird.conf root@160.22.181.181:/tmp/bird.conf.new
+
+          # bird -p parses the config and exits; no daemon contact needed.
+          # Works across BIRD 2 and 3 (unlike `birdc configure check <path>` which
+          # differs between versions).
+          echo "Running bird parse check against /tmp/bird.conf.new"
+          if ! ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'bird -c /tmp/bird.conf.new -p'; then
+            echo "error: BIRD parse check failed" >&2
+            exit 1
           fi
 
-          # nc: generate and deploy config
-          echo "Generating BIRD config for $SERVER"
-          ./deploy/bird/gencfg.sh -c ./deploy/config/network.json $SERVER > /tmp/bird.conf
+      - name: Apply BIRD config
+        if: ${{ github.event.inputs.validate_only == 'false' }}
+        run: |
+          set -euo pipefail
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
 
-          # nc: backup existing config
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
+
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
-            root@160.22.181.181 'cp /etc/bird/bird.conf /etc/bird/bird.conf.bak' || true
-
-          # nc: deploy new config
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
-            /tmp/bird.conf root@160.22.181.181:/etc/bird/bird.conf
-
-          # nc: ensure log file exists with proper permissions
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT root@160.22.181.181 << EOF
-              # Create log file if it doesn't exist
+            root@160.22.181.181 <<'REMOTE'
+              set -e
+              # Ensure log file exists with proper permissions
               if [ ! -f /var/log/bird.log ]; then
                 touch /var/log/bird.log
               fi
-              
-              # Set proper ownership - try bird user first, fallback to root
               if id "bird" &>/dev/null; then
                 chown bird:bird /var/log/bird.log
               else
-                # If bird user doesn't exist, make it world-writable
                 chmod 666 /var/log/bird.log
               fi
-          EOF
-            
 
-          # nc: validate and reload
+              cp /etc/bird/bird.conf /etc/bird/bird.conf.bak 2>/dev/null || true
+              mv /tmp/bird.conf.new /etc/bird/bird.conf
+              birdc configure
+          REMOTE
+
+      - name: Cleanup
+        if: always()
+        run: |
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
-            root@160.22.181.181 'birdc configure check && birdc configure'
-
+            root@160.22.181.181 'rm -f /tmp/bird.conf.new' 2>/dev/null || true
           rm -f /tmp/bird.conf

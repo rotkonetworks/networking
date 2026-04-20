@@ -169,8 +169,6 @@ INTERFACES
     echo "    up ip addr add ${PUBLIC_V4_ALT}/32 dev lo"
   fi
 
-  cat <<INTERFACES
-
   # add all three tiers of anycast IPv4
   if [[ -n "$ANYCAST_LOCAL_V4" ]]; then
     echo "    # anycast local (ULA) - internal services"

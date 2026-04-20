@@ -10,6 +10,11 @@ on:
           - bkk06
           - bkk07
           - bkk08
+      validate_only:
+        description: "Validate configs only (no deploy)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -26,9 +31,32 @@ jobs:
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Deploy interfaces
+      - name: Validate generator script syntax
+        run: bash -n ./deploy/network/gencfg.sh
+
+      - name: Generate config and check for shell leakage
         run: |
-          # nc: port mapping for ssh access
+          set -euo pipefail
+          SERVER="${{ github.event.inputs.server }}"
+          echo "Generating interfaces config for $SERVER"
+          ./deploy/network/gencfg.sh -c ./deploy/config/network.json "$SERVER" > /tmp/interfaces.conf
+
+          if [[ ! -s /tmp/interfaces.conf ]]; then
+            echo "error: generated config is empty" >&2
+            exit 1
+          fi
+
+          # Catch bash control-flow / echo leaking into the config
+          # (symptom of unterminated heredocs or missing close tags in gencfg.sh)
+          if grep -nE '^[[:space:]]*(if[[:space:]]+\[\[|fi[[:space:]]*$|cat[[:space:]]+<<|echo[[:space:]])' /tmp/interfaces.conf; then
+            echo "error: generated config contains shell control-flow at line start" >&2
+            echo "this indicates bash code leaked into the rendered interfaces file" >&2
+            exit 1
+          fi
+
+      - name: Remote parse check
+        run: |
+          set -euo pipefail
           declare -A ports
           ports[bkk06]=22786
           ports[bkk07]=22787
@@ -37,20 +65,47 @@ jobs:
           SERVER="${{ github.event.inputs.server }}"
           PORT=${ports[$SERVER]}
 
-          # nc: generate and deploy config
-          echo "Generating interfaces config for $SERVER"
-          ./deploy/network/gencfg.sh -c ./deploy/config/network.json $SERVER > /tmp/interfaces.conf
-
-          # nc: backup existing config
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
-            root@160.22.181.181 'cp /etc/network/interfaces /etc/network/interfaces.bak' || true
-
-          # nc: deploy new config
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -P $PORT \
-            /tmp/interfaces.conf root@160.22.181.181:/etc/network/interfaces
+            /tmp/interfaces.conf root@160.22.181.181:/tmp/interfaces.new
 
-          # nc: validate and reload
+          echo "Running ifquery parse check on $SERVER"
+          if ! ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'ifquery -a -i /tmp/interfaces.new >/dev/null'; then
+            echo "error: ifupdown failed to parse generated config" >&2
+            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+              root@160.22.181.181 'ifquery -a -i /tmp/interfaces.new' >&2 || true
+            exit 1
+          fi
+
+      - name: Apply interfaces config
+        if: ${{ github.event.inputs.validate_only == 'false' }}
+        run: |
+          set -euo pipefail
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
+
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
-            root@160.22.181.181 'ifreload -a'
+            root@160.22.181.181 <<'REMOTE'
+              set -e
+              cp /etc/network/interfaces /etc/network/interfaces.bak
+              mv /tmp/interfaces.new /etc/network/interfaces
+              ifreload -a
+          REMOTE
 
+      - name: Cleanup
+        if: always()
+        run: |
+          declare -A ports
+          ports[bkk06]=22786
+          ports[bkk07]=22787
+          ports[bkk08]=22788
+          SERVER="${{ github.event.inputs.server }}"
+          PORT=${ports[$SERVER]}
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p $PORT \
+            root@160.22.181.181 'rm -f /tmp/interfaces.new' 2>/dev/null || true
           rm -f /tmp/interfaces.conf
