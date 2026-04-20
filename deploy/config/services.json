@@ -721,6 +721,48 @@
           "ip6": "2401:a860:1115::11"
         },
         "bridge": "vmbr2"
+      },
+      "rpc-kusama-01": {
+        "public_ip": {
+          "ip4": "160.22.181.120",
+          "ip6": "2401:a860:1120::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-asset-hub-kusama-01": {
+        "public_ip": {
+          "ip4": "160.22.181.121",
+          "ip6": "2401:a860:1121::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-bridge-hub-kusama-01": {
+        "public_ip": {
+          "ip4": "160.22.181.122",
+          "ip6": "2401:a860:1122::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-people-kusama-01": {
+        "public_ip": {
+          "ip4": "160.22.181.124",
+          "ip6": "2401:a860:1124::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-coretime-kusama-01": {
+        "public_ip": {
+          "ip4": "160.22.181.125",
+          "ip6": "2401:a860:1125::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-encointer-kusama-01": {
+        "public_ip": {
+          "ip4": "160.22.181.126",
+          "ip6": "2401:a860:1126::11"
+        },
+        "bridge": "vmbr2"
       }
     },
     "bkk07": {
