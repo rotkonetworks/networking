@@ -87,14 +87,15 @@ ANYCAST_SITE_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_site_v6 // empty' | sed 
 ANYCAST_GLOBAL_V4=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v4 // empty' | sed 's|/32||')
 ANYCAST_GLOBAL_V6=$(echo "$SITE_CONFIG" | jq -r '.anycast_global_v6 // empty' | sed 's|/128||')
 
-# Public guest IPs and bridges from services.json
+# Public guest names, IPs and bridges from services.json
+VM_NAMES=()
 VM_IP4S=()
 VM_IP6S=()
 VM_BRIDGES=()
 if [[ -f "$SERVICES_FILE" ]] && jq -e ".public_guests.$SITE" "$SERVICES_FILE" >/dev/null 2>&1; then
-  while IFS='|' read -r ip4 ip6 bridge; do
-    [[ -n "$ip4" ]] && VM_IP4S+=("$ip4") && VM_IP6S+=("$ip6") && VM_BRIDGES+=("${bridge:-vmbr2}")
-  done < <(jq -r ".public_guests.$SITE | to_entries[] | \"\(.value.public_ip.ip4 // empty)|\(.value.public_ip.ip6 // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
+  while IFS='|' read -r name ip4 ip6 bridge; do
+    [[ -n "$ip4" ]] && VM_NAMES+=("$name") && VM_IP4S+=("$ip4") && VM_IP6S+=("$ip6") && VM_BRIDGES+=("${bridge:-vmbr2}")
+  done < <(jq -r ".public_guests.$SITE | to_entries[] | \"\(.key)|\(.value.public_ip.ip4 // empty)|\(.value.public_ip.ip6 // empty)|\(.value.bridge // \"vmbr2\")\"" "$SERVICES_FILE" 2>/dev/null)
 fi
 
 # physical interfaces
@@ -379,11 +380,11 @@ COMMON_CONFIG
 
   # Add VM routes (VMs with public IPs on vmbr2)
   for i in "${!VM_IP4S[@]}"; do
+    local name="${VM_NAMES[$i]}"
     local ip4="${VM_IP4S[$i]}"
     local bridge="${VM_BRIDGES[$i]}"
     if [[ "$bridge" == "vmbr2" && -n "$ip4" ]]; then
-      echo "    # VM public IP route"
-      echo "    post-up ip route add ${ip4}/32 dev vmbr2 2>/dev/null || true"
+      echo "    post-up ip route add ${ip4}/32 dev vmbr2 2>/dev/null || true  # ${name} public IP route"
     fi
   done
 
@@ -423,10 +424,11 @@ COMMON_CONFIG
 
   # Cleanup VM routes
   for i in "${!VM_IP4S[@]}"; do
+    local name="${VM_NAMES[$i]}"
     local ip4="${VM_IP4S[$i]}"
     local bridge="${VM_BRIDGES[$i]}"
     if [[ "$bridge" == "vmbr2" && -n "$ip4" ]]; then
-      echo "    pre-down ip route del ${ip4}/32 dev vmbr2 2>/dev/null || true"
+      echo "    pre-down ip route del ${ip4}/32 dev vmbr2 2>/dev/null || true  # ${name} public IP route"
     fi
   done
 
@@ -467,11 +469,11 @@ COMMON_CONFIG
 
   # Add VM IPv6 routes
   for i in "${!VM_IP6S[@]}"; do
+    local name="${VM_NAMES[$i]}"
     local ip6="${VM_IP6S[$i]}"
     local bridge="${VM_BRIDGES[$i]}"
     if [[ "$bridge" == "vmbr2" && -n "$ip6" ]]; then
-      echo "    # VM public IPv6 route"
-      echo "    post-up ip -6 route add ${ip6}/128 dev vmbr2 2>/dev/null || true"
+      echo "    post-up ip -6 route add ${ip6}/128 dev vmbr2 2>/dev/null || true  # ${name} public IPv6 route"
     fi
   done
 
@@ -505,10 +507,11 @@ POLICY_V6
 
   # Cleanup VM IPv6 routes
   for i in "${!VM_IP6S[@]}"; do
+    local name="${VM_NAMES[$i]}"
     local ip6="${VM_IP6S[$i]}"
     local bridge="${VM_BRIDGES[$i]}"
     if [[ "$bridge" == "vmbr2" && -n "$ip6" ]]; then
-      echo "    pre-down ip -6 route del ${ip6}/128 dev vmbr2 2>/dev/null || true"
+      echo "    pre-down ip -6 route del ${ip6}/128 dev vmbr2 2>/dev/null || true  # ${name} public IPv6 route"
     fi
   done
 }
