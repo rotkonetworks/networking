@@ -136,6 +136,17 @@ VARS
     [[ -n "$ANYCAST_GLOBAL_V6" ]] && echo "define ANYCAST_GLOBAL_V6 = ${ANYCAST_GLOBAL_V6} # GUA - global"
   fi
 
+  # Per-host IPs (unicast + anycast). DNAT only matches when dst is one of these,
+  # so traffic to per-guest public /32s bypasses NAT and reaches containers via vmbr2.
+  local host_ip4s="\$PUBLIC_IP4"
+  [[ -n "$PUBLIC_IP4_ALT" ]] && host_ip4s+=", \$PUBLIC_IP4_ALT"
+  [[ -n "$ANYCAST_LOCAL_V4" ]] && host_ip4s+=", \$ANYCAST_LOCAL_V4"
+  [[ -n "$ANYCAST_SITE_V4" ]] && host_ip4s+=", \$ANYCAST_SITE_V4"
+  [[ -n "$ANYCAST_GLOBAL_V4" ]] && host_ip4s+=", \$ANYCAST_GLOBAL_V4"
+  echo ""
+  echo "# Host-owned IPv4 (unicast + anycast) — DNAT scope"
+  echo "define HOST_IP4S = { ${host_ip4s} }"
+
   # Add BGP peers - RR IPs from bkk00 and bkk20
   local rr1_v4=$(jq -r '.sites.bkk00.bgp_rr_v4 // empty' "$CONFIG_FILE")
   local rr2_v4=$(jq -r '.sites.bkk20.bgp_rr_v4 // empty' "$CONFIG_FILE")
@@ -521,8 +532,9 @@ NAT_END
 }
 
 # Generate port forwards for VMs and services
+# Scoped to $HOST_IP4S so traffic to per-guest public /32s is not rewritten.
 generate_port_forwards() {
- echo "        # VM and service port forwards"
+ echo "        # VM and service port forwards (scoped to host-owned IPs)"
 
  # Read port forwards from services.json for current site
  if jq -e ".port_forwards.\"$SITE\"" "$SERVICES_FILE" >/dev/null 2>&1; then
@@ -532,7 +544,7 @@ generate_port_forwards() {
    ' "$SERVICES_FILE" | while read -r name ext_port int_ip int_port protocol; do
      if [[ -n "$ext_port" && "$ext_port" != "null" ]]; then
        echo "        # ${name}"
-       echo "        ${protocol} dport ${ext_port} dnat to ${int_ip}:${int_port}"
+       echo "        ip daddr \$HOST_IP4S ${protocol} dport ${ext_port} dnat to ${int_ip}:${int_port}"
        echo
      fi
    done
@@ -585,12 +597,12 @@ generate_bootnode_mappings() {
         fi
         
         echo "        # ${chain}"
-        echo "        tcp dport ${p2p} dnat to ${container}:${p2p}"
-        echo "        udp dport ${p2p} dnat to ${container}:${p2p}"
-        
+        echo "        ip daddr \$HOST_IP4S tcp dport ${p2p} dnat to ${container}:${p2p}"
+        echo "        ip daddr \$HOST_IP4S udp dport ${p2p} dnat to ${container}:${p2p}"
+
         # Add WebSocket port if present
         if [[ -n "$p2p_wss" && "$p2p_wss" != "null" ]]; then
-            echo "        tcp dport ${p2p_wss} dnat to ${container}:${p2p_wss}"
+            echo "        ip daddr \$HOST_IP4S tcp dport ${p2p_wss} dnat to ${container}:${p2p_wss}"
         fi
         echo
     done
