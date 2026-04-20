@@ -645,10 +645,38 @@
   },
   "public_guests": {
     "bkk06": {
+      "rpc-paseo-01": {
+        "public_ip": {
+          "ip4": "160.22.181.140",
+          "ip6": "2401:a860:1140::11"
+        },
+        "bridge": "vmbr2"
+      },
       "rpc-asset-hub-paseo-01": {
         "public_ip": {
           "ip4": "160.22.181.141",
           "ip6": "2401:a860:1141::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-bridge-hub-paseo-01": {
+        "public_ip": {
+          "ip4": "160.22.181.142",
+          "ip6": "2401:a860:1142::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-people-paseo-01": {
+        "public_ip": {
+          "ip4": "160.22.181.144",
+          "ip6": "2401:a860:1144::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-coretime-paseo-01": {
+        "public_ip": {
+          "ip4": "160.22.181.145",
+          "ip6": "2401:a860:1145::11"
         },
         "bridge": "vmbr2"
       }
@@ -658,6 +686,13 @@
         "public_ip": {
           "ip4": "160.22.181.252",
           "ip6": "2401:a860:1252::"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-collectives-paseo-01": {
+        "public_ip": {
+          "ip4": "160.22.181.143",
+          "ip6": "2401:a860:1143::11"
         },
         "bridge": "vmbr2"
       }
