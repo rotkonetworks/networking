@@ -575,7 +575,7 @@
     "coretime-polkadot": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.176.15",
+        "haproxy": "192.168.176.16",
         "bkk06": "10.6.111.15",
         "bkk07": "10.7.112.15"
       },
@@ -677,6 +677,48 @@
         "public_ip": {
           "ip4": "160.22.181.145",
           "ip6": "2401:a860:1145::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-polkadot-01": {
+        "public_ip": {
+          "ip4": "160.22.181.110",
+          "ip6": "2401:a860:1110::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-asset-hub-polkadot-01": {
+        "public_ip": {
+          "ip4": "160.22.181.111",
+          "ip6": "2401:a860:1111::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-bridge-hub-polkadot-01": {
+        "public_ip": {
+          "ip4": "160.22.181.112",
+          "ip6": "2401:a860:1112::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-collectives-polkadot-01": {
+        "public_ip": {
+          "ip4": "160.22.181.113",
+          "ip6": "2401:a860:1113::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-people-polkadot-01": {
+        "public_ip": {
+          "ip4": "160.22.181.114",
+          "ip6": "2401:a860:1114::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-coretime-polkadot-01": {
+        "public_ip": {
+          "ip4": "160.22.181.115",
+          "ip6": "2401:a860:1115::11"
         },
         "bridge": "vmbr2"
       }
