@@ -1,4 +1,4 @@
-# 2026-04-20 00:56:47 by RouterOS 7.22
+# 2026-04-21 00:18:22 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -203,6 +203,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=22 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=2484 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=26684 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=25011 protocol=tcp
