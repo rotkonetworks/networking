@@ -1,4 +1,4 @@
-# 2026-05-01 00:46:28 by RouterOS 7.22
+# 2026-05-02 00:09:42 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -203,6 +203,9 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=32801 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=22801 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10801 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=22 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=2484 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=26684 protocol=tcp
@@ -1596,6 +1599,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall nat add action=dst-nat chain=dstnat comment=haproxy-bkk08 dst-address=160.22.181.181 dst-port=30435 protocol=tcp to-addresses=192.168.78.91 to-ports=30435
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2484 protocol=tcp to-addresses=192.168.78.84 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=26684 protocol=tcp to-addresses=192.168.78.84 to-ports=26684
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32801 protocol=tcp to-addresses=192.168.78.201 to-ports=22
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53
