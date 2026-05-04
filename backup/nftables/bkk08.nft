@@ -52,16 +52,14 @@ table inet filter {
 		tcp dport { 80, 443 } accept
 		iif "lo" tcp dport 8404 accept
 		udp dport 4433 accept
-		tcp dport { 30335, 31003, 31202, 31212, 31232, 31242, 31252, 31262, 31272, 31282, 31292, 31311, 31322, 34032, 34072 } accept
-		udp dport { 30335, 31003, 31202, 31212, 31232, 31242, 31252, 31262, 31272, 31282, 31292, 31311, 31322, 34032, 34072 } accept
+		tcp dport { 30335, 31003, 31252, 34032, 34072 } accept
+		udp dport { 30335, 31003, 31252, 34032, 34072 } accept
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
 	}
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
-		iifname "vmbr2" ip saddr 160.22.181.250 ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } drop
-		iifname "vmbr2" ip6 saddr 2401:a860:1250:: ip6 daddr fc00::/7 drop
 		ct state established,related accept
 		ct state invalid drop
 		iifname "vmbr1" accept
@@ -82,40 +80,22 @@ table inet filter {
 table ip nat {
 	chain prerouting {
 		type nat hook prerouting priority dstnat; policy accept;
-		tcp dport 31003 dnat to 10.8.113.10:31003
-		udp dport 31003 dnat to 10.8.113.10:31003
-		tcp dport 34072 dnat to 10.8.142.17:34072
-		udp dport 34072 dnat to 10.8.142.17:34072
-		tcp dport 34032 dnat to 10.8.142.13:34032
-		udp dport 34032 dnat to 10.8.142.13:34032
-		tcp dport 31232 dnat to 10.8.112.33:31232
-		udp dport 31232 dnat to 10.8.112.33:31232
-		tcp dport 31272 dnat to 10.8.112.37:31272
-		udp dport 31272 dnat to 10.8.112.37:31272
-		tcp dport 31262 dnat to 10.8.112.36:31262
-		udp dport 31262 dnat to 10.8.112.36:31262
-		tcp dport 31252 dnat to 10.8.112.35:31252
-		udp dport 31252 dnat to 10.8.112.35:31252
-		tcp dport 31202 dnat to 10.8.112.30:31202
-		udp dport 31202 dnat to 10.8.112.30:31202
-		tcp dport 31322 dnat to 10.8.112.42:31322
-		udp dport 31322 dnat to 10.8.112.42:31322
-		tcp dport 31212 dnat to 10.8.112.31:31212
-		udp dport 31212 dnat to 10.8.112.31:31212
-		tcp dport 31282 dnat to 10.8.112.38:31282
-		udp dport 31282 dnat to 10.8.112.38:31282
-		tcp dport 31292 dnat to 10.8.112.39:31292
-		udp dport 31292 dnat to 10.8.112.39:31292
-		tcp dport 31311 dnat to 10.8.111.41:31311
-		udp dport 31311 dnat to 10.8.111.41:31311
-		tcp dport 31242 dnat to 10.8.112.34:31242
-		udp dport 31242 dnat to 10.8.112.34:31242
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 31003 dnat to 10.8.113.10:31003
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 31003 dnat to 10.8.113.10:31003
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 34072 dnat to 10.8.142.17:34072
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 34072 dnat to 10.8.142.17:34072
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 34032 dnat to 10.8.142.13:34032
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 34032 dnat to 10.8.142.13:34032
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 31252 dnat to 10.8.112.35:31252
+		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 31252 dnat to 10.8.112.35:31252
 	}
 
 	chain postrouting {
 		type nat hook postrouting priority srcnat; policy accept;
-		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to 160.22.181.8
-		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to 160.22.181.8
+		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
+		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
 	}
 }
 table ip6 nat {
