@@ -284,7 +284,7 @@ generate_management_services() {
        tcp dport 22 ip6 saddr $ssh_allowed_v6 accept
 
        # Proxmox services from management network only
-       iifname $MGMT tcp dport { 8006, 3128, 111, 2049 } accept
+       iifname $MGMT tcp dport { 8006, 3128, 111, 2049, 9100 } accept
        iifname $MGMT udp dport { 111, 5405-5412 } accept
 
        # DNS for local networks only
