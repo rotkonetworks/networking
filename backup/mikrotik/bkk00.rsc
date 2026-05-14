@@ -1,4 +1,4 @@
-# 2026-05-13 16:32:44 by RouterOS 7.22
+# 2026-05-14 16:24:15 by RouterOS 7.22
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -473,6 +473,9 @@
 /ip firewall address-list add address=160.22.181.168/29 list=bkk50-rotko-ranges
 /ip firewall address-list add address=160.22.181.181 list=bkk50-rotko-ranges
 /ip firewall address-list add address=160.22.181.20 list=bkk50-rotko-ranges
+/ip firewall address-list add address=10.6.0.0/16 comment="bkk06 internal" list=ipv4-internal-rotko
+/ip firewall address-list add address=10.7.0.0/16 comment="bkk07 internal" list=ipv4-internal-rotko
+/ip firewall address-list add address=10.8.0.0/16 comment="bkk08 internal" list=ipv4-internal-rotko
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
@@ -633,6 +636,9 @@
 /ipv6 firewall address-list add address=fd00:155:208::/64 list=ibgp-block-gw-v6
 /ipv6 firewall address-list add address=2401:a860:1181::/48 list=bkk50-rotko-ranges-v6
 /ipv6 firewall address-list add address=2401:a860:169::/64 list=bkk50-rotko-ranges-v6
+/ipv6 firewall address-list add address=2401:a860:1006::/48 comment="bkk06 internal" list=ipv6-internal-rotko
+/ipv6 firewall address-list add address=2401:a860:1007::/48 comment="bkk07 internal" list=ipv6-internal-rotko
+/ipv6 firewall address-list add address=2401:a860:1008::/48 comment="bkk08 internal" list=ipv6-internal-rotko
 /ipv6 firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
@@ -899,17 +905,21 @@
 /routing filter rule add chain=IBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
 /routing filter rule add chain=IBGP-OUT-v4 rule="set bgp-large-communities ibgp-communities; accept;"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 comment="ECMP weight for anycast" rule="set bgp-weight 1"
+/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (gw in ibgp-block-gw-v6) { reject; }"
+/routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing filter rule add chain=HE-AMSIX-IN-v4 comment="HE free transit priority" rule="set bgp-local-pref 200; set bgp-large-communities amsix-communities; accept"

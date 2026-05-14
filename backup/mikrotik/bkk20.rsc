@@ -1,4 +1,4 @@
-# 2026-05-13 16:32:46 by RouterOS 7.22
+# 2026-05-14 16:24:16 by RouterOS 7.22
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -321,6 +321,9 @@
 /ip firewall address-list add address=160.22.181.168/29 list=bkk50-rotko-ranges
 /ip firewall address-list add address=160.22.181.181 list=bkk50-rotko-ranges
 /ip firewall address-list add address=160.22.181.20 list=bkk50-rotko-ranges
+/ip firewall address-list add address=10.6.0.0/16 comment="bkk06 internal" list=ipv4-internal-rotko
+/ip firewall address-list add address=10.7.0.0/16 comment="bkk07 internal" list=ipv4-internal-rotko
+/ip firewall address-list add address=10.8.0.0/16 comment="bkk08 internal" list=ipv4-internal-rotko
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
@@ -503,6 +506,9 @@
 /ipv6 firewall address-list add address=fd00:155:108::/64 list=ibgp-block-gw-v6
 /ipv6 firewall address-list add address=2401:a860:1181::/48 list=bkk50-rotko-ranges-v6
 /ipv6 firewall address-list add address=2401:a860:169::/64 list=bkk50-rotko-ranges-v6
+/ipv6 firewall address-list add address=2401:a860:1006::/48 comment="bkk06 internal" list=ipv6-internal-rotko
+/ipv6 firewall address-list add address=2401:a860:1007::/48 comment="bkk07 internal" list=ipv6-internal-rotko
+/ipv6 firewall address-list add address=2401:a860:1008::/48 comment="bkk08 internal" list=ipv6-internal-rotko
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BAN disabled=yes dst-address=2402:b740:15::/48 port=179 protocol=tcp src-address=2402:b740:15::/48
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=2001:df0:296::/64 port=179 protocol=tcp src-address=2001:df0:296::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BKK disabled=yes dst-address=2402:b740:15:388::/64 port=179 protocol=tcp src-address=2402:b740:15:388::/64
@@ -774,18 +780,22 @@
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.0.0/17) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in 10.155.128.0/17) { reject; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="accept;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 disabled=yes rule="if (gw == 10.155.206.1 || gw == 10.155.207.1 || gw == 10.155.208.1) { set distance 90; accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 disabled=yes rule="if (gw in ibgp-block-gw-v4) { reject; }"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 disabled=yes rule="if (gw in ibgp-block-gw-v6) { reject; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="accept;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in 10.155.0.0/17) { reject;} "
+/routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-IN-v6 rule="reject;"
 /routing filter rule add chain=RR-CLIENT-FULL-OUT-v4 rule="accept;"
