@@ -8,15 +8,15 @@
       "type": "relay",
       "instances": {
         "rpc-polkadot-01-bkk06": {
-          "address": "192.168.111.10",
+          "address": "10.6.111.10",
           "port": 9300
         },
         "rpc-polkadot-02-bkk07": {
-          "address": "192.168.77.12",
+          "address": "10.7.112.10",
           "port": 9312
         },
         "rpc-polkadot-03-bkk08": {
-          "address": "192.168.113.10",
+          "address": "10.8.113.10",
           "port": 9300
         }
       }
@@ -25,11 +25,11 @@
       "type": "relay",
       "instances": {
         "rpc-kusama-01-bkk06": {
-          "address": "192.168.121.10",
+          "address": "10.6.121.10",
           "port": 9300
         },
         "rpc-kusama-02-bkk07": {
-          "address": "192.168.77.22",
+          "address": "10.7.122.10",
           "port": 9322
         }
       }
@@ -38,11 +38,11 @@
       "type": "relay",
       "instances": {
         "rpc-paseo-01-bkk06": {
-          "address": "192.168.141.10",
+          "address": "10.6.141.10",
           "port": 9300
         },
         "rpc-paseo-02-bkk07": {
-          "address": "192.168.77.42",
+          "address": "10.7.142.10",
           "port": 9342
         }
       }
@@ -52,11 +52,11 @@
       "aliases": ["statemint"],
       "instances": {
         "rpc-asset-hub-polkadot-01": {
-          "address": "192.168.111.11",
+          "address": "10.6.111.11",
           "port": 9400
         },
         "rpc-asset-hub-polkadot-02": {
-          "address": "192.168.112.11",
+          "address": "10.7.112.11",
           "port": 9400
         }
       }
@@ -66,11 +66,11 @@
       "aliases": ["bridgehubPolkadot"],
       "instances": {
         "rpc-bridge-hub-polkadot-01": {
-          "address": "192.168.111.12",
+          "address": "10.6.111.12",
           "port": 9400
         },
         "rpc-bridge-hub-polkadot-02": {
-          "address": "192.168.112.12",
+          "address": "10.7.112.12",
           "port": 9400
         }
       }
@@ -79,11 +79,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-collectives-polkadot-01": {
-          "address": "192.168.111.13",
+          "address": "10.6.111.13",
           "port": 9400
         },
         "rpc-collectives-polkadot-02": {
-          "address": "192.168.112.13",
+          "address": "10.7.112.13",
           "port": 9400
         }
       }
@@ -92,11 +92,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-coretime-polkadot-01-bkk06": {
-          "address": "192.168.176.16",
+          "address": "10.6.111.15",
           "port": 9816
         },
         "rpc-coretime-polkadot-02-bkk07": {
-          "address": "192.168.77.16",
+          "address": "10.7.112.15",
           "port": 9400
         }
       }
@@ -105,11 +105,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-people-polkadot-01-bkk06": {
-          "address": "192.168.76.18",
+          "address": "10.6.111.14",
           "port": 9400
         },
         "rpc-people-polkadot-02-bkk07": {
-          "address": "192.168.77.18",
+          "address": "10.7.112.14",
           "port": 9847
         }
       }
@@ -119,11 +119,11 @@
       "aliases": ["statemine"],
       "instances": {
         "rpc-asset-hub-kusama-01-bkk06": {
-          "address": "192.168.121.11",
+          "address": "10.6.121.11",
           "port": 9400
         },
         "rpc-asset-hub-kusama-02-bkk07": {
-          "address": "192.168.122.11",
+          "address": "10.7.122.11",
           "port": 9400
         }
       }
@@ -132,11 +132,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-bridge-hub-kusama-01-bkk06": {
-          "address": "192.168.121.12",
+          "address": "10.6.121.12",
           "port": 9400
         },
         "rpc-bridge-hub-kusama-02-bkk07": {
-          "address": "192.168.122.12",
+          "address": "10.7.122.12",
           "port": 9400
         }
       }
@@ -145,11 +145,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-coretime-kusama-01-bkk06": {
-          "address": "192.168.121.15",
+          "address": "10.6.121.15",
           "port": 9400
         },
         "rpc-coretime-kusama-02-bkk07": {
-          "address": "192.168.122.15",
+          "address": "10.7.122.15",
           "port": 9400
         }
       }
@@ -158,11 +158,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-people-kusama-01-bkk06": {
-          "address": "192.168.121.14",
+          "address": "10.6.121.14",
           "port": 9400
         },
         "rpc-people-kusama-02-bkk07": {
-          "address": "192.168.122.14",
+          "address": "10.7.122.14",
           "port": 9400
         }
       }
@@ -171,11 +171,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-encointer-kusama-01-bkk06": {
-          "address": "192.168.121.16",
+          "address": "10.6.121.16",
           "port": 9400
         },
         "rpc-encointer-kusama-02-bkk07": {
-          "address": "192.168.122.16",
+          "address": "10.7.122.16",
           "port": 9400
         }
       }
@@ -184,11 +184,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-asset-hub-paseo-01": {
-          "address": "192.168.141.11",
+          "address": "10.6.141.11",
           "port": 9400
         },
         "rpc-asset-hub-paseo-02": {
-          "address": "192.168.77.50",
+          "address": "10.7.142.11",
           "port": 9957
         }
       }
@@ -197,11 +197,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-passet-hub-paseo-01": {
-          "address": "192.168.141.17",
+          "address": "10.7.141.17",
           "port": 9400
         },
         "rpc-passet-hub-paseo-02": {
-          "address": "192.168.142.17",
+          "address": "10.8.142.17",
           "port": 9400
         }
       }
@@ -210,11 +210,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-bridge-hub-paseo-01": {
-          "address": "192.168.76.60",
+          "address": "10.6.141.12",
           "port": 9966
         },
         "rpc-bridge-hub-paseo-02": {
-          "address": "192.168.77.60",
+          "address": "10.7.142.12",
           "port": 9967
         }
       }
@@ -223,11 +223,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-collectives-paseo-01": {
-          "address": "192.168.141.13",
+          "address": "10.7.141.13",
           "port": 9400
         },
         "rpc-collectives-paseo-02": {
-          "address": "192.168.142.13",
+          "address": "10.8.142.13",
           "port": 9400
         }
       }
@@ -236,11 +236,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-coretime-paseo-01": {
-          "address": "192.168.46.90",
+          "address": "10.6.141.15",
           "port": 9400
         },
         "rpc-coretime-paseo-02": {
-          "address": "192.168.47.90",
+          "address": "10.7.142.15",
           "port": 9400
         }
       }
@@ -249,11 +249,11 @@
       "type": "system-parachain",
       "instances": {
         "rpc-people-paseo-01": {
-          "address": "192.168.46.94",
+          "address": "10.6.141.14",
           "port": 9400
         },
         "rpc-people-paseo-02": {
-          "address": "192.168.47.94",
+          "address": "10.7.142.14",
           "port": 9400
         }
       }
@@ -263,12 +263,12 @@
       "aliases": ["hydradx"],
       "instances": {
         "hydration-polkadot-rpc-01": {
-          "address": "192.168.111.35",
+          "address": "10.7.111.35",
           "port": 9400,
           "backup": true
         },
         "hydration-polkadot-rpc-02": {
-          "address": "192.168.112.35",
+          "address": "10.8.112.35",
           "port": 9400
         }
       }
@@ -277,11 +277,11 @@
       "type": "system-parachain",
       "instances": {
         "revive-rpc-01": {
-          "address": "192.168.111.11",
+          "address": "10.6.111.11",
           "port": 9450
         },
         "revive-rpc-02": {
-          "address": "192.168.112.11",
+          "address": "10.7.112.11",
           "port": 9450
         }
       }
@@ -290,11 +290,11 @@
       "type": "system-parachain",
       "instances": {
         "revive-rpc-01": {
-          "address": "192.168.121.11",
+          "address": "10.6.121.11",
           "port": 9450
         },
         "revive-rpc-02": {
-          "address": "192.168.122.11",
+          "address": "10.7.122.11",
           "port": 9450
         }
       }
@@ -303,11 +303,11 @@
       "type": "system-parachain",
       "instances": {
         "revive-rpc-01": {
-          "address": "192.168.141.11",
+          "address": "10.6.141.11",
           "port": 9450
         },
         "revive-rpc-02": {
-          "address": "192.168.77.50",
+          "address": "10.7.142.11",
           "port": 9450
         }
       }
@@ -316,11 +316,11 @@
       "type": "system-parachain",
       "instances": {
         "revive-rpc-01": {
-          "address": "192.168.141.17",
+          "address": "10.7.141.17",
           "port": 9450
         },
         "revive-rpc-02": {
-          "address": "192.168.142.17",
+          "address": "10.8.142.17",
           "port": 9450
         }
       }
@@ -329,7 +329,7 @@
       "type": "grpc",
       "instances": {
         "zcash-01": {
-          "address": "192.168.77.201",
+          "address": "10.7.0.201",
           "port": 50051
         }
       }
@@ -363,7 +363,7 @@
     "polkadot": {
       "type": "relay",
       "container": {
-        "haproxy": "192.168.111.10",
+        "haproxy": "10.6.111.10",
         "bkk06": "10.6.111.10",
         "bkk07": "10.7.112.10",
         "bkk08": "10.8.113.10"
@@ -379,7 +379,7 @@
     "paseo": {
       "type": "relay",
       "container": {
-        "haproxy": "192.168.141.10",
+        "haproxy": "10.6.141.10",
         "bkk06": "10.6.141.10",
         "bkk07": "10.7.142.10"
       },
@@ -393,7 +393,7 @@
     "kusama": {
       "type": "relay",
       "container": {
-        "haproxy": "192.168.121.10",
+        "haproxy": "10.6.121.10",
         "bkk06": "10.6.121.10",
         "bkk07": "10.7.122.10"
       },
@@ -407,7 +407,7 @@
     "asset-hub-polkadot": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.111.11",
+        "haproxy": "10.6.111.11",
         "bkk06": "10.6.111.11",
         "bkk07": "10.7.112.11"
       },
@@ -421,7 +421,7 @@
     "asset-hub-kusama": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.121.11",
+        "haproxy": "10.6.121.11",
         "bkk06": "10.6.121.11",
         "bkk07": "10.7.122.11"
       },
@@ -435,7 +435,7 @@
     "asset-hub-paseo": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.141.11",
+        "haproxy": "10.6.141.11",
         "bkk06": "10.6.141.11",
         "bkk07": "10.7.142.11"
       },
@@ -449,7 +449,7 @@
     "passet-hub-paseo": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.141.17",
+        "haproxy": "10.7.141.17",
         "bkk07": "10.7.141.17",
         "bkk08": "10.8.142.17"
       },
@@ -463,7 +463,7 @@
     "bridge-hub-polkadot": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.111.12",
+        "haproxy": "10.6.111.12",
         "bkk06": "10.6.111.12",
         "bkk07": "10.7.112.12"
       },
@@ -477,7 +477,7 @@
     "bridge-hub-kusama": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.121.12",
+        "haproxy": "10.6.121.12",
         "bkk06": "10.6.121.12",
         "bkk07": "10.7.122.12"
       },
@@ -491,7 +491,7 @@
     "bridge-hub-paseo": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.76.60",
+        "haproxy": "10.6.141.12",
         "bkk06": "10.6.141.12",
         "bkk07": "10.7.142.12"
       },
@@ -505,7 +505,7 @@
     "collectives-polkadot": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.111.13",
+        "haproxy": "10.6.111.13",
         "bkk06": "10.6.111.13",
         "bkk07": "10.7.112.13"
       },
@@ -519,7 +519,7 @@
     "collectives-paseo": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.141.13",
+        "haproxy": "10.7.141.13",
         "bkk07": "10.7.141.13",
         "bkk08": "10.8.142.13"
       },
@@ -533,7 +533,7 @@
     "people-polkadot": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.76.18",
+        "haproxy": "10.6.111.14",
         "bkk06": "10.6.111.14",
         "bkk07": "10.7.112.14"
       },
@@ -547,7 +547,7 @@
     "people-kusama": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.121.14",
+        "haproxy": "10.6.121.14",
         "bkk06": "10.6.121.14",
         "bkk07": "10.7.122.14"
       },
@@ -561,7 +561,7 @@
     "people-paseo": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.46.94",
+        "haproxy": "10.6.141.14",
         "bkk06": "10.6.141.14",
         "bkk07": "10.7.142.14"
       },
@@ -575,7 +575,7 @@
     "coretime-polkadot": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.176.16",
+        "haproxy": "10.6.111.15",
         "bkk06": "10.6.111.15",
         "bkk07": "10.7.112.15"
       },
@@ -589,7 +589,7 @@
     "coretime-kusama": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.121.15",
+        "haproxy": "10.6.121.15",
         "bkk06": "10.6.121.15",
         "bkk07": "10.7.122.15"
       },
@@ -603,7 +603,7 @@
     "coretime-paseo": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.46.90",
+        "haproxy": "10.6.141.15",
         "bkk06": "10.6.141.15",
         "bkk07": "10.7.142.15"
       },
@@ -617,7 +617,7 @@
     "encointer-kusama": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.121.16",
+        "haproxy": "10.6.121.16",
         "bkk06": "10.6.121.16",
         "bkk07": "10.7.122.16"
       },
@@ -631,7 +631,7 @@
     "hydration": {
       "type": "parachain",
       "container": {
-        "haproxy": "192.168.112.35",
+        "haproxy": "10.8.112.35",
         "bkk07": "10.7.111.35",
         "bkk08": "10.8.112.35"
       },
