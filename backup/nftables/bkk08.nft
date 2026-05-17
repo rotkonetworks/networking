@@ -88,6 +88,13 @@ table ip nat {
 		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 34032 dnat to 10.8.142.13:34032
 		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 31252 dnat to 10.8.112.35:31252
 		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 31252 dnat to 10.8.112.35:31252
+		ip daddr 160.22.181.201 tcp dport 22 dnat to 10.8.0.201:22
+		ip daddr 160.22.181.202 tcp dport 22 dnat to 10.8.0.202:22
+		ip daddr 160.22.181.203 tcp dport 22 dnat to 10.8.0.203:22
+		ip daddr 160.22.181.204 tcp dport 22 dnat to 10.8.0.204:22
+		ip daddr 160.22.181.205 tcp dport 22 dnat to 10.8.0.205:22
+		ip daddr 160.22.181.201 tcp dport 9651 dnat to 10.8.0.201:9651
+		ip daddr 160.22.181.201 udp dport 9651 dnat to 10.8.0.201:9651
 	}
 
 	chain postrouting {
