@@ -1,4 +1,4 @@
-# 2026-05-17 00:49:57 by RouterOS 7.22
+# 2026-05-18 02:47:16 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -203,6 +203,9 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall filter add action=fasttrack-connection chain=forward comment=Fasttrack connection-state=established,related,untracked
 /ip firewall filter add action=accept chain=forward comment="Allow established/related" connection-state=established,related,untracked
 /ip firewall filter add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+/ip firewall filter add action=accept chain=forward dst-port=2906 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=10500 protocol=tcp
+/ip firewall filter add action=accept chain=forward dst-port=30533 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=32805 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=10805 protocol=tcp
 /ip firewall filter add action=accept chain=forward dst-port=32804 protocol=tcp
@@ -1612,6 +1615,8 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32803 protocol=tcp to-addresses=192.168.78.203 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32804 protocol=tcp to-addresses=192.168.78.204 to-ports=22
 /ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=32805 protocol=tcp to-addresses=192.168.78.205 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=2906 protocol=tcp to-addresses=192.168.111.40 to-ports=22
+/ip firewall nat add action=dst-nat chain=dstnat dst-address=160.22.181.181 dst-port=30533 protocol=tcp to-addresses=192.168.111.40 to-ports=30533
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass" protocol=udp src-port=53

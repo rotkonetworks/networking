@@ -1,4 +1,4 @@
-# 2026-05-17 15:55:52 by RouterOS 7.22
+# 2026-05-18 17:53:11 by RouterOS 7.22
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -704,8 +704,8 @@
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=237000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=HE-BKNIX-v6 remote.address=2001:df5:b881::135 .as=6939 templates=BKNIX-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=500000 instance=bgp-instance-1 keepalive-time=1m local.address=2403:5000:171:138::2 .role=ebgp name=HGC-HK-PRIMARY-v6 remote.address=2403:5000:171:138::1 .as=9304 templates=IPTX-HGC-HK-v6
 /routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1500000 instance=bgp-instance-1 keepalive-time=1m local.address=118.143.211.186 .role=ebgp name=HGC-HK-PRIMARY-v4 remote.address=118.143.211.185 .as=9304 templates=IPTX-HGC-HK-v4
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AMSIX-RS1-v4 remote.address=80.249.208.255 .as=6777 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=AMSIX-RS2-v4 remote.address=80.249.209.0 .as=6777 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-RS1-v4 remote.address=80.249.208.255 .as=6777 templates=AMSIX-v4
+/routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-RS2-v4 remote.address=80.249.209.0 .as=6777 templates=AMSIX-v4
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS1-v6 remote.address=2001:7f8:1::a500:6777:1 .as=6777 templates=AMSIX-v6
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS2-v6 remote.address=2001:7f8:1::a500:6777:2 .as=6777 templates=AMSIX-v6
 /routing bgp connection add afi=ipv6 disabled=no hold-time=3m input.limit-process-routes-ipv6=500000 instance=bgp-instance-1 keepalive-time=1m local.address=2407:9540:111:8::2 .role=ebgp name=HGC-SG-BACKUP-v6 remote.address=2407:9540:111:8::1 .as=142435 templates=HGC-TH-SG-v6
@@ -969,5 +969,6 @@
 /system scheduler add name=bcp214-upgrade on-event="/system script run bcp214-upgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2026-01-20 start-time=14:20:00
 /system scheduler add disabled=yes name=mainetnance-on-startup-al on-event="/system script run maintenance-on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
 /system watchdog set watchdog-timer=no
+/tool sniffer set file-name=amsix-rs.pcap filter-ip-address=80.249.208.255/32,80.249.209.0/32 filter-port=bgp memory-limit=10000000KiB
 /tool traffic-monitor add disabled=yes interface=BKNIX-10G-BKK00-LAG name=bknix
 /tool traffic-monitor add disabled=yes interface=vAMSIX-EU name=amsix
