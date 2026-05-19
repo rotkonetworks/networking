@@ -780,10 +780,24 @@
         },
         "bridge": "vmbr2"
       },
+      "val-flare-02": {
+        "public_ip": {
+          "ip4": "160.22.181.207",
+          "ip6": "2401:a860:1110::17"
+        },
+        "bridge": "vmbr2"
+      },
       "rpc-paseo-02": {
         "public_ip": {
           "ip4": "160.22.181.146",
           "ip6": "2401:a860:1146::11"
+        },
+        "bridge": "vmbr2"
+      },
+      "rpc-bulletin-polkadot-01": {
+        "public_ip": {
+          "ip4": "160.22.181.116",
+          "ip6": "2401:a860:1116::11"
         },
         "bridge": "vmbr2"
       }
