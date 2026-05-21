@@ -1,4 +1,4 @@
-# 2026-05-20 02:09:02 by RouterOS 7.22
+# 2026-05-21 02:21:26 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -908,6 +908,11 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall filter add action=drop chain=forward dst-address-list=not_in_internet
 /ip firewall filter add action=accept chain=forward dst-port=30433 protocol=tcp
 /ip firewall filter add action=drop chain=forward comment="Drop all other forward"
+/ip firewall nat add action=masquerade chain=srcnat comment=MANUAL-FIX-SNAT-haproxy443 dst-address=192.168.77.91 dst-port=443 protocol=tcp
+/ip firewall nat add action=masquerade chain=srcnat comment=MANUAL-FIX-SNAT-haproxy443-bkk06 dst-address=192.168.76.91 dst-port=443 protocol=tcp
+/ip firewall nat add action=masquerade chain=srcnat comment=MANUAL-FIX-SNAT-haproxy443-bkk08 dst-address=192.168.78.91 dst-port=443 protocol=tcp
+/ip firewall nat add action=dst-nat chain=dstnat comment=MANUAL-FIX-haproxy443 dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.77.91 to-ports=443
+/ip firewall nat add action=dst-nat chain=dstnat comment=MANUAL-FIX-haproxy80 dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.77.91 to-ports=80
 /ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi https - disabled" dst-address=160.22.181.181 dst-port=17845 protocol=tcp to-addresses=192.168.69.204 to-ports=443
 /ip firewall nat add action=masquerade chain=srcnat comment="ibp github runner vm" disabled=yes out-interface-list=WAN src-address=100.64.0.0/24
 /ip firewall nat add action=src-nat chain=srcnat comment="ibp github runner vm" out-interface-list=WAN src-address=100.64.0.0/24 to-addresses=160.22.181.254
