@@ -1,4 +1,4 @@
-# 2026-05-21 17:27:23 by RouterOS 7.22
+# 2026-05-22 17:12:42 by RouterOS 7.22
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -387,12 +387,7 @@
 /ip route add disabled=yes distance=150 dst-address=160.22.181.81 gateway=10.155.208.1
 /ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.20.2
 /ip route add comment="route to atomman via bkk00 WG" dst-address=172.31.0.4/32 gateway=172.31.0.100
-/ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
-/ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
-/ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
-/ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
-/ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
-/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
+#error exporting "/ipv6/route" (timeout)
 /ip service set ftp address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,158.140.0.0/16,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32
 /ip service set telnet address=10.0.0.0/8,192.168.88.0/24 disabled=yes
