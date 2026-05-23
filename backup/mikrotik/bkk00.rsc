@@ -1,4 +1,4 @@
-# 2026-05-22 17:12:40 by RouterOS 7.22
+# 2026-05-23 15:55:48 by RouterOS 7.22
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -543,7 +543,12 @@
 /ip route add comment="bkk50 loopback via p2p" distance=1 dst-address=160.22.181.181/32 gateway=172.16.10.2%BKK50-LAG
 /ip route add comment=temp-bkk20-recovery dst-address=160.22.181.178/32 gateway=10.155.255.2
 /ip route add dst-address=159.148.147.0/24 gateway=172.16.30.2 pref-src=160.22.181.180
-#error exporting "/ipv6/route" (timeout)
+/ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
+/ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
+/ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
+/ipv6 route add blackhole comment="ipv6 discard prefix rfc6666" distance=240 dst-address=100::/64
+/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
+/ipv6 route add blackhole comment=global_unicast_ipv6 disabled=no distance=240 dst-address=2401:a860:1000::/36
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128,172.31.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
