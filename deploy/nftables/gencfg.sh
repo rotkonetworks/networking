@@ -287,6 +287,12 @@ generate_management_services() {
        iifname $MGMT tcp dport { 8006, 3128, 111, 2049, 9100 } accept
        iifname $MGMT udp dport { 111, 5405-5412 } accept
 
+       # Corosync ring0 over the 100G fabric (vmbr2). vmbr2 is the WAN
+       # bridge, so the rule is restricted by saddr to the private
+       # 10.155.100.0/24 fabric subnet — must not expose 5405-5412 to
+       # the public internet.
+       iifname $WAN ip saddr 10.155.100.0/24 udp dport 5405-5412 accept
+
        # DNS for local networks only
        iifname $INTERNAL udp dport 53 accept
        iifname $INTERNAL tcp dport 53 accept
