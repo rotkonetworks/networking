@@ -29,6 +29,7 @@ table inet filter {
 		tcp dport 22 ip6 saddr { 2401:a860::/32, fd00::/8 } accept
 		iifname "vmbr0" tcp dport { 111, 2049, 3128, 8006, 9100 } accept
 		iifname "vmbr0" udp dport { 111, 5405-5412 } accept
+		iifname "vmbr2" ip saddr 10.155.100.0/24 udp dport 5405-5412 accept
 		iifname "vmbr1" udp dport 53 accept
 		iifname "vmbr1" tcp dport 53 accept
 		iifname "vmbr0" udp dport 53 accept
