@@ -39,19 +39,17 @@ jobs:
       matrix:
         server: ${{ fromJson(needs.setup.outputs.servers) }}
       fail-fast: false
-    env:
-      SSH_HOST: 160.22.181.181
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set SSH port
+      - name: Resolve host IP
         id: ssh
         run: |
-          declare -A ports
-          ports[bkk06]=22786
-          ports[bkk07]=22787
-          ports[bkk08]=22788
-          echo "port=${ports[${{ matrix.server }}]}" >> $GITHUB_OUTPUT
+          declare -A hosts
+          hosts[bkk06]=160.22.181.6
+          hosts[bkk07]=160.22.181.7
+          hosts[bkk08]=160.22.181.8
+          echo "host=${hosts[${{ matrix.server }}]}" >> $GITHUB_OUTPUT
 
       - name: Generate HAProxy config
         run: ./deploy/haproxy/gencfg.sh ${{ matrix.server }} > haproxy.cfg
@@ -59,30 +57,30 @@ jobs:
       - name: Upload config
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ env.SSH_HOST }}
+          host: ${{ steps.ssh.outputs.host }}
           username: root
           key: ${{ secrets.INTERFACE_SSH_KEY }}
-          port: ${{ steps.ssh.outputs.port }}
+          port: 22
           source: haproxy.cfg
           target: /tmp
 
       - name: Validate config
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ env.SSH_HOST }}
+          host: ${{ steps.ssh.outputs.host }}
           username: root
           key: ${{ secrets.INTERFACE_SSH_KEY }}
-          port: ${{ steps.ssh.outputs.port }}
+          port: 22
           script: haproxy -c -f /tmp/haproxy.cfg
 
       - name: Apply config
         if: ${{ github.event.inputs.dry_run == 'false' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ env.SSH_HOST }}
+          host: ${{ steps.ssh.outputs.host }}
           username: root
           key: ${{ secrets.INTERFACE_SSH_KEY }}
-          port: ${{ steps.ssh.outputs.port }}
+          port: 22
           script: |
             cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.$(date +%Y%m%d-%H%M%S).bak || true
             cp /tmp/haproxy.cfg /etc/haproxy/haproxy.cfg
@@ -93,8 +91,8 @@ jobs:
         if: always()
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ env.SSH_HOST }}
+          host: ${{ steps.ssh.outputs.host }}
           username: root
           key: ${{ secrets.INTERFACE_SSH_KEY }}
-          port: ${{ steps.ssh.outputs.port }}
+          port: 22
           script: rm -f /tmp/haproxy.cfg
