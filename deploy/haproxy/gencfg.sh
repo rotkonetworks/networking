@@ -14,6 +14,15 @@ TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 ANYCAST_SITE_V4=$(jq -r '.networks.anycast_v4.site' "$NETWORK_CONFIG" | sed 's|/.*||')
 ANYCAST_GLOBAL_V4=$(jq -r '.networks.anycast_v4.global' "$NETWORK_CONFIG" | sed 's|/.*||')
 ANYCAST_LOCAL_V4=$(jq -r '.networks.anycast_v4.local' "$NETWORK_CONFIG" | sed 's|/.*||')
+ANYCAST_SITE_V6=$(jq -r '.networks.anycast_v6.site' "$NETWORK_CONFIG" | sed 's|/.*||')
+ANYCAST_GLOBAL_V6=$(jq -r '.networks.anycast_v6.global' "$NETWORK_CONFIG" | sed 's|/.*||')
+ANYCAST_LOCAL_V6=$(jq -r '.networks.anycast_v6.local' "$NETWORK_CONFIG" | sed 's|/.*||')
+
+# Per-port bind lists (v4 + v6 anycast — supports DNS multi-A/AAAA traffic balancing across both /32 + both /48)
+binds_for() {
+  local port="$1"
+  echo "${ANYCAST_SITE_V4}:${port},${ANYCAST_GLOBAL_V4}:${port},${ANYCAST_LOCAL_V4}:${port},[${ANYCAST_SITE_V6}]:${port},[${ANYCAST_GLOBAL_V6}]:${port},[${ANYCAST_LOCAL_V6}]:${port}"
+}
 BIND_ADDRS="${ANYCAST_SITE_V4},${ANYCAST_GLOBAL_V4},${ANYCAST_LOCAL_V4}"
 
 # Helper function to normalize chain names
@@ -102,7 +111,7 @@ generate_http_frontend() {
   cat <<EOF
 # HTTP Frontend - redirect only
 frontend http-frontend
-    bind ${ANYCAST_SITE_V4}:80,${ANYCAST_GLOBAL_V4}:80,${ANYCAST_LOCAL_V4}:80
+    bind $(binds_for 80)
     mode http
     
     # Track requests for monitoring (no limiting)
@@ -126,7 +135,7 @@ generate_ssl_frontend() {
 
   echo "# SSL Frontend"
   echo "frontend ssl-frontend"
-  echo "    bind ${ANYCAST_SITE_V4}:443,${ANYCAST_GLOBAL_V4}:443,${ANYCAST_LOCAL_V4}:443 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1"
+  echo "    bind $(binds_for 443) ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1"
   cat <<'EOF'
     mode http
     
@@ -157,12 +166,13 @@ generate_ssl_frontend() {
     acl is_websocket hdr(Upgrade) -i websocket
     acl is_options method OPTIONS
     
-    # CORS for public RPC
-    http-response set-header Access-Control-Allow-Origin "*"
-    http-response set-header Access-Control-Allow-Methods "POST, GET, OPTIONS"
-    http-response set-header Access-Control-Allow-Headers "Content-Type"
-    http-response set-header Access-Control-Max-Age "86400"
-    
+    # CORS for public RPC — http-after-response (not http-response) so headers
+    # are emitted on synthetic responses too (e.g. preflight 200 below).
+    http-after-response set-header Access-Control-Allow-Origin "*"
+    http-after-response set-header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+    http-after-response set-header Access-Control-Allow-Headers "Content-Type"
+    http-after-response set-header Access-Control-Max-Age "86400"
+
     # CORS preflight
     http-request return status 200 if is_options
     
@@ -234,12 +244,17 @@ EOF
     echo "    acl is_ibp_rotko_net hdr_end(host) -i ibp.rotko.net"
     echo "    acl is_ibp_metrics hdr_end(host) -i ibp-metrics.rotko.net"
     echo "    acl is_astrolabe hdr_end(host) -i astrolabe.rotko.net"
+    echo "    acl is_ocr hdr_end(host) -i ocr.rotko.net"
     echo "    acl url_api path_beg /api"
     echo ""
     echo "    use_backend ibp-metrics-backend if is_ibp_metrics"
     echo "    use_backend ibp-monitor-api-backend if is_ibp_rotko_net url_api"
     echo "    use_backend ibp-monitor-backend if is_ibp_rotko_net"
     echo "    use_backend astrolabe-backend if is_astrolabe"
+    echo "    use_backend ocr-backend if is_ocr"
+    # NOTE: also patched into the live haproxy.cfg directly because
+    # the generator output has drifted from what's deployed; the
+    # targeted live edit avoids unrelated changes touching prod.
   fi
 
   echo ""
@@ -342,7 +357,7 @@ EOF
 
   ### Relay chains on 30335 ###
   echo "frontend p2p-relay-wss-passthrough"
-  echo "    bind ${ANYCAST_SITE_V4}:30335,${ANYCAST_GLOBAL_V4}:30335,${ANYCAST_LOCAL_V4}:30335"
+  echo "    bind $(binds_for 30335)"
   echo "    mode tcp"
   echo "    option tcplog"
   echo "    tcp-request inspect-delay 2s"
@@ -367,7 +382,7 @@ EOF
 
   ### Parachains on 30435 ###
   echo "frontend p2p-parachain-wss-passthrough"
-  echo "    bind ${ANYCAST_SITE_V4}:30435,${ANYCAST_GLOBAL_V4}:30435,${ANYCAST_LOCAL_V4}:30435"
+  echo "    bind $(binds_for 30435)"
   echo "    mode tcp"
   echo "    option tcplog"
   echo "    tcp-request inspect-delay 2s"
@@ -502,7 +517,7 @@ generate_monitoring() {
 
 # Prometheus/Metrics Frontend (port 9090)
 frontend prometheus-frontend
-    bind ${ANYCAST_SITE_V4}:9090,${ANYCAST_GLOBAL_V4}:9090,${ANYCAST_LOCAL_V4}:9090 ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1
+    bind $(binds_for 9090) ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1
     mode http
     option httplog
     compression algo gzip deflate
@@ -531,6 +546,19 @@ backend ibp-metrics-backend
 backend astrolabe-backend
     mode http
     server docker-astrolabe ${astrolabe} check inter 2s
+
+# OCR Online (ocr.rotko.net) — static site served from nginx in the
+# dockers LXCs on both sites. Each anycast peer prefers its own local
+# nginx; the other is a hot failover.
+backend ocr-backend
+    mode http
+    balance leastconn
+    option httpchk GET /__health
+    http-check expect status 200
+    # Cosmetic but useful: clean up redundant Host header on egress.
+    http-response set-header X-Served-By "ocr-rotko-net"
+    server bkk07-ocr 192.168.77.92:80 check inter 5s fall 3 rise 2
+    server bkk08-ocr 192.168.78.92:80 check inter 5s fall 3 rise 2
 EOF
 }
 

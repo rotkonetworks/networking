@@ -333,6 +333,24 @@
           "port": 50051
         }
       }
+    },
+    "zpro": {
+      "type": "misc",
+      "instances": {
+        "zpro-01": {
+          "address": "10.7.0.201",
+          "port": 3334
+        }
+      }
+    },
+    "zrelay": {
+      "type": "misc",
+      "instances": {
+        "zrelay-01": {
+          "address": "10.7.0.201",
+          "port": 50053
+        }
+      }
     }
   },
   "monitoring": {
