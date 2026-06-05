@@ -72,6 +72,9 @@ table inet filter {
 		iifname "vmbr2" ip6 saddr 2401:a860::/32 accept
 		oifname "vmbr2" ip6 daddr 2401:a860::/32 accept
 		limit rate 5/minute log prefix "[DROP-FWD] "
+		oifname "vmbr-dmz" accept comment "Allow inbound to DMZ"
+		iifname "vmbr-dmz" oifname "vmbr2" accept
+		iifname "vmbr-dmz" counter packets 4 bytes 336 drop
 	}
 
 	chain output {
@@ -130,6 +133,8 @@ table ip nat {
 		ip saddr 10.7.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.180.7 }
 		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.180.7 }
 		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.180.7 }
+		ip saddr 10.7.0.0/16 oifname "vmbr2" ip protocol icmp snat to 160.22.181.7
+		ip saddr 10.99.7.0/24 oifname "vmbr2" snat to 160.22.181.7 comment "DMZ v4 SNAT"
 	}
 }
 table ip6 nat {
