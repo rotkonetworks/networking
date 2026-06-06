@@ -74,7 +74,7 @@ table inet filter {
 		limit rate 5/minute log prefix "[DROP-FWD] "
 		oifname "vmbr-dmz" accept comment "Allow inbound to DMZ"
 		iifname "vmbr-dmz" oifname "vmbr2" accept
-		iifname "vmbr-dmz" counter packets 4 bytes 336 drop
+		iifname "vmbr-dmz" counter packets 244 bytes 14736 drop
 	}
 
 	chain output {
