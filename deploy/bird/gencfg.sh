@@ -455,6 +455,7 @@ protocol bgp RR1_v6 from BGP_COMMON {
 
     ipv6 {
         next hop self;
+        add paths on;
         import filter {
             # Prefer IPv6 routes
             preference = PREF_IPV6;
@@ -506,6 +507,7 @@ protocol bgp RR1_v4 from BGP_COMMON {
 
     ipv4 {
         next hop self;
+        add paths on;
         import filter {
             # Lower preference for IPv4
             preference = PREF_IPV4;
@@ -551,6 +553,7 @@ protocol bgp RR2_v6 from BGP_COMMON {
 
     ipv6 {
         next hop self;
+        add paths on;
         import filter {
             # Prefer IPv6 routes
             preference = PREF_IPV6;
@@ -610,6 +613,7 @@ protocol bgp RR2_v4 from BGP_COMMON {
 
     ipv4 {
         next hop self;
+        add paths on;
         import filter {
             # Lower preference for IPv4
             preference = PREF_IPV4;
@@ -665,6 +669,7 @@ protocol bgp RR1_UNIFIED_v4 from BGP_COMMON {
     source address UNIFIED_LOCAL_IP4;
     ipv4 {
         next hop self;
+        add paths on;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
         export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
@@ -676,6 +681,7 @@ protocol bgp RR1_UNIFIED_v6 from BGP_COMMON {
     source address UNIFIED_LOCAL_IP6;
     ipv6 {
         next hop self;
+        add paths on;
         import filter { preference = PREF_IPV6; if net = ::/0 then { bgp_local_pref = LOCAL_PREF_PRIMARY; accept; } accept; };
         export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; $(for i in $(seq 1 ${#VM_IP6S[@]}); do echo -n "if net = VM_IP6_${i} then accept; "; done)if net ~ INTERNAL_NET6 then accept; reject; };
     };
@@ -687,6 +693,7 @@ protocol bgp RR2_UNIFIED_v4 from BGP_COMMON {
     source address UNIFIED_LOCAL_IP4;
     ipv4 {
         next hop self;
+        add paths on;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
         export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
@@ -698,6 +705,7 @@ protocol bgp RR2_UNIFIED_v6 from BGP_COMMON {
     source address UNIFIED_LOCAL_IP6;
     ipv6 {
         next hop self;
+        add paths on;
         import filter { preference = PREF_IPV6; if net = ::/0 then { bgp_local_pref = LOCAL_PREF_PRIMARY; accept; } accept; };
         export filter { if net = PUBLIC_NET6 then accept; if net = ANYCAST_SITE_V6_HOST then accept; if net = ANYCAST_GLOBAL_V6_HOST then accept; if net = ANYCAST_SITE_V6_PREFIX then accept; if net = ANYCAST_GLOBAL_V6_PREFIX then accept; if net = ANYCAST_LOCAL_V6_PREFIX then accept; $(for i in $(seq 1 ${#VM_IP6S[@]}); do echo -n "if net = VM_IP6_${i} then accept; "; done)if net ~ INTERNAL_NET6 then accept; reject; };
     };
