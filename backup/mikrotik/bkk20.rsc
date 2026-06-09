@@ -1,4 +1,4 @@
-# 2026-06-08 18:46:41 by RouterOS 7.22
+# 2026-06-09 17:24:51 by RouterOS 7.22
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -69,8 +69,8 @@
 /routing bgp template add afi=ipv6 disabled=no input.filter=HGC-HK-IN-v6 multihop=yes name=IPTX-HGC-TH-HK-v6 output.as-override=no .filter-chain=HGC-HK-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=AMSIX-HK-IN-v4 name=AMSIX-HK-v4 output.as-override=no .filter-chain=AMSIX-HK-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ipv6 disabled=no input.filter=AMSIX-HK-IN-v6 name=AMSIX-HK-v6 output.as-override=no .filter-chain=AMSIX-HK-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
-/routing bgp template add input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS nexthop-choice=force-self output.filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
-/routing bgp template add afi=ipv6 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-OUT-v6 routing-table=main
+/routing bgp template add input.filter=RR-CLIENT-IN-v4 name=RR-CLIENTS nexthop-choice=force-self output.add-path=ip .filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
+/routing bgp template add afi=ipv6 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=force-self output.add-path=ipv6 .filter-chain=RR-CLIENT-OUT-v6 routing-table=main
 /routing bgp template add afi=ip input.filter=iBGP-IN multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /system script add dont-require-permissions=no name=bcp214-start owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
     \n:foreach ruleId in=[/routing filter rule find] do={\
@@ -599,12 +599,12 @@
 /routing bgp connection add afi=ipv6 disabled=no input.filter=IBGP-IN-v6 .limit-process-routes-ipv6=2000000 instance=bgp-instance-1 local.address=fd00:dead:beef::20 .role=ibgp name=IBGP-ROTKO-BKK00-v6 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v6 .keep-sent-attributes=yes .redistribute=connected,static,bgp remote.address=fd00:dead:beef::100 .as=142108 routing-table=main templates=IBGP-ROTKO-v6
 /routing bgp connection add afi=ip input.filter=IBGP-IN-v4 instance=bgp-instance-1 local.address=10.155.255.2 .role=ibgp multihop=yes name=ibgp-bkk50-v4 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.255.3 .as=142108 templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 input.filter=IBGP-IN-v6 instance=bgp-instance-1 local.address=fd00:dead:beef::20 .role=ibgp multihop=yes name=ibgp-bkk50-v6 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v6 .redistribute=connected,static,bgp remote.address=fd00:dead:beef::50 .as=142108 templates=IBGP-ROTKO-v6
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk08-unified-v4 remote.address=10.155.100.8 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk08-unified-v6 remote.address=fd00:155:100::8 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk07-unified-v4 remote.address=10.155.100.7 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk07-unified-v6 remote.address=fd00:155:100::7 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk06-unified-v4 remote.address=10.155.100.6 .as=142108 templates=RR-CLIENTS
-/routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk06-unified-v6 remote.address=fd00:155:100::6 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk08-unified-v4 remote.address=10.155.100.8 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk08-unified-v6 remote.address=fd00:155:100::8 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk07-unified-v4 remote.address=10.155.100.7 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk07-unified-v6 remote.address=fd00:155:100::7 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.100.2 .role=ibgp-rr name=rr-client-bkk06-unified-v4 remote.address=10.155.100.6 .as=142108 templates=RR-CLIENTS
+/routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:155:100::2 .role=ibgp-rr name=rr-client-bkk06-unified-v6 remote.address=fd00:155:100::6 .as=142108 templates=RR-CLIENTS-v6
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.212.0 .role=ibgp-rr name=rr-client-bkk12-v4 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v4 .redistribute=connected,static,ospf,bgp remote.address=10.155.212.1 .as=142108 templates=RR-CLIENTS
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=fd00:155:212:: .role=ibgp-rr name=rr-client-bkk12-v6 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v6 remote.address=fd00:155:212::1 .as=142108 templates=RR-CLIENTS-v6
 /routing filter community-ext-list add comment=HGC-not-announce-142108 communities=rt:142108:65404 list=HGC
