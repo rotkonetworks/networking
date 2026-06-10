@@ -87,16 +87,16 @@ table inet filter {
 		icmpv6 type { nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
 		icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-reply } accept
 		icmp type { echo-reply, destination-unreachable, time-exceeded, parameter-problem } accept
-		counter packets 46 bytes 2782 drop comment "DMZ blocked from host"
+		counter packets 307 bytes 18373 drop comment "DMZ blocked from host"
 	}
 
 	chain dmz_forward {
 		ct state established,related accept
-		ip daddr { 10.0.0.0/8, 100.64.0.0/10, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16 } counter packets 11 bytes 684 drop comment "DMZ blocked: private/CGNAT"
+		ip daddr { 10.0.0.0/8, 100.64.0.0/10, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16 } counter packets 15 bytes 916 drop comment "DMZ blocked: private/CGNAT"
 		ip daddr 160.22.180.0/23 counter packets 0 bytes 0 drop comment "DMZ blocked: Rotko v4"
 		ip6 daddr fc00::/7 counter packets 0 bytes 0 drop comment "DMZ blocked: ULA"
 		ip6 daddr 2401:a860::/32 counter packets 0 bytes 0 drop comment "DMZ blocked: Rotko v6"
-		counter packets 4207 bytes 312404 accept comment "DMZ to public internet"
+		counter packets 6205 bytes 472343 accept comment "DMZ to public internet"
 	}
 }
 table ip nat {
