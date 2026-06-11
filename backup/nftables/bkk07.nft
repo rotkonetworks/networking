@@ -96,7 +96,7 @@ table inet filter {
 		ip daddr 160.22.180.0/23 counter packets 0 bytes 0 drop comment "DMZ blocked: Rotko v4"
 		ip6 daddr fc00::/7 counter packets 0 bytes 0 drop comment "DMZ blocked: ULA"
 		ip6 daddr 2401:a860::/32 counter packets 0 bytes 0 drop comment "DMZ blocked: Rotko v6"
-		counter packets 6205 bytes 472343 accept comment "DMZ to public internet"
+		counter packets 9435 bytes 721418 accept comment "DMZ to public internet"
 	}
 }
 table ip nat {
