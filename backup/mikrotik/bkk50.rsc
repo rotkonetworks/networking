@@ -1,4 +1,4 @@
-# 2026-06-11 03:09:14 by RouterOS 7.22
+# 2026-06-12 02:48:57 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1609,8 +1609,8 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall raw add action=accept chain=prerouting comment="Allow DNS queries from LAN to router (TCP)" dst-port=53 protocol=tcp src-address-list=not_in_internet
 /ip firewall raw add action=accept chain=prerouting comment="Allow DNS queries from LAN to external DNS (UDP)" dst-port=53 protocol=udp src-address-list=not_in_internet
 /ip firewall raw add action=accept chain=prerouting comment="Allow DNS queries from LAN to external DNS (TCP)" dst-port=53 protocol=tcp src-address-list=not_in_internet
-/ip firewall raw add action=drop chain=prerouting dst-port=80 protocol=tcp
-/ip firewall raw add action=drop chain=prerouting dst-port=443 protocol=tcp
+/ip firewall raw add action=drop chain=prerouting disabled=yes dst-port=80 protocol=tcp
+/ip firewall raw add action=drop chain=prerouting disabled=yes dst-port=443 protocol=tcp
 /ip firewall raw add action=accept chain=prerouting comment="Rate limit DNS queries from LAN (UDP)" disabled=yes dst-port=53 limit=20,10:packet protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="Rate limit DNS queries from LAN (TCP)" disabled=yes dst-port=53 limit=20,10:packet protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment="Drop external DNS queries to router (UDP)" disabled=yes dst-port=53 protocol=udp src-address-list=!not_in_internet
