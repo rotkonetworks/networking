@@ -288,6 +288,11 @@ generate_management_services() {
        iifname $MGMT tcp dport { 8006, 3128, 111, 2049, 8404, 9100 } accept
        iifname $MGMT udp dport { 111, 5405-5412 } accept
 
+       # HAProxy stats scrape from lateral monitoring containers via the 100G
+       # fabric (vmbr2). Source preserves 192.168.0.0/16 thanks to the NAT
+       # exemption above; bgp_rr_v4 (10.155.100.x) is the per-host scrape target.
+       iifname $WAN ip saddr 192.168.0.0/16 tcp dport 8404 accept
+
        # Corosync ring0 over the 100G fabric (vmbr2). vmbr2 is the WAN
        # bridge, so the rule is restricted by saddr to the private
        # 10.155.100.0/24 fabric subnet — must not expose 5405-5412 to
@@ -514,6 +519,12 @@ NAT
    # Traffic engineering: distribute SNAT across both IP ranges using jhash
    # jhash on source IP+port gives consistent hashing per connection
    cat <<'SNAT_DUAL'
+       # Skip SNAT for lateral traffic to the internal fabric — these stay private
+       # (10.155.0.0/16 covers BGP RR + anycast_local; needed so per-host scrapes
+       # from monitoring containers preserve their source IP for nftables filtering)
+       ip saddr $INTERNAL4 ip daddr 10.155.0.0/16 oifname $WAN return
+       ip saddr $MGMT_NET   ip daddr 10.155.0.0/16 oifname $WAN return
+
        # SNAT with traffic engineering - distribute across 181.x and 180.x ranges
        # Uses jhash for consistent per-connection distribution (~50/50 split)
        ip saddr $INTERNAL4 oifname $WAN snat to jhash ip saddr . tcp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
@@ -524,6 +535,10 @@ SNAT_DUAL
  else
    # Single IP SNAT (original behavior)
    cat <<'SNAT_SINGLE'
+       # Skip SNAT for lateral traffic to internal fabric (10.155.0.0/16)
+       ip saddr $INTERNAL4 ip daddr 10.155.0.0/16 oifname $WAN return
+       ip saddr $MGMT_NET   ip daddr 10.155.0.0/16 oifname $WAN return
+
        # SNAT for internal networks going out
        ip saddr $INTERNAL4 oifname $WAN snat to $PUBLIC_IP4
        ip saddr $MGMT_NET oifname $WAN snat to $PUBLIC_IP4
