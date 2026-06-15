@@ -147,6 +147,21 @@ VARS
   echo "# Host-owned IPv4 (unicast + anycast) — DNAT scope"
   echo "define HOST_IP4S = { ${host_ip4s} }"
 
+  # All site internal networks - scopes cross-site forwarding and the
+  # SNAT exemption to declared 10.N.0.0/16s instead of all of 10.0.0.0/8
+  local site_internals=$(jq -r '[.sites[].internal_v4 // empty] | join(", ")' "$CONFIG_FILE")
+  echo ""
+  echo "# Internal networks of all sites (cross-site fabric traffic)"
+  echo "define SITE_INTERNALS = { ${site_internals} }"
+
+  # Destinations exempt from SNAT — lateral traffic that must keep its real
+  # source IP so the destination host's nftables can filter on it:
+  #   - 10.155.0.0/16: BGP RR fabric + anycast_local (per-host scrapes)
+  #   - SITE_INTERNALS: cross-site container /16s (e.g. 10.6/10.7/10.8)
+  echo ""
+  echo "# Lateral/internal destinations that bypass SNAT over the fabric"
+  echo "define NO_SNAT_DESTS = { 10.155.0.0/16, ${site_internals} }"
+
   # Add BGP peers - RR IPs from bkk00 and bkk20
   local rr1_v4=$(jq -r '.sites.bkk00.bgp_rr_v4 // empty' "$CONFIG_FILE")
   local rr2_v4=$(jq -r '.sites.bkk20.bgp_rr_v4 // empty' "$CONFIG_FILE")
@@ -454,6 +469,10 @@ FORWARD
         oifname "vmbr2" ip daddr 160.22.180.0/23 accept
         iifname "vmbr2" ip6 saddr 2401:a860::/32 accept
         oifname "vmbr2" ip6 daddr 2401:a860::/32 accept
+
+        # Cross-site internal traffic arriving over the BGP fabric
+        # (other sites' 10.N.0.0/16 reaching local containers on vmbr1)
+        iifname $WAN ip saddr $SITE_INTERNALS ip daddr $INTERNAL4 accept
 VM_FORWARD
 
  cat <<'FORWARD_END'
@@ -514,31 +533,34 @@ NAT
  echo "    chain postrouting {"
  echo "        type nat hook postrouting priority srcnat; policy accept;"
  echo ""
+ cat <<'SNAT_EXEMPT'
+       # Lateral/internal traffic over the fabric (vmbr2) keeps its real
+       # source IP — no SNAT — so the destination host can filter on it.
+       # Covers cross-site container /16s and the 10.155/16 RR/anycast-local
+       # net (per-host scrapes). Must precede the SNAT rules below.
+       ip saddr $INTERNAL4 ip daddr $NO_SNAT_DESTS oifname $WAN return
+       ip saddr $MGMT_NET  ip daddr $NO_SNAT_DESTS oifname $WAN return
+SNAT_EXEMPT
 
  if [[ -n "$PUBLIC_IP4_ALT" ]]; then
    # Traffic engineering: distribute SNAT across both IP ranges using jhash
    # jhash on source IP+port gives consistent hashing per connection
    cat <<'SNAT_DUAL'
-       # Skip SNAT for lateral traffic to the internal fabric — these stay private
-       # (10.155.0.0/16 covers BGP RR + anycast_local; needed so per-host scrapes
-       # from monitoring containers preserve their source IP for nftables filtering)
-       ip saddr $INTERNAL4 ip daddr 10.155.0.0/16 oifname $WAN return
-       ip saddr $MGMT_NET   ip daddr 10.155.0.0/16 oifname $WAN return
-
        # SNAT with traffic engineering - distribute across 181.x and 180.x ranges
        # Uses jhash for consistent per-connection distribution (~50/50 split)
        ip saddr $INTERNAL4 oifname $WAN snat to jhash ip saddr . tcp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
        ip saddr $INTERNAL4 oifname $WAN snat to jhash ip saddr . udp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
        ip saddr $MGMT_NET oifname $WAN snat to jhash ip saddr . tcp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
        ip saddr $MGMT_NET oifname $WAN snat to jhash ip saddr . udp sport mod 2 map { 0 : $PUBLIC_IP4, 1 : $PUBLIC_IP4_ALT }
+
+       # Catch-all for non-TCP/UDP (ICMP etc.) - jhash needs a sport, so
+       # these pin to the primary public IP
+       ip saddr $INTERNAL4 oifname $WAN snat to $PUBLIC_IP4
+       ip saddr $MGMT_NET oifname $WAN snat to $PUBLIC_IP4
 SNAT_DUAL
  else
    # Single IP SNAT (original behavior)
    cat <<'SNAT_SINGLE'
-       # Skip SNAT for lateral traffic to internal fabric (10.155.0.0/16)
-       ip saddr $INTERNAL4 ip daddr 10.155.0.0/16 oifname $WAN return
-       ip saddr $MGMT_NET   ip daddr 10.155.0.0/16 oifname $WAN return
-
        # SNAT for internal networks going out
        ip saddr $INTERNAL4 oifname $WAN snat to $PUBLIC_IP4
        ip saddr $MGMT_NET oifname $WAN snat to $PUBLIC_IP4
