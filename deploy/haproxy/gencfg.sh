@@ -95,14 +95,18 @@ EOF
 
 # Generate minimal stats
 generate_stats() {
+  # Wildcard bind — nftables restricts to MGMT interface (vmbr0) only.
+  # Prometheus on the ibp VM scrapes each host via its own management IP.
   cat <<'EOF'
-# Stats - internal only
+# Stats listener + Prometheus exporter (restricted by nftables to vmbr0)
 listen stats
-    bind 127.0.0.1:8404
+    bind *:8404
     stats enable
     stats uri /stats
     stats refresh 30s
     stats admin if TRUE
+    http-request use-service prometheus-exporter if { path /metrics }
+    no log
 EOF
 }
 

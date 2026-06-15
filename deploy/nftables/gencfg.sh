@@ -284,7 +284,8 @@ generate_management_services() {
        tcp dport 22 ip6 saddr $ssh_allowed_v6 accept
 
        # Proxmox services from management network only
-       iifname $MGMT tcp dport { 8006, 3128, 111, 2049, 9100 } accept
+       # 8404 = HAProxy stats / Prometheus exporter
+       iifname $MGMT tcp dport { 8006, 3128, 111, 2049, 8404, 9100 } accept
        iifname $MGMT udp dport { 111, 5405-5412 } accept
 
        # Corosync ring0 over the 100G fabric (vmbr2). vmbr2 is the WAN
@@ -330,6 +331,9 @@ generate_anycast_services() {
     [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 udp dport 53 accept"
     [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 tcp dport { 53, 853 } accept"
     [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 udp dport 53 accept"
+    # HAProxy stats / Prometheus exporter — internal monitoring only
+    [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "        ip daddr \$ANYCAST_LOCAL_V4 tcp dport 8404 ip saddr 192.168.0.0/16 accept  # haproxy stats (mon)"
+    [[ -n "$ANYCAST_LOCAL_V6" ]] && echo "        ip6 daddr \$ANYCAST_LOCAL_V6 tcp dport 8404 accept  # haproxy stats (mon, v6 ULA internal)"
   fi
 
   # Site anycast (Bangkok GUA) - public services for Bangkok
