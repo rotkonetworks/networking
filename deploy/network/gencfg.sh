@@ -294,13 +294,13 @@ auto vlan${BGP_RR_VLAN}-p1
 iface vlan${BGP_RR_VLAN}-p1 inet manual
     vlan-raw-device ${UP1_BASE}.${QINQ_OUTER}
     vlan-id ${BGP_RR_VLAN}
-    mtu 1500
+    mtu ${BOND_MTU}
 
 auto vlan${BGP_RR_VLAN}-p2
 iface vlan${BGP_RR_VLAN}-p2 inet manual
     vlan-raw-device ${UP2_BASE}.${QINQ_OUTER}
     vlan-id ${BGP_RR_VLAN}
-    mtu 1500
+    mtu ${BOND_MTU}
 
 # Bond for BGP RR connectivity
 auto bond-bgp
@@ -311,7 +311,7 @@ iface bond-bgp inet manual
     bond-miimon ${BOND_MIIMON}
     bond-lacp-rate ${BOND_LACP_RATE}
     bond-xmit-hash-policy layer3+4
-    mtu 1500
+    mtu ${BOND_MTU}
 BONDED_CONFIG
   fi
 
@@ -339,7 +339,7 @@ iface vmbr2 inet static
     bridge-stp off
     bridge-fd 0
     address ${BGP_RR_V4}/${BGP_NETWORK_V4##*/}
-    mtu 1500
+    mtu ${BOND_MTU}
     # policy-based routing for public services
     # ensures traffic from public IPs uses BIRD routes (main table)
     # anycast rules have higher priority to ensure proper routing
