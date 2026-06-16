@@ -298,6 +298,7 @@ generate_backends() {
         ;;
       misc)
         # Misc services - HTTP mode with simple TCP health check
+        local timeout_server=$(echo "$entry" | jq -r '.value.timeout_server // "30s"')
         echo "    mode http"
         echo "    balance leastconn"
         echo "    "
@@ -308,7 +309,7 @@ generate_backends() {
         echo "    # Retry and timeout"
         echo "    retries 2"
         echo "    option redispatch"
-        echo "    timeout server 30s"
+        echo "    timeout server ${timeout_server}"
         echo "    "
         echo "    # Servers"
         echo "$instances" | jq -r --arg c "$chain" 'to_entries[] | "    server \($c)-\(.key) \(.value.address):\(.value.port) check inter 5s fall 3 rise 2 maxconn 10000"'

@@ -351,6 +351,25 @@
           "port": 50053
         }
       }
+    },
+    "orchard": {
+      "type": "misc",
+      "instances": {
+        "local": {
+          "address": "127.0.0.1",
+          "port": 8080
+        }
+      }
+    },
+    "flarev": {
+      "type": "misc",
+      "timeout_server": "300s",
+      "instances": {
+        "monitoring": {
+          "address": "192.168.78.99",
+          "port": 3000
+        }
+      }
     }
   },
   "monitoring": {
@@ -852,7 +871,7 @@
       "val-flare-01": {
         "public_ip": {
           "ip4": "160.22.181.201",
-          "ip6": "2401:a860:1110::11"
+          "ip6": "2401:a860:1110::18"
         },
         "bridge": "vmbr2"
       },
