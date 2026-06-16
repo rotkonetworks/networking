@@ -68,6 +68,7 @@ table inet filter {
 		ct state invalid drop
 		iifname "vmbr1" accept
 		iifname "vmbr0" accept
+		oifname "vmbr-dmz" accept
 		ct status dnat accept
 		ip saddr 192.168.0.0/16 accept
 		iifname "vmbr2" ip saddr 160.22.180.0/23 accept
