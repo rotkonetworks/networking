@@ -460,6 +460,10 @@ generate_forward_chain() {
 
        # Allow forwarding from NAT network
        ip saddr $MGMT_NET accept
+
+       # DMZ bridge — allow public traffic destined for VMs on vmbr-dmz
+       # (e.g. clab-bkk07 at 160.22.181.150 served via 10.99.7.10 on vmbr-dmz)
+       oifname "vmbr-dmz" accept
 FORWARD
 
  # VM forward rules - allow public IP range on vmbr2
