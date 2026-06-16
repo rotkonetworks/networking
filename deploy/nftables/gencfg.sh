@@ -317,6 +317,7 @@ generate_management_services() {
        # DNS for local networks only
        iifname $INTERNAL udp dport 53 accept
        iifname $INTERNAL tcp dport 53 accept
+       iifname $INTERNAL tcp dport { 9100, 9103 } accept  # node_exporter + release-exporter (LXC-side scrape)
        iifname $MGMT udp dport 53 accept
        iifname $MGMT tcp dport 53 accept
 MGMT
