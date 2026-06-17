@@ -817,6 +817,13 @@
         },
         "bridge": "vmbr2"
       },
+      "rpc-zcash-01": {
+        "public_ip": {
+          "ip4": "160.22.181.241",
+          "ip6": "2401:a860:1241::"
+        },
+        "bridge": "vmbr2"
+      },
       "rpc-collectives-paseo-01": {
         "public_ip": {
           "ip4": "160.22.181.143",
