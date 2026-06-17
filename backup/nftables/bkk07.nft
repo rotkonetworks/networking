@@ -33,6 +33,7 @@ table inet filter {
 		iifname "vmbr2" ip saddr 10.155.100.0/24 udp dport 5405-5412 accept
 		iifname "vmbr1" udp dport 53 accept
 		iifname "vmbr1" tcp dport 53 accept
+		iifname "vmbr1" tcp dport { 9100, 9103 } accept
 		iifname "vmbr0" udp dport 53 accept
 		iifname "vmbr0" tcp dport 53 accept
 		ip daddr 10.155.181.81 tcp dport { 53, 853 } accept
@@ -68,9 +69,9 @@ table inet filter {
 		ct state invalid drop
 		iifname "vmbr1" accept
 		iifname "vmbr0" accept
-		oifname "vmbr-dmz" accept
 		ct status dnat accept
 		ip saddr 192.168.0.0/16 accept
+		oifname "vmbr-dmz" accept
 		iifname "vmbr2" ip saddr 160.22.180.0/23 accept
 		oifname "vmbr2" ip daddr 160.22.180.0/23 accept
 		iifname "vmbr2" ip6 saddr 2401:a860::/32 accept

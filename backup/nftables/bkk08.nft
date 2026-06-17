@@ -33,6 +33,7 @@ table inet filter {
 		iifname "vmbr2" ip saddr 10.155.100.0/24 udp dport 5405-5412 accept
 		iifname "vmbr1" udp dport 53 accept
 		iifname "vmbr1" tcp dport 53 accept
+		iifname "vmbr1" tcp dport { 9100, 9103 } accept
 		iifname "vmbr0" udp dport 53 accept
 		iifname "vmbr0" tcp dport 53 accept
 		ip daddr 10.155.181.81 tcp dport { 53, 853 } accept
@@ -60,8 +61,6 @@ table inet filter {
 		udp dport { 30335, 31003, 31252, 34032, 34072 } accept
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
-		iifname "vmbr1" tcp dport 9100 accept
-		iifname "vmbr1" tcp dport 9103 accept
 	}
 
 	chain forward {
@@ -72,6 +71,7 @@ table inet filter {
 		iifname "vmbr0" accept
 		ct status dnat accept
 		ip saddr 192.168.0.0/16 accept
+		oifname "vmbr-dmz" accept
 		iifname "vmbr2" ip saddr 160.22.180.0/23 accept
 		oifname "vmbr2" ip daddr 160.22.180.0/23 accept
 		iifname "vmbr2" ip6 saddr 2401:a860::/32 accept
