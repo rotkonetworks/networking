@@ -1,7 +1,15 @@
 {
   "haproxy": {
-    "bind_ips": ["*", "185.16.38.165", "2a0e:8f01:1000:18::165"],
-    "domain_suffixes": ["rotko.net", "dotters.network", "ibp.network"]
+    "bind_ips": [
+      "*",
+      "185.16.38.165",
+      "2a0e:8f01:1000:18::165"
+    ],
+    "domain_suffixes": [
+      "rotko.net",
+      "dotters.network",
+      "ibp.network"
+    ]
   },
   "rpc_nodes": {
     "polkadot": {
@@ -34,22 +42,11 @@
         }
       }
     },
-    "paseo": {
-      "type": "relay",
-      "instances": {
-        "rpc-paseo-01-bkk06": {
-          "address": "10.6.141.10",
-          "port": 9300
-        },
-        "rpc-paseo-02-bkk07": {
-          "address": "10.7.142.10",
-          "port": 9342
-        }
-      }
-    },
     "asset-hub-polkadot": {
       "type": "system-parachain",
-      "aliases": ["statemint"],
+      "aliases": [
+        "statemint"
+      ],
       "instances": {
         "rpc-asset-hub-polkadot-01": {
           "address": "10.6.111.11",
@@ -63,7 +60,9 @@
     },
     "bridge-hub-polkadot": {
       "type": "system-parachain",
-      "aliases": ["bridgehubPolkadot"],
+      "aliases": [
+        "bridgehubPolkadot"
+      ],
       "instances": {
         "rpc-bridge-hub-polkadot-01": {
           "address": "10.6.111.12",
@@ -116,7 +115,9 @@
     },
     "asset-hub-kusama": {
       "type": "system-parachain",
-      "aliases": ["statemine"],
+      "aliases": [
+        "statemine"
+      ],
       "instances": {
         "rpc-asset-hub-kusama-01-bkk06": {
           "address": "10.6.121.11",
@@ -180,87 +181,11 @@
         }
       }
     },
-    "asset-hub-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "rpc-asset-hub-paseo-01": {
-          "address": "10.6.141.11",
-          "port": 9400
-        },
-        "rpc-asset-hub-paseo-02": {
-          "address": "10.7.142.11",
-          "port": 9957
-        }
-      }
-    },
-    "passet-hub-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "rpc-passet-hub-paseo-01": {
-          "address": "10.7.141.17",
-          "port": 9400
-        },
-        "rpc-passet-hub-paseo-02": {
-          "address": "10.8.142.17",
-          "port": 9400
-        }
-      }
-    },
-    "bridge-hub-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "rpc-bridge-hub-paseo-01": {
-          "address": "10.6.141.12",
-          "port": 9966
-        },
-        "rpc-bridge-hub-paseo-02": {
-          "address": "10.7.142.12",
-          "port": 9967
-        }
-      }
-    },
-    "collectives-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "rpc-collectives-paseo-01": {
-          "address": "10.7.141.13",
-          "port": 9400
-        },
-        "rpc-collectives-paseo-02": {
-          "address": "10.8.142.13",
-          "port": 9400
-        }
-      }
-    },
-    "coretime-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "rpc-coretime-paseo-01": {
-          "address": "10.6.141.15",
-          "port": 9400
-        },
-        "rpc-coretime-paseo-02": {
-          "address": "10.7.142.15",
-          "port": 9400
-        }
-      }
-    },
-    "people-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "rpc-people-paseo-01": {
-          "address": "10.6.141.14",
-          "port": 9400
-        },
-        "rpc-people-paseo-02": {
-          "address": "10.7.142.14",
-          "port": 9400
-        }
-      }
-    },
     "hydration": {
       "type": "parachain",
-      "aliases": ["hydradx"],
+      "aliases": [
+        "hydradx"
+      ],
       "instances": {
         "hydration-polkadot-rpc-01": {
           "address": "10.7.111.35",
@@ -295,32 +220,6 @@
         },
         "revive-rpc-02": {
           "address": "10.7.122.11",
-          "port": 9450
-        }
-      }
-    },
-    "eth-asset-hub-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "revive-rpc-01": {
-          "address": "10.6.141.11",
-          "port": 9450
-        },
-        "revive-rpc-02": {
-          "address": "10.7.142.11",
-          "port": 9450
-        }
-      }
-    },
-    "eth-passet-hub-paseo": {
-      "type": "system-parachain",
-      "instances": {
-        "revive-rpc-01": {
-          "address": "10.7.141.17",
-          "port": 9450
-        },
-        "revive-rpc-02": {
-          "address": "10.8.142.17",
           "port": 9450
         }
       }
@@ -370,6 +269,48 @@
           "port": 3000
         }
       }
+    },
+    "eth": {
+      "type": "misc",
+      "aliases": [
+        "ethereum"
+      ],
+      "instances": {
+        "eth-fdc-01-bkk08": {
+          "address": "160.22.181.202",
+          "port": 8545
+        }
+      }
+    },
+    "btc": {
+      "type": "misc",
+      "aliases": [
+        "bitcoin"
+      ],
+      "instances": {
+        "btc-fdc-01-bkk08": {
+          "address": "160.22.181.203",
+          "port": 8332
+        }
+      }
+    },
+    "doge": {
+      "type": "misc",
+      "instances": {
+        "doge-fdc-01-bkk08": {
+          "address": "160.22.181.204",
+          "port": 22555
+        }
+      }
+    },
+    "xrp": {
+      "type": "misc",
+      "instances": {
+        "xrp-fdc-01-bkk08": {
+          "address": "160.22.181.205",
+          "port": 51234
+        }
+      }
     }
   },
   "monitoring": {
@@ -410,20 +351,6 @@
           "bkk06": 31001,
           "bkk07": 33312,
           "bkk08": 31003
-        }
-      }
-    },
-    "paseo": {
-      "type": "relay",
-      "container": {
-        "haproxy": "10.6.141.10",
-        "bkk06": "10.6.141.10",
-        "bkk07": "10.7.142.10"
-      },
-      "ports": {
-        "p2p": {
-          "bkk06": 34001,
-          "bkk07": 33342
         }
       }
     },
@@ -469,34 +396,6 @@
         }
       }
     },
-    "asset-hub-paseo": {
-      "type": "parachain",
-      "container": {
-        "haproxy": "10.6.141.11",
-        "bkk06": "10.6.141.11",
-        "bkk07": "10.7.142.11"
-      },
-      "ports": {
-        "p2p": {
-          "bkk06": 34011,
-          "bkk07": 33957
-        }
-      }
-    },
-    "passet-hub-paseo": {
-      "type": "parachain",
-      "container": {
-        "haproxy": "10.7.141.17",
-        "bkk07": "10.7.141.17",
-        "bkk08": "10.8.142.17"
-      },
-      "ports": {
-        "p2p": {
-          "bkk07": 34071,
-          "bkk08": 34072
-        }
-      }
-    },
     "bridge-hub-polkadot": {
       "type": "parachain",
       "container": {
@@ -525,20 +424,6 @@
         }
       }
     },
-    "bridge-hub-paseo": {
-      "type": "parachain",
-      "container": {
-        "haproxy": "10.6.141.12",
-        "bkk06": "10.6.141.12",
-        "bkk07": "10.7.142.12"
-      },
-      "ports": {
-        "p2p": {
-          "bkk06": 34021,
-          "bkk07": 33967
-        }
-      }
-    },
     "collectives-polkadot": {
       "type": "parachain",
       "container": {
@@ -550,20 +435,6 @@
         "p2p": {
           "bkk06": 31031,
           "bkk07": 31032
-        }
-      }
-    },
-    "collectives-paseo": {
-      "type": "parachain",
-      "container": {
-        "haproxy": "10.7.141.13",
-        "bkk07": "10.7.141.13",
-        "bkk08": "10.8.142.13"
-      },
-      "ports": {
-        "p2p": {
-          "bkk07": 34031,
-          "bkk08": 34032
         }
       }
     },
@@ -595,20 +466,6 @@
         }
       }
     },
-    "people-paseo": {
-      "type": "parachain",
-      "container": {
-        "haproxy": "10.6.141.14",
-        "bkk06": "10.6.141.14",
-        "bkk07": "10.7.142.14"
-      },
-      "ports": {
-        "p2p": {
-          "bkk06": 34041,
-          "bkk07": 34042
-        }
-      }
-    },
     "coretime-polkadot": {
       "type": "parachain",
       "container": {
@@ -634,20 +491,6 @@
         "p2p": {
           "bkk06": 32051,
           "bkk07": 32052
-        }
-      }
-    },
-    "coretime-paseo": {
-      "type": "parachain",
-      "container": {
-        "haproxy": "10.6.141.15",
-        "bkk06": "10.6.141.15",
-        "bkk07": "10.7.142.15"
-      },
-      "ports": {
-        "p2p": {
-          "bkk06": 34051,
-          "bkk07": 34052
         }
       }
     },
@@ -682,41 +525,6 @@
   },
   "public_guests": {
     "bkk06": {
-      "rpc-paseo-01": {
-        "public_ip": {
-          "ip4": "160.22.181.140",
-          "ip6": "2401:a860:1140::11"
-        },
-        "bridge": "vmbr2"
-      },
-      "rpc-asset-hub-paseo-01": {
-        "public_ip": {
-          "ip4": "160.22.181.141",
-          "ip6": "2401:a860:1141::11"
-        },
-        "bridge": "vmbr2"
-      },
-      "rpc-bridge-hub-paseo-01": {
-        "public_ip": {
-          "ip4": "160.22.181.142",
-          "ip6": "2401:a860:1142::11"
-        },
-        "bridge": "vmbr2"
-      },
-      "rpc-people-paseo-01": {
-        "public_ip": {
-          "ip4": "160.22.181.144",
-          "ip6": "2401:a860:1144::11"
-        },
-        "bridge": "vmbr2"
-      },
-      "rpc-coretime-paseo-01": {
-        "public_ip": {
-          "ip4": "160.22.181.145",
-          "ip6": "2401:a860:1145::11"
-        },
-        "bridge": "vmbr2"
-      },
       "rpc-polkadot-01": {
         "public_ip": {
           "ip4": "160.22.181.110",
@@ -824,13 +632,6 @@
         },
         "bridge": "vmbr2"
       },
-      "rpc-collectives-paseo-01": {
-        "public_ip": {
-          "ip4": "160.22.181.143",
-          "ip6": "2401:a860:1143::11"
-        },
-        "bridge": "vmbr2"
-      },
       "val-flare-02": {
         "public_ip": {
           "ip4": "160.22.181.207",
@@ -845,24 +646,10 @@
         },
         "bridge": "vmbr2"
       },
-      "rpc-paseo-02": {
-        "public_ip": {
-          "ip4": "160.22.181.146",
-          "ip6": "2401:a860:1146::11"
-        },
-        "bridge": "vmbr2"
-      },
       "rpc-bulletin-polkadot-01": {
         "public_ip": {
           "ip4": "160.22.181.116",
           "ip6": "2401:a860:1116::11"
-        },
-        "bridge": "vmbr2"
-      },
-      "val-paseo-01": {
-        "public_ip": {
-          "ip4": "160.22.181.41",
-          "ip6": "2401:a860:1007:76::3404"
         },
         "bridge": "vmbr2"
       },
@@ -900,13 +687,6 @@
         "public_ip": {
           "ip4": "160.22.181.201",
           "ip6": "2401:a860:1110::19"
-        },
-        "bridge": "vmbr2"
-      },
-      "val-paseo-02": {
-        "public_ip": {
-          "ip4": "160.22.181.42",
-          "ip6": "2401:a860:1008:78::3405"
         },
         "bridge": "vmbr2"
       },

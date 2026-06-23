@@ -191,8 +191,9 @@ EOF
     local chain_type=$(echo "$entry" | jq -r '.value.type')
     echo "    # ${chain} ACLs"
     if [[ "$chain_type" == "misc" ]]; then
-      # Misc services only use rotko.net
-      echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net"
+      # Misc services only use rotko.net, plus any host aliases (e.g. eth → ethereum).
+      local aliases=$(echo "$entry" | jq -r '.value.aliases // [] | map("\(.).rotko.net") | join(" ")')
+      echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net${aliases:+ $aliases}"
     else
       # Substrate chains use all domain suffixes
       echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
