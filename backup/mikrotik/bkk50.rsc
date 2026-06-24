@@ -1,4 +1,4 @@
-# 2026-06-23 02:19:46 by RouterOS 7.22
+# 2026-06-24 02:04:33 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -124,6 +124,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip address add address=172.31.0.50/16 interface=wg_rotko network=172.31.0.0
 /ip address add address=100.64.1.1/24 interface=bridge_local network=100.64.1.0
 /ip address add address=160.22.181.18 interface=lo network=160.22.181.18
+/ip address add address=160.22.181.9 comment=TEMPORARY-bkk09 interface=lo network=160.22.181.9
 /ip dhcp-server lease add address=192.168.69.232 client-id=1:48:da:35:6f:6b:66 comment="bkk09nanokvm, port 80 for kvm" mac-address=48:DA:35:6F:6B:66 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.231 client-id=1:e4:5f:1:de:47:96 comment="blikvm nixos" mac-address=E4:5F:01:DE:47:96 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.230 comment=bkk09 disabled=yes mac-address=58:47:CA:78:CD:48 server=dhcp1
@@ -140,6 +141,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip dhcp-server lease add address=192.168.69.219 client-id=ff:0:dd:1e:d8:0:1:0:1:2f:8f:7a:95:52:54:0:dd:1e:d8 comment=val-paseo-bkk13-02 mac-address=52:54:00:DD:1E:D8 server=dhcp1
 /ip dhcp-server lease add address=192.168.69.222 client-id=ff:0:96:39:9c:0:1:0:1:2f:8f:96:fb:52:54:0:96:39:9c comment=val-kusama-bkk13-01 mac-address=52:54:00:96:39:9C server=dhcp1
 /ip dhcp-server lease add address=192.168.69.215 client-id=1:9c:6b:0:9f:f5:57 comment="bkk12 ipmi" mac-address=9C:6B:00:9F:F5:57 server=dhcp1
+/ip dhcp-server lease add address=192.168.69.223 mac-address=58:47:CA:78:CD:48 server=dhcp1
 /ip dhcp-server network add address=10.69.169.0/24 dns-server=9.9.9.9 gateway=10.69.169.1
 /ip dhcp-server network add address=192.168.0.0/16 dns-server=9.9.9.9 gateway=192.168.69.1
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=30 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=9.9.9.9,2620:fe::fe,1.0.0.1,8.8.4.4
@@ -918,6 +920,8 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip firewall nat add action=src-nat chain=srcnat comment="geodns vm" out-interface-list=WAN src-address=100.64.1.0/24 to-addresses=160.22.181.250
 /ip firewall nat add action=dst-nat chain=dstnat comment="bkk04 ipmi http - disabled" dst-address=160.22.181.181 dst-port=17846 protocol=tcp to-addresses=192.168.69.204 to-ports=80
 /ip firewall nat add action=masquerade chain=srcnat out-interface-list=WAN src-address=172.31.0.0/24
+/ip firewall nat add action=src-nat chain=srcnat comment=TEMPORARY-bkk09 out-interface-list=WAN src-address=192.168.69.223 to-addresses=160.22.181.9
+/ip firewall nat add action=dst-nat chain=dstnat comment=TEMPORARY-bkk09 dst-address=160.22.181.9 to-addresses=192.168.69.223
 /ip firewall nat add action=src-nat chain=srcnat out-interface-list=WAN src-address=192.168.0.0/16 to-addresses=160.22.181.181
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=80 protocol=tcp to-addresses=192.168.69.103 to-ports=80
 /ip firewall nat add action=dst-nat chain=dstnat disabled=yes dst-address=160.22.181.181 dst-port=443 protocol=tcp to-addresses=192.168.69.103 to-ports=443
@@ -1623,6 +1627,7 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip route add disabled=no dst-address=160.22.181.254/32 gateway=100.64.0.2
 /ip route add disabled=yes dst-address=160.22.181.252/32 gateway=192.168.77.82
 /ip route add disabled=yes dst-address=160.22.181.250/32 gateway=100.64.1.2
+/ip route add comment=TEMPORARY-bkk09 dst-address=160.22.181.9/32 gateway=192.168.69.223
 /ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,182.10.0.0/16,95.217.134.129/32
