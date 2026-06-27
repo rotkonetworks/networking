@@ -68,6 +68,9 @@ table inet filter {
 		type filter hook forward priority filter; policy drop;
 		ct state established,related accept
 		ct state invalid drop
+		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 587 drop
+		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 465 drop
+		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 25 drop
 		iifname "vmbr1" accept
 		iifname "vmbr0" accept
 		ct status dnat accept
