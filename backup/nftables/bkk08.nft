@@ -82,6 +82,7 @@ table inet filter {
 		oifname "vmbr2" ip6 daddr 2401:a860::/32 accept
 		iifname "vmbr2" ip saddr { 10.6.0.0-10.8.255.255, 10.12.0.0/16 } ip daddr 10.8.0.0/16 accept
 		oifname "vmbr1" ip6 daddr 2401:a860:1008:ff00::/56 tcp dport 22 accept
+		oifname "vmbr1" ip6 daddr 2401:a860:1008:c0de::1 tcp dport 22 accept
 		limit rate 5/minute log prefix "[DROP-FWD] "
 	}
 
