@@ -1,4 +1,4 @@
-# 2026-07-15 16:02:17 by RouterOS 7.22
+# 2026-07-16 16:06:25 by RouterOS 7.22
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -380,7 +380,7 @@
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=100.64.0.0/10
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no dst-address=192.88.99.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (limited broadcast)" disabled=no dst-address=255.255.255.255/32
-/ip route add comment="Force src-IP for BKNIX RPKI v4" dst-address=203.159.70.26/32 gateway=172.16.30.1 pref-src=160.22.181.178
+/ip route add comment="RTR src fix: BKNIX validator via HGC-SG (was via bkk00 BKNIX, port down 2026-07)" disabled=no dst-address=203.159.70.26/32 gateway=118.143.234.73 pref-src=160.22.181.178
 /ip route add blackhole comment=global_unicast_v4 distance=240 dst-address=160.22.181.0/24
 /ip route add blackhole comment=global_anycast_v4 distance=240 dst-address=160.22.180.0/24
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" dst-address=240.0.0.0/4
@@ -393,6 +393,7 @@
 /ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.8
 /ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.8
+/ip route add comment="RTR src fix: BKNIX validator2 via HGC-SG (BKNIX port down 2026-07)" dst-address=203.159.70.36/32 gateway=118.143.234.73 pref-src=160.22.181.178
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="Blackhole for IPv6 Rotko Networks" disabled=no distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
@@ -405,6 +406,8 @@
 /ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::7
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::8
 /ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
+/ipv6 route add comment="RTR src fix: BKNIX validator v6 via HGC-SG (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::26/128 gateway=fe80::eaa2:4509:d8de:efcd%vHGC-SG-PRIMARY pref-src=2401:a860:1181::20
+/ipv6 route add comment="RTR src fix: BKNIX validator2 v6 via HGC-SG (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::36/128 gateway=fe80::eaa2:4509:d8de:efcd%vHGC-SG-PRIMARY pref-src=2401:a860:1181::20
 /ip service set ftp address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,158.140.0.0/16,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32
 /ip service set telnet address=10.0.0.0/8,192.168.88.0/24 disabled=yes
@@ -827,10 +830,10 @@
 /routing ospf interface-template add area=backbone-v6 comment="Global P2P BKK50" disabled=no networks=2401:a860:1181:2050::/127
 /routing ospf interface-template add area=backbone-v6 comment="ULA Loopback" disabled=no networks=fd00:dead:beef::20/128 passive
 /routing ospf interface-template add area=backbone comment="WireGuard wg_rotko" disabled=no networks=172.31.0.0/16 passive
-/routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" group=rpki.bknix.co.th port=323
-/routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" group=rpki.bknix.co.th port=323
-/routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" group=rpki.bknix.net port=4323
-/routing rpki add address=2001:deb:0:4070::36 comment="StayRTR IPv6 Secondary" group=rpki.bknix.net port=4323
+/routing rpki add address=203.159.70.26 comment="Routinator IPv4 Primary" disabled=no group=rpki.bknix.co.th port=323
+/routing rpki add address=2001:deb:0:4070::26 comment="Routinator IPv6 Primary" disabled=no group=rpki.bknix.co.th port=323
+/routing rpki add address=203.159.70.36 comment="StayRTR IPv4 Secondary" disabled=no group=rpki.bknix.net port=4323
+/routing rpki add address=2001:deb:0:4070::36 comment="StayRTR IPv6 Secondary" disabled=no group=rpki.bknix.net port=4323
 /snmp set enabled=yes trap-version=3
 /system clock set time-zone-autodetect=no time-zone-name=Asia/Bangkok
 /system identity set name=bkk20
