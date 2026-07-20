@@ -373,10 +373,13 @@ STATIC
   # Add alternate public IP static route (180.x range for traffic engineering)
   [[ -n "$PUBLIC_IP4_ALT" ]] && echo "    route PUBLIC_NET4_ALT unreachable;  # 180.x traffic engineering"
 
-  # NAT44 pool aggregate: originate the /26 as unreachable so it's always
-  # announced; per-VM DNAT in nftables intercepts assigned /32s before this
-  # blackhole, and unassigned pool addresses are dropped here (no loop).
+  # NAT44 pool aggregate: originate the /26 as unreachable (internal reference /
+  # blackhole). The /26 does NOT propagate to transit — only /32s do — so the
+  # bkk08 hermes-nat44 reconciler writes each ASSIGNED pool /32 into
+  # pool-routes.conf (included below) and reloads bird. The export filter accepts
+  # `net ~ PUBLIC_POOL4`, i.e. the /26 and every /32 within it.
   [[ -n "$PUBLIC_POOL4" ]] && echo "    route PUBLIC_POOL4 unreachable;  # NAT44 customer VM pool"
+  [[ -n "$PUBLIC_POOL4" ]] && echo "    include \"/etc/bird/pool-routes.conf\";  # per-VM pool /32s (reconciler)"
 
   # Add IPv4 anycast routes - all three tiers
   [[ -n "$ANYCAST_LOCAL_V4" ]] && echo "    route ${ANYCAST_LOCAL_V4}/32 unreachable;  # ULA - internal only"
@@ -536,7 +539,7 @@ protocol bgp RR1_v4 from BGP_COMMON {
         export filter {
             if net = PUBLIC_NET4 then accept;
 $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "            if net = PUBLIC_NET4_ALT then accept;  # 180.x traffic engineering")
-$([[ -n "$PUBLIC_POOL4" ]] && echo "            if net = PUBLIC_POOL4 then accept;  # NAT44 customer VM pool")
+$([[ -n "$PUBLIC_POOL4" ]] && echo "            if net ~ PUBLIC_POOL4 then accept;  # NAT44 customer VM pool")
 
             # Export all anycast /32 addresses
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
@@ -643,7 +646,7 @@ protocol bgp RR2_v4 from BGP_COMMON {
         export filter {
             if net = PUBLIC_NET4 then accept;
 $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "            if net = PUBLIC_NET4_ALT then accept;  # 180.x traffic engineering")
-$([[ -n "$PUBLIC_POOL4" ]] && echo "            if net = PUBLIC_POOL4 then accept;  # NAT44 customer VM pool")
+$([[ -n "$PUBLIC_POOL4" ]] && echo "            if net ~ PUBLIC_POOL4 then accept;  # NAT44 customer VM pool")
 
             # Export all anycast /32 addresses
             if net = ANYCAST_LOCAL_V4 then accept;  # ULA - internal
@@ -687,7 +690,7 @@ protocol bgp RR1_UNIFIED_v4 from BGP_COMMON {
         next hop self;
         add paths on;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")$([[ -n "$PUBLIC_POOL4" ]] && echo "if net = PUBLIC_POOL4 then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")$([[ -n "$PUBLIC_POOL4" ]] && echo "if net ~ PUBLIC_POOL4 then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 
@@ -711,7 +714,7 @@ protocol bgp RR2_UNIFIED_v4 from BGP_COMMON {
         next hop self;
         add paths on;
         import filter { preference = PREF_IPV4; if net = 0.0.0.0/0 then { bgp_local_pref = LOCAL_PREF_BACKUP; accept; } accept; };
-        export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")$([[ -n "$PUBLIC_POOL4" ]] && echo "if net = PUBLIC_POOL4 then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
+        export filter { if net = PUBLIC_NET4 then accept; $([[ -n "$PUBLIC_IP4_ALT" ]] && echo "if net = PUBLIC_NET4_ALT then accept;")$([[ -n "$PUBLIC_POOL4" ]] && echo "if net ~ PUBLIC_POOL4 then accept;")if net = ANYCAST_LOCAL_V4 then accept; if net = ANYCAST_SITE_V4 then accept; if net = ANYCAST_GLOBAL_V4 then accept; $(for i in $(seq 1 ${#VM_IP4S[@]}); do echo -n "if net = VM_IP4_${i} then accept; "; done)if net ~ INTERNAL_NET4 then accept; reject; };
     };
 }
 

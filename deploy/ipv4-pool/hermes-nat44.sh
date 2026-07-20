@@ -84,6 +84,20 @@ nft -f "$TMP"
 # prerouting before the FIB, so this never affects them.
 ip route replace blackhole "$POOL_CIDR" 2>/dev/null || true
 
+# Announce each assigned pool address as a /32 in BIRD. The /26 aggregate does
+# NOT propagate to transit; only /32s do (like the rest of our public IPs). We
+# maintain an included routes file and reload BIRD only when it changes.
+POOL_ROUTES="${POOL_ROUTES:-/etc/bird/pool-routes.conf}"
+new_routes="$(echo "$map" | jq -r '.[] | select(.public_v4) |
+    "route \(.public_v4)/32 unreachable;  # vmid \(.vmid // "-")"' | sort)"
+if [ ! -f "$POOL_ROUTES" ] || [ "$new_routes" != "$(cat "$POOL_ROUTES" 2>/dev/null)" ]; then
+    printf '%s\n' "$new_routes" > "$POOL_ROUTES"
+    if command -v birdc >/dev/null 2>&1; then
+        birdc configure >/dev/null 2>&1 \
+            && logger -t hermes-nat44 "bird reconfigured: $(printf '%s' "$new_routes" | grep -c .) pool /32(s)"
+    fi
+fi
+
 n="$(echo "$map" | jq '[.[] | select(.public_v4 and .internal_v4)] | length')"
 logger -t hermes-nat44 "applied ${n} NAT44 mapping(s)"
 echo "hermes-nat44: applied ${n} mapping(s)"
