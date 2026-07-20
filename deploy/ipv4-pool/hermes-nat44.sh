@@ -58,6 +58,14 @@ if ! echo "$map" | jq -e 'type == "array"' >/dev/null 2>&1; then
     exit 1
 fi
 
+# Defense-in-depth: keep only rows whose public/internal are well-formed dotted
+# quads before anything is interpolated into `nft -f` or a bird routes file.
+# They come from typed Rust (Ipv4Addr) today, but never feed a root ruleset
+# loader an unvalidated string — one upstream change would become nft injection.
+IPRE='^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$'
+map="$(echo "$map" | jq --arg re "$IPRE" \
+    '[ .[] | select(((.public_v4 // "") | test($re)) and ((.internal_v4 // "") | test($re))) ]')"
+
 # Render the ruleset. The `table {}` + `delete table` + `table { … }` idiom makes
 # the whole apply one atomic transaction (create-if-absent, drop, rebuild).
 {
@@ -88,13 +96,22 @@ ip route replace blackhole "$POOL_CIDR" 2>/dev/null || true
 # NOT propagate to transit; only /32s do (like the rest of our public IPs). We
 # maintain an included routes file and reload BIRD only when it changes.
 POOL_ROUTES="${POOL_ROUTES:-/etc/bird/pool-routes.conf}"
+NEED_RELOAD="${POOL_ROUTES}.needs-reload"
 new_routes="$(echo "$map" | jq -r '.[] | select(.public_v4) |
     "route \(.public_v4)/32 unreachable;  # vmid \(.vmid // "-")"' | sort)"
-if [ ! -f "$POOL_ROUTES" ] || [ "$new_routes" != "$(cat "$POOL_ROUTES" 2>/dev/null)" ]; then
+# Reload when the set changed OR a previous reload failed (else a transient
+# birdc failure would strand a stale announcement forever — the file already
+# "matches" so the diff never re-triggers).
+if [ ! -f "$POOL_ROUTES" ] || [ "$new_routes" != "$(cat "$POOL_ROUTES" 2>/dev/null)" ] || [ -f "$NEED_RELOAD" ]; then
     printf '%s\n' "$new_routes" > "$POOL_ROUTES"
     if command -v birdc >/dev/null 2>&1; then
-        birdc configure >/dev/null 2>&1 \
-            && logger -t hermes-nat44 "bird reconfigured: $(printf '%s' "$new_routes" | grep -c .) pool /32(s)"
+        if birdc configure >/dev/null 2>&1; then
+            rm -f "$NEED_RELOAD"
+            logger -t hermes-nat44 "bird reconfigured: $(printf '%s' "$new_routes" | grep -c .) pool /32(s)"
+        else
+            : > "$NEED_RELOAD" # retry next tick
+            logger -t hermes-nat44 "bird configure FAILED — will retry next tick"
+        fi
     fi
 fi
 

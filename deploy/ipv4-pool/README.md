@@ -39,6 +39,15 @@ birdc configure                                # apply
 birdc show route 160.22.180.64/26              # originated (unreachable)
 ```
 
+> **Boot-order note:** BIRD's `static4` does `include "/etc/bird/pool-routes.conf"`,
+> and BIRD 2.x treats a missing include as a **fatal** parse error — so the file
+> must exist before BIRD first starts, or the node comes up with no BGP at all.
+> Create it as part of node prep, before the first `birdc configure`:
+> `install -m644 /dev/null /etc/bird/pool-routes.conf` (the reconciler maintains
+> it thereafter). The nft table and the pool blackhole are reconciler-managed and
+> re-applied within ~30s of boot by the timer — they are not persisted to
+> `/etc/nftables.conf`, so expect a brief post-reboot gap until the first tick.
+
 ## 2. Kernel: blackhole unassigned pool space
 
 BIRD's static origin isn't exported to the FIB (kernel filter rejects
