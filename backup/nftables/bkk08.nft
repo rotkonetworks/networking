@@ -118,3 +118,14 @@ table ip nat {
 }
 table ip6 nat {
 }
+table ip hermes_nat44 {
+	chain prerouting {
+		type nat hook prerouting priority dstnat - 10; policy accept;
+		ip daddr 160.22.180.65 dnat to 10.8.20.1
+	}
+
+	chain postrouting {
+		type nat hook postrouting priority srcnat - 10; policy accept;
+		ip saddr 10.8.20.1 oifname "vmbr2" snat to 160.22.180.65
+	}
+}

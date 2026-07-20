@@ -1,4 +1,4 @@
-# 2026-07-19 15:59:32 by RouterOS 7.22
+# 2026-07-20 16:47:42 by RouterOS 7.22
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -792,7 +792,7 @@
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-hk-communities) { set bgp-local-pref 180; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 150; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 200; }"
+/routing filter rule add chain=IBGP-IN-v4 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 130; }"
 /routing filter rule add chain=IBGP-IN-v4 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="set bgp-large-communities location; accept;"
 /routing filter rule add chain=BKNIX-OUT-v4 rule="set bgp-large-communities location; accept;"
@@ -800,7 +800,7 @@
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst == 160.22.180.0/24) { set bgp-med 100; set bgp-path-prepend 10; set bgp-large-communities location; accept; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="set bgp-med 100; set bgp-path-prepend 10; set bgp-large-communities location; accept"
 /routing filter rule add chain=HGC-HK-OUT-v6 rule="set bgp-med 100; set bgp-path-prepend 10; set bgp-large-communities location; accept"
-/routing filter rule add chain=AMSIX-OUT-v4 rule="set bgp-med 150; set bgp-path-prepend 3; set bgp-large-communities location; accept"
+/routing filter rule add chain=AMSIX-OUT-v4 rule="set bgp-med 100; set bgp-path-prepend 10; set bgp-large-communities location; accept"
 /routing filter rule add chain=AMSIX-OUT-v6 rule="set bgp-med 150; set bgp-path-prepend 3; set bgp-large-communities location; accept"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst == 160.22.180.0/24) { set bgp-med 100; set bgp-path-prepend 3; set bgp-large-communities location; accept; }"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst == 160.22.181.0/24) { set bgp-med 100; set bgp-path-prepend 4; set bgp-large-communities location; accept; }"
@@ -918,7 +918,7 @@
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-sg-communities) { set bgp-local-pref 150; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-sg-communities) { set bgp-local-pref 150; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list hgc-th-hk-communities) { set bgp-local-pref 140; }"
-/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 200; }"
+/routing filter rule add chain=IBGP-IN-v6 rule="if (bgp-large-communities includes-list amsix-communities) { set bgp-local-pref 130; }"
 /routing filter rule add chain=IBGP-IN-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=IBGP-OUT-v6 rule="set bgp-large-communities ibgp-communities; accept;"
 /routing filter rule add chain=graceful-shutdown-out rule="set bgp-communities 65535:65281; accept"
