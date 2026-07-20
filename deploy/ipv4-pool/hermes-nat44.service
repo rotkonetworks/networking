@@ -1,0 +1,13 @@
+[Unit]
+Description=Render bkk08 NAT44 rules from hermesd IPv4 pool map
+Documentation=file:/opt/hermes-nat44/README.md
+After=network-online.target nftables.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/hermes-nat44/env
+ExecStart=/opt/hermes-nat44/hermes-nat44.sh
+# Fail closed: a bad run keeps the last-good table (script exits non-zero
+# without tearing anything down), and the timer retries.
+Nice=10
