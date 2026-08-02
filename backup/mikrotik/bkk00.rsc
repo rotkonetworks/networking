@@ -1,4 +1,4 @@
-# 2026-08-01 15:58:25 by RouterOS 7.22
+# 2026-08-02 16:03:12 by RouterOS 7.22
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -718,8 +718,8 @@
 /routing bgp connection add disabled=yes hold-time=3m input.filter=ROUTEVIEWS-IN-v6 .limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=RouteViews-BKNIX-v6 output.filter-chain=ROUTEVIEWS-OUT-v6 remote.address=2001:df5:b881::20 .as=6447 templates=BKNIX-v6
 /routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=HE-BKNIX-v4 remote.address=203.159.68.135 .as=6939 templates=BKNIX-v4
 /routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=HE-BKNIX-v6 remote.address=2001:df5:b881::135 .as=6939 templates=BKNIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=500000 instance=bgp-instance-1 keepalive-time=1m local.address=2403:5000:171:138::2 .role=ebgp name=HGC-HK-PRIMARY-v6 remote.address=2403:5000:171:138::1 .as=9304 templates=IPTX-HGC-HK-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1500000 instance=bgp-instance-1 keepalive-time=1m local.address=118.143.211.186 .role=ebgp name=HGC-HK-PRIMARY-v4 remote.address=118.143.211.185 .as=9304 templates=IPTX-HGC-HK-v4
+/routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv6=500000 instance=bgp-instance-1 keepalive-time=1m local.address=2403:5000:171:138::2 .role=ebgp name=HGC-HK-PRIMARY-v6 remote.address=2403:5000:171:138::1 .as=9304 templates=IPTX-HGC-HK-v6
+/routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv4=1500000 instance=bgp-instance-1 keepalive-time=1m local.address=118.143.211.186 .role=ebgp name=HGC-HK-PRIMARY-v4 remote.address=118.143.211.185 .as=9304 templates=IPTX-HGC-HK-v4
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-RS1-v4 remote.address=80.249.208.255 .as=6777 templates=AMSIX-v4
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-RS2-v4 remote.address=80.249.209.0 .as=6777 templates=AMSIX-v4
 /routing bgp connection add disabled=no hold-time=1m30s input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS1-v6 remote.address=2001:7f8:1::a500:6777:1 .as=6777 templates=AMSIX-v6
@@ -863,7 +863,7 @@
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
-/routing filter rule add chain=HGC-HK-IN-v4 comment="HK preferred for 0.0.0.0/1 split" rule="if (dst in 0.0.0.0/1) { set bgp-local-pref 155; set bgp-large-communities hgc-hk-communities; accept; }"
+/routing filter rule add chain=HGC-HK-IN-v4 comment="HK preferred for 0.0.0.0/1 split" rule="if (dst in 0.0.0.0/1) { set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept; }"
 /routing filter rule add chain=HGC-HK-IN-v4 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept"
 /routing filter rule add chain=AMSIX-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v4 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"
@@ -888,7 +888,7 @@
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Reject private ASN 16bit" rule="if (bgp-as-path [64512-65535]) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Reject private ASN 32bit" rule="if (bgp-as-path [4200000000-4294967295]) { reject; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="AS-path too long" rule="if (bgp-path-len > 75) { reject; }"
-/routing filter rule add chain=HGC-HK-IN-v6 comment="HK preferred for ::/1 split" rule="if (dst in ::/1) { set bgp-local-pref 155; set bgp-large-communities hgc-hk-communities; accept; }"
+/routing filter rule add chain=HGC-HK-IN-v6 comment="HK preferred for ::/1 split" rule="if (dst in ::/1) { set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept; }"
 /routing filter rule add chain=HGC-HK-IN-v6 comment="Accept route" rule="set bgp-local-pref 140; set bgp-large-communities hgc-hk-communities; accept"
 /routing filter rule add chain=AMSIX-IN-v6 comment="Reject our own prefixes" rule="if (dst in ipv6-apnic-rotko) { reject; }"
 /routing filter rule add chain=AMSIX-IN-v6 comment="RFC7607 reject AS 0" rule="if (bgp-as-path [0]) { reject; }"

@@ -1,4 +1,4 @@
-# 2026-08-01 15:58:25 by RouterOS 7.22
+# 2026-08-02 16:03:10 by RouterOS 7.22
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -590,8 +590,8 @@
 /routing bgp connection add afi=ipv6 input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 local.address=2402:b740:15:388:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-RS2-TH-v6 output.redistribute=connected,static,bgp remote.address=2402:b740:15:388:a500:15:388:252 .as=150388 routing-table=main templates=AMSIX-BAN-v6
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=no name=AMSIX-HE-HK-v4 remote.address=103.247.139.6 .as=6939 routing-table=main templates=AMSIX-HK-v4
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=no name=AMSIX-HE-HK-v6 remote.address=2001:df0:296::a500:6939:1 .as=6939 routing-table=main templates=AMSIX-HK-v6
-/routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv4=3000000 .limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.address=2407:9540:111:7::2 .role=ebgp name=HGC-HK-BACKUP-v6 remote.address=2407:9540:111:7::1 .as=142435 routing-table=main templates=IPTX-HGC-TH-HK-v6
-/routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=3000000 .limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.role=ebgp name=HGC-HK-BACKUP-v4 remote.address=103.168.174.177 .as=142435 routing-table=main templates=IPTX-HGC-TH-HK-v4
+/routing bgp connection add afi=ipv6 disabled=yes input.limit-process-routes-ipv4=3000000 .limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.address=2407:9540:111:7::2 .role=ebgp name=HGC-HK-BACKUP-v6 remote.address=2407:9540:111:7::1 .as=142435 routing-table=main templates=IPTX-HGC-TH-HK-v6
+/routing bgp connection add afi=ip disabled=yes input.limit-process-routes-ipv4=3000000 .limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.role=ebgp name=HGC-HK-BACKUP-v4 remote.address=103.168.174.177 .as=142435 routing-table=main templates=IPTX-HGC-TH-HK-v4
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=yes name=AMSIX-RS1-HK-v4 remote.address=103.247.139.125 .as=58560 routing-table=main templates=AMSIX-HK-v4
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 local.address=103.247.139.76 .role=ebgp multihop=yes name=AMSIX-RS2-HK-v4 remote.address=103.247.139.126 .as=58560 routing-table=main templates=AMSIX-HK-v4
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 local.address=2001:df0:296:0:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-RS1-HK-v6 remote.address=2001:df0:296::a505:8560:1 .as=58560 routing-table=main templates=AMSIX-HK-v6
