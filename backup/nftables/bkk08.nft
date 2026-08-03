@@ -62,6 +62,7 @@ table inet filter {
 		tcp dport 30435 accept
 		limit rate 5/minute log prefix "[DROP-IN] "
 		udp dport 443 accept
+		iifname "vmbr0" ip saddr 192.168.69.0/24 tcp dport { 139, 445 } accept
 	}
 
 	chain forward {
