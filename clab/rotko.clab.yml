@@ -1,0 +1,15 @@
+# Rotko fabric convergence lab — RouterOS edges (unnumbered-capable, v7.21+) + BIRD hosts.
+# Full-fidelity test needs a CHR image: set ${ROS_IMAGE} (vrnetlab mikrotik_ros).
+# Interior = BGP unnumbered (RouterOS: empty remote.address + local.address=<iface>, RFC5549).
+name: rotko-fabric
+topology:
+  kinds:
+    mikrotik_ros: { image: "${ROS_IMAGE:-ghcr.io/rotkonetworks/chr:7.22}" }
+    linux:        { image: "${BIRD_IMG:-ghcr.io/rotkonetworks/bird:3}" }
+  nodes:
+    edge1: { kind: mikrotik_ros, startup-config: ../backup/mikrotik/bkk00.rsc }
+    sw1:   { kind: mikrotik_ros, startup-config: ../backup/mikrotik/bkk60.rsc }
+    h1:    { kind: linux, binds: [ "../generated/bkk08-bird.conf:/etc/bird/bird.conf:ro" ] }
+  links:
+    - endpoints: [ "edge1:ether2", "sw1:ether1" ]   # unnumbered interior
+    - endpoints: [ "sw1:ether2", "h1:eth1" ]         # unnumbered interior

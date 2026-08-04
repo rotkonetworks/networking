@@ -1,0 +1,95 @@
+# rotko new-DC fabric — unnumbered eBGP, single-edge, redundancy-ready
+# Built on the pattern from github.com/rotkonetworks/unnumbered-bgp (blog: niemi.lol/blog/unnumbered-bgp)
+#
+#   [transit1]  numbered eBGP (the ONE cross-connect)
+#       │
+#   [edge1  AS142108]                 (+edge2 later: iBGP unnumbered, same AS — additive)
+#       │  unnumbered eBGP (IPv6 LL + RFC5549)
+#   [sw1   AS65100]                   (+sw2 AS65101 later: dual-ToR — additive)
+#     │      │  unnumbered eBGP
+#   [h1]    [h2]  Proxmox host leaves (FRR, per-host ASN)  (+hN — additive)
+#
+# Interior: NO addresses, NO /31s. Growth = add a node + its ASN + one `neighbor ethN interface`.
+name: rotko-newdc
+prefix: ""
+
+mgmt:
+  network: clab-newdc
+  ipv4-subnet: 172.31.0.0/24
+  ipv6-subnet: 3fff:172:31::/64
+
+topology:
+  kinds:
+    linux:
+      image: quay.io/frrouting/frr:10.2.1
+
+  nodes:
+    transit1:                       # stub upstream over the single cross-connect (NUMBERED)
+      kind: linux
+      mgmt-ipv4: 172.31.0.2
+      binds: [ configs/transit1.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - ip link set eth1 up
+        - ip addr add 192.0.2.1/30 dev eth1
+        - ip -6 addr add 2001:db8:ff::1/64 dev eth1
+        - /usr/lib/frr/frrinit.sh start
+
+    edge1:                          # AS142108 — public face; numbered up, unnumbered down
+      kind: linux
+      mgmt-ipv4: 172.31.0.11
+      binds: [ configs/edge1.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1 net.ipv4.ip_forward=1
+        - ip link set eth1 up                       # numbered → transit1
+        - ip addr add 192.0.2.2/30 dev eth1
+        - ip -6 addr add 2001:db8:ff::2/64 dev eth1
+        - ip link set eth2 up                       # unnumbered → sw1
+        # - ip link set eth3 up                     # UNNUMBERED → edge2 iBGP  (enable when edge2 lands)
+        - ip -6 addr add fd00::11/128 dev lo
+        - /usr/lib/frr/frrinit.sh start
+
+    sw1:                            # AS65100 — BGP spine (FRR stands in; prod = Arista/Mikrotik/SONiC)
+      kind: linux
+      mgmt-ipv4: 172.31.0.21
+      binds: [ configs/sw1.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1
+        - ip link set eth1 up      # unnumbered → edge1
+        - ip link set eth2 up      # unnumbered → h1
+        - ip link set eth3 up      # unnumbered → h2
+        - ip -6 addr add fd00::100/128 dev lo
+        - /usr/lib/frr/frrinit.sh start
+
+    h1:                             # AS65110 — Proxmox host leaf
+      kind: linux
+      mgmt-ipv4: 172.31.0.31
+      binds: [ configs/h1.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1
+        - ip link set eth1 up      # unnumbered → sw1
+        # service/anycast IPs the host originates (swap to real assigned addrs)
+        - ip addr add 203.0.113.10/32 dev lo
+        - ip -6 addr add 2001:db8::10/128 dev lo
+        - /usr/lib/frr/frrinit.sh start
+
+    h2:                             # AS65111 — Proxmox host leaf
+      kind: linux
+      mgmt-ipv4: 172.31.0.32
+      binds: [ configs/h2.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1
+        - ip link set eth1 up      # unnumbered → sw1
+        - ip addr add 203.0.113.11/32 dev lo
+        - ip -6 addr add 2001:db8::11/128 dev lo
+        - /usr/lib/frr/frrinit.sh start
+
+  links:
+    - endpoints: [ "transit1:eth1", "edge1:eth1" ]   # NUMBERED cross-connect
+    - endpoints: [ "edge1:eth2", "sw1:eth1" ]         # unnumbered
+    - endpoints: [ "sw1:eth2", "h1:eth1" ]            # unnumbered
+    - endpoints: [ "sw1:eth3", "h2:eth1" ]            # unnumbered
+    # --- redundancy adds (uncomment when the hardware arrives) ---
+    # - endpoints: [ "edge1:eth3", "edge2:eth3" ]     # edge1<->edge2 iBGP unnumbered
+    # - endpoints: [ "edge2:eth2", "sw1:eth4" ]
+    # - endpoints: [ "sw2:eth1", "edge1:eth4" ]       # 2nd ToR
+    # - endpoints: [ "h1:eth2", "sw2:eth2" ]          # hosts dual-home to sw2
