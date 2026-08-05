@@ -1,4 +1,4 @@
-# 2026-08-04 01:24:59 by RouterOS 7.22
+# 2026-08-05 01:22:03 by RouterOS 7.22
 # software id = I1J4-ZIVY
 #
 # model = CCR2004-16G-2S+
@@ -1628,6 +1628,8 @@ add address-pool=cgnat_pool interface=vlan_cgnat name=dhcp_cgnat
 /ip route add disabled=yes dst-address=160.22.181.252/32 gateway=192.168.77.82
 /ip route add disabled=yes dst-address=160.22.181.250/32 gateway=100.64.1.2
 /ip route add comment=TEMPORARY-bkk09 dst-address=160.22.181.9/32 gateway=192.168.69.223
+/ip route add comment="nexthop default via bkk00 - rescue 20260805" distance=10 dst-address=0.0.0.0/0 gateway=172.16.10.1
+/ip route add comment="nexthop default via bkk20 - rescue 20260805" distance=9 dst-address=0.0.0.0/0 gateway=172.16.20.1
 /ipv6 route add blackhole disabled=yes distance=254 dst-address=2401:a860::/32
 /ip service set ftp disabled=yes
 /ip service set ssh address=119.76.35.40/32,110.169.129.201/32,184.82.210.82/32,171.97.101.232/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,182.10.0.0/16,95.217.134.129/32

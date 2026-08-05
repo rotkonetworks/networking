@@ -18,7 +18,7 @@ table inet filter {
 		ct state invalid drop
 		iif "lo" accept
 		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
-		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10000/second accept
+		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10000/second burst 5 packets accept
 		tcp dport 179 ip saddr { 10.155.100.1, 10.155.100.2 } accept
 		tcp dport 179 ip6 saddr { fd00:155:100::1, fd00:155:100::2 } accept
 		udp dport { 3784, 4784 } ip saddr { 10.155.100.1, 10.155.100.2 } accept
@@ -61,7 +61,7 @@ table inet filter {
 		tcp dport { 30335, 31012, 31022, 31032, 31052, 31251, 32012, 32022, 32042, 32052, 32062, 33312, 33322, 33342, 33847, 33957, 33967, 34031, 34042, 34052, 34071 } accept
 		udp dport { 30335, 31012, 31022, 31032, 31052, 31251, 32012, 32022, 32042, 32052, 32062, 33312, 33322, 33342, 33847, 33957, 33967, 34031, 34042, 34052, 34071 } accept
 		tcp dport 30435 accept
-		limit rate 5/minute log prefix "[DROP-IN] "
+		limit rate 5/minute burst 5 packets log prefix "[DROP-IN] "
 	}
 
 	chain forward {
@@ -79,7 +79,7 @@ table inet filter {
 		iifname "vmbr2" ip6 saddr 2401:a860::/32 accept
 		oifname "vmbr2" ip6 daddr 2401:a860::/32 accept
 		iifname "vmbr2" ip saddr { 10.6.0.0-10.8.255.255, 10.12.0.0/16 } ip daddr 10.7.0.0/16 accept
-		limit rate 5/minute log prefix "[DROP-FWD] "
+		limit rate 5/minute burst 5 packets log prefix "[DROP-FWD] "
 	}
 
 	chain output {
