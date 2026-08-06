@@ -1,4 +1,4 @@
-# 2026-08-05 12:25:46 by RouterOS 7.22
+# 2026-08-06 12:32:37 by RouterOS 7.23.3
 # software id = VMHP-N1T8
 #
 # model = CRS504-4XQ
@@ -21,6 +21,7 @@
 /interface vlan add disabled=yes interface=vlan400-bgp name=qnq-108-400 vlan-id=108
 /interface vlan add disabled=yes interface=vlan400-bgp name=qnq-208-400 vlan-id=208
 /routing bgp template set default as=65530
+/system script add dont-require-permissions=no name=dorb owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="/system reboot"
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged ingress-filtering=no interface=qsfp28-1-1
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged ingress-filtering=no interface=qsfp28-2-1
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged ingress-filtering=no interface=qsfp28-3-1

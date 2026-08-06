@@ -1,4 +1,4 @@
-# 2026-08-01 04:40:34 by RouterOS 7.22
+# 2026-08-02 04:43:19 by RouterOS 7.23.3
 # software id = S02Y-Y1T7
 #
 # model = CRS504-4XQ
@@ -22,6 +22,8 @@
 /interface vlan add disabled=yes interface=vlan400-bgp name=qnq-108-400 vlan-id=108
 /interface vlan add disabled=yes interface=vlan400-bgp name=qnq-208-400 vlan-id=208
 /routing bgp template set default as=65530
+/system script add dont-require-permissions=no name=dorb owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="/system reboot"
+/system script add dont-require-permissions=no name=dofwrb owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="/system routerboard upgrade; :delay 3s; /system reboot"
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged interface=qsfp28-1-1
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged interface=qsfp28-2-1
 /interface bridge port add bridge=bridge frame-types=admit-only-vlan-tagged interface=qsfp28-3-1
@@ -34,7 +36,7 @@
 /interface bridge vlan add bridge=bridge tagged=bridge,qsfp28-1-1,qsfp28-2-1,qsfp28-3-1,qsfp28-4-1 vlan-ids=400
 /interface bridge vlan add bridge=bridge disabled=yes tagged=qsfp28-2-1,qsfp28-4-1,qsfp28-3-1,qsfp28-1-1 vlan-ids=108
 /interface bridge vlan add bridge=bridge disabled=yes tagged=qsfp28-1-1,qsfp28-4-1,qsfp28-3-1,qsfp28-2-1 vlan-ids=208
-/interface ethernet switch set 0 l3-hw-offloading=yes qos-hw-offloading=yes
+/interface ethernet switch set switch1 l3-hw-offloading=yes qos-hw-offloading=yes
 /interface ovpn-server server add mac-address=FE:F4:B8:5E:41:C0 name=ovpn-server1
 /ip address add address=192.168.88.40/24 interface=ether1 network=192.168.88.0
 /ip address add address=10.255.40.1 interface=lo network=10.255.40.1
@@ -59,7 +61,9 @@
 /ip service set api address=10.40.0.0/24,192.168.88.0/24 disabled=yes
 /ip service set api-ssl address=10.40.0.0/24,192.168.88.0/24 disabled=yes
 /ipv6 address add address=2401:a860:1181::40 advertise=no interface=ether1
-/ipv6 nd set [ find default=yes ] advertise-dns=yes
+/ipv6 nd
+# automatic dns option advertising is not started, re-apply dns config
+set [ find default=yes ] advertise-dns=yes
 /system clock set time-zone-name=Europe/Tallinn
 /system identity set name=bkk40
 /system note set show-at-login=no

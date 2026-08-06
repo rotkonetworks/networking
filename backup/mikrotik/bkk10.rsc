@@ -1,4 +1,4 @@
-# 2026-08-05 12:29:51 by RouterOS 7.22
+# 2026-08-06 12:32:37 by RouterOS 7.23.3
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -76,7 +76,9 @@ add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG
 /ipv6 address add address=fd00:dead:beef:2010::1/127 advertise=no interface=BKK20-LAG
 /ipv6 address add address=2401:a860:1181:2010::1/127 advertise=no interface=BKK20-LAG
 /ipv6 address add address=2401:a860:1181::10/128 advertise=no interface=lo
-/ipv6 nd set [ find default=yes ] advertise-dns=yes
+/ipv6 nd
+# automatic dns option advertising is not started, re-apply dns config
+set [ find default=yes ] advertise-dns=yes
 /routing ospf interface-template add area=backbone comment=loopback-v4 disabled=no networks=10.155.255.10/32 passive
 /routing ospf interface-template add area=backbone comment=p2p-bkk00-v4 disabled=no networks=172.16.110.0/31
 /routing ospf interface-template add area=backbone comment=p2p-bkk20-v4 disabled=no networks=172.16.210.0/31

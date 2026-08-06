@@ -1,4 +1,4 @@
-# 2026-08-05 16:28:09 by RouterOS 7.23
+# 2026-08-06 16:32:37 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -294,14 +294,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:xTelmXLyzlWWYMaUROzrKVZFHYaqOxvo
+/app set lorawan-stack secrets=lorawan-stack__admin_password:SHVGoXEDkIbaSxVnUIhVSsNGgZfLFrUP
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:xDriEClfKaikvCKwGvOGfxaAJpysaoRu,zulip__memcached_password:cMxwgqxXkxKFmpmaUfMtFnHHNWzznagZ,zulip__rabbitmq_password:TtjVXSruUOVRrInmsjyZYuyBiTxpCDtp,zulip__redis_password:mMYVDRrJGRMCopuuxcwXlSROcpoDmzzL,zulip__secret_key:iNPxFNuduMMBGEkhWfOMnWamwopByCSx,zulip__email_password:fMdseYRyXMDvpHjHoUVNotWwYvwxKNTb
+/app set zulip secrets=zulip__postgres_password:KLhVZpwFgEryBSTglSJhLWPvSlCTBKWN,zulip__memcached_password:onsMrdNknvzTrtruSlZabiXzPZRHYzKM,zulip__rabbitmq_password:jyQEgtYOwDZamcJrYJIYxjwUBGVsiqyR,zulip__redis_password:APJifiEgEXgWzbHOqVXdCPnLOhtGrzOm,zulip__secret_key:oXCJAXXOasvuVJaXyWQIbrsSokmPztFz,zulip__email_password:WsJYARnqhDuGMmwEQAPSetFjIOyEszqk
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -731,8 +731,8 @@
 /routing bgp connection add disabled=yes hold-time=3m input.filter=ROUTEVIEWS-IN-v6 .limit-process-routes-ipv6=10 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=RouteViews-BKNIX-v6 output.filter-chain=ROUTEVIEWS-OUT-v6 remote.address=2001:df5:b881::20 .as=6447 templates=BKNIX-v6
 /routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=HE-BKNIX-v4 remote.address=203.159.68.135 .as=6939 templates=BKNIX-v4
 /routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 keepalive-time=1m local.role=ebgp name=HE-BKNIX-v6 remote.address=2001:df5:b881::135 .as=6939 templates=BKNIX-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv6=500000 instance=bgp-instance-1 keepalive-time=1m local.address=2403:5000:171:138::2 .role=ebgp name=HGC-HK-PRIMARY-v6 remote.address=2403:5000:171:138::1 .as=9304 templates=IPTX-HGC-HK-v6
-/routing bgp connection add disabled=no hold-time=3m input.limit-process-routes-ipv4=1500000 instance=bgp-instance-1 keepalive-time=1m local.address=118.143.211.186 .role=ebgp name=HGC-HK-PRIMARY-v4 remote.address=118.143.211.185 .as=9304 templates=IPTX-HGC-HK-v4
+/routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv6=500000 instance=bgp-instance-1 keepalive-time=1m local.address=2403:5000:171:138::2 .role=ebgp name=HGC-HK-PRIMARY-v6 remote.address=2403:5000:171:138::1 .as=9304 templates=IPTX-HGC-HK-v6
+/routing bgp connection add disabled=yes hold-time=3m input.limit-process-routes-ipv4=1500000 instance=bgp-instance-1 keepalive-time=1m local.address=118.143.211.186 .role=ebgp name=HGC-HK-PRIMARY-v4 remote.address=118.143.211.185 .as=9304 templates=IPTX-HGC-HK-v4
 /routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-RS1-v4 remote.address=80.249.208.255 .as=6777 templates=AMSIX-v4
 /routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=AMSIX-RS2-v4 remote.address=80.249.209.0 .as=6777 templates=AMSIX-v4
 /routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=AMSIX-RS1-v6 remote.address=2001:7f8:1::a500:6777:1 .as=6777 templates=AMSIX-v6
@@ -743,8 +743,8 @@
 /routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv4=1000000 instance=bgp-instance-1 keepalive-time=30s local.role=ebgp name=Cloudflare-AMSIX-v4-2 remote.address=80.249.210.118 .as=13335 templates=AMSIX-v4
 /routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv6=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-1 remote.address=2001:7f8:1::a501:3335:1 .as=13335 templates=AMSIX-v6
 /routing bgp connection add disabled=yes hold-time=1m30s input.limit-process-routes-ipv6=1000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=Cloudflare-AMSIX-v6-2 remote.address=2001:7f8:1::a501:3335:2 .as=13335 templates=AMSIX-v6
-/routing bgp connection add disabled=no hold-time=1m30s input.filter=HE-AMSIX-IN-v4 .limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=HE-AMSIX-v4 remote.address=80.249.209.150 .as=6939 templates=AMSIX-v4
-/routing bgp connection add disabled=no hold-time=1m30s input.filter=HE-AMSIX-IN-v6 .limit-process-routes-ipv6=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
+/routing bgp connection add disabled=yes hold-time=1m30s input.filter=HE-AMSIX-IN-v4 .limit-process-routes-ipv4=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=80.249.212.139 .role=ebgp name=HE-AMSIX-v4 remote.address=80.249.209.150 .as=6939 templates=AMSIX-v4
+/routing bgp connection add disabled=yes hold-time=1m30s input.filter=HE-AMSIX-IN-v6 .limit-process-routes-ipv6=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
 /routing bgp connection add afi=ip input.filter=iBGP-IN-v4 instance=bgp-instance-1 local.address=10.155.255.4 .role=ibgp multihop=yes name=ibgp-bkk50-v4 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.255.3 .as=142108 templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 input.filter=iBGP-IN-v6 instance=bgp-instance-1 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=ibgp-bkk50-v6 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v6 .redistribute=connected,static,bgp remote.address=fd00:dead:beef::50 .as=142108 templates=IBGP-ROTKO-v6
 /routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.1 .role=ibgp-rr name=rr-client-bkk08-unified-v4 remote.address=10.155.100.8 .as=142108 templates=RR-CLIENTS-v4
