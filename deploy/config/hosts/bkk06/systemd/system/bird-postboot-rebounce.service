@@ -1,0 +1,13 @@
+[Unit]
+Description=Re-bounce bird BGP sessions once after boot settles
+# Why: on host reboot the first BGP establishment happens while OVS/bridge
+# ports are still converging; the RouterOS edge (bkk00/bkk20) can program a
+# stale HW-offloaded FIB entry for our service /32s and blackhole inbound
+# traffic (incident 2026-08-05, penumbra.rotko.net). A single session bounce
+# after the data plane is quiet forces the edge to reprogram.
+After=bird.service network-online.target
+Requires=bird.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/birdc restart all

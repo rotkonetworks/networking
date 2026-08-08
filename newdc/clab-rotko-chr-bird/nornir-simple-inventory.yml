@@ -1,0 +1,11 @@
+---
+h1:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.4
+chr1:
+    username: admin
+    password: admin
+    platform: mikrotik_ros
+    hostname: 172.20.20.5

@@ -1,0 +1,244 @@
+{
+  "name": "rotko-newdc-bird",
+  "type": "clab",
+  "clab": {
+    "config": {
+      "prefix": "",
+      "mgmt": {
+        "network": "clab-newdc-bird",
+        "bridge": "podman3",
+        "ipv4-subnet": "172.31.1.0/24",
+        "external-access": true
+      }
+    }
+  },
+  "ssh-pub-keys": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCe8MclsF6j/lKkcLUqI4+3vsL/xZvxjAOSolNI3iXc1mp3/V0i2FbNTWy+ZGGvJY/G56Jf09Gt6mHthmQ9jcO3+ZgqeDhHgwOkSCjc+DubrOPXzYCJdFw+/7PkCT7juSaYyz6Z5u8EwDwmM1G/XGsKsUfsArh93fxdfhTmnZRvbdkk87ETJ9NxYr/a+rM4Qt0X7GL1vHQ5WUvNpZW73oSFTt+9uowEvrCNcd787CEjsA3dYuBatcwTw9bgHmMarXRBd3CD8Hh+HRaHiuknZzXUcCT/tbg1FOc/Te+Jk2OyktD7Op157thSLnYyhINpZ71gMYbQWGDrSHWKHavzYpE0hFpYS6Z7fmoTP+V2astbAY9jTPtbAGEimXJLdnaXyFHO1Q/SCvcyLlu5r89lBBXDLZlmHEhmk2DLpu//NnX6PXkVFPCYESQaXRuSZznpndsZlxMDWBalClhfbKTT+B3BHawBVeSg2qtjUX2Nhwq9xy11VwXBvBIcs9t2HUEl7Vk=","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOTNCm0YuKPXYKTRu3ZuZ8zBrrQ0fqCXAUEY5djKaudy","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPBgdF5W2e5iMFt1iiLRuRdz7RxJzmj9v30nn9vZTYP","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO/932VVUPxVatGNtwIG1Jrr/NfCSznG/LPG9YFrCJPX","ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq1v8F93IKOQW4Kvi7EPhwie83Ntxdl3nEafMb/JNSgmJlQuJNyI3EUjk5yMZYfdCxpRizfwH8JlLww1ccs3J+QDfq7ilfnNYQsMmzBow33F/c/cZXbgmJZ2krZq/9iMGbnF0Ug92lP/rDqlVufOhx3Ewksx26O6TFqfobaQAWR6JTllSxEM7sWczzTOysQn5tDWyw+piyUFyYuxmqOqSKjIe7e+CEnHsHLDG6nO0ZzVKZDyUavYjiVMofG4DeThVTUB9OFfHnf3FNkdWeWykCK/B/gM+uFrDCPSxKgIgRZAHRrHux82/c4zHXMWHf0I0ySGjqFzb3IRWWV/awBvCV2trg8taX48/APfZFnUxqoeeYh3r6GE/YMhVjMcUBTGbyUtFRjZCYTv/opMenlgDL40oH2OqUFd9PB3wJHvtmdVp9QLBwW+KUZouqpagznNqyt2nj8LOkLADCL4B6VwS/F7VmAzJ2MZqVd9zLMFgSB24ukeiBZ+t/OIBczotVHPU=","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINcZFjsaZgnr06FTNm5ALDKoPfP3gcSRLTUqzxTDlzjB","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVypLRnk9m1GrgLDIGeO+s1JuCBX86KefQrH6TMpcOL","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPTu25Uj1EsmHnTHtwJ732iMMzVWg4Pdg5SIKFKt5nDp","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILOpUCz+cYuqfvZVBVBTXvUHXD8HZTTyesPqhgOvwQWl","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKNSWi2a5KJ/OYpMyEI2v9g9nrvuK0HPqJ7cFMz3IxqB","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBALMw8fIYDLEUElQoZUsBDeywLj7YmOnbWKDkmCleTF","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJAEPzPDdmThHQNRvAHPD16FvVzBie7rPtq/kE+TRSGg","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDs/u5My4ZHuKCK/Wtg+IngVyAhlGa2nJcMZ+7pKsPX7","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJskswpgc2eg5X3cVrGpXhpYRK4zx1rvbIMyZ39ET+Vv","ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC3D8+AdUp0+AbpAmIVvusxe2WpNIaIqBNk2RtpgTcjYwQBXhcYoG1cbJf65R3tocfPVhgHqaGwoblfFg0OTsUb5q0EO/XZn1AXKISZCMmWhw2a4Nu1i1v7mwUZQVkAJ1d/01FJDq1puLn9T7SNsVSp58Md3fReZxq/zG3A9f0dmcqvXtFWN2WEQs4+EZRBLZOu2unUBaneNytgp90ZVGMN8lyEKxZcQAFc0ArkUAelbJsIvJg3GIo4mK64bzRKgfjc8II0sWIPyAzhGjlhvAe0YtIdtxJ5F/+8/X79xgfDzV6QGob3OwFp9Ni3qoej1xperUNk7ZZY7Np84btWyZlZb+VNA95QvLNCHjdlG5w4cYdywiUouAlplZkJM8gZcPwlhakFoui+Nq+d72YVUb4vohWIBavU0AKAtDDRr4D0j849IT8d9hGNqx87fF/rAaqhHIE5O36W+d+1eu4nEEOHN/JGGYFSJi4sHpyNM8tOn7cBwdgrc8GIAhWwYT+E460=","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMHbwg0QoIaw/mDOxJ5cX08pm3L1JFhOyRVQOIZDAj59","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBIrOT9g9BblH6u28wAQGmpqA/sH+EiKdhrqrfuDdZu2","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7mOl8kMbtjFdZQDhB0HzaJRlqV8duLdARUZnGF+Zp3","ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDqt/y0bQsNTgLTIoEOLtOMvXzvc2DX4mJ8BpZZ9ifnDxlO70TVaee4HGnsTch88EJH1+qjfXQP3owVKg/2gU7hBLx95Bbu76If3Ootr8CR54/qbfDW1HJruEOS/R2oxbh8MVv4I4fLIy0tNFhT4xKamIawBqYwdlUZaaSruRwPRX21mJNeRUjcVhji50b2F7TcymOg0A6Uxir56784rDlSKEPmtUhkkTzwZZce0wIKM4vGs6xNoBWEl3OWn4gfTKGM9EP1fE8t8ElynLkNyHxpLjO4TjViyy0ZzxkrSIf2Fn2Jkhiudb2zGFD+q+JVVk6JS/RWz75FJN7G+IcShxL2+ZZuEBEQVccqaMk93kQGnAm/Akm/VYJBnNJuaZ4cyh+IBV/zzcqcIiwe7jnhe3xf2XDGCKjzT8Gs1zfxhJ2PBjqT/m/n+NF9uuBgfNamVc70AakD72QCUH6lKnlQCN+6Xk71cUyA2j1Z7WP6FhtmmlstEYCYJOHa8N7v5SpXghM=","ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCpXYCqdzlS36wnA6IW7+OtccUOm+6LTH/JcYnFDTeR9o3ldy59AOyBqnlf3km5uAvgzIZQJiM+whbiNuhgss0jg75Q06SCvAw0ZTbKFyeiHTa/QaKkq43pSA6nZIVGNkEiahwT90CF4MvJuXG6bcm1rxSHtZjJmTs/RNnrX5ve6xCakU/ZVHY22B20b0R69rqdx93vsXmkqKc/NgpeYSO57X4SLgIEU9WWtLULIgkWf6kHJcfwGVdjsajJlBWkE3NZ/GZrt75SGtGGQ633N5D9xxi2M/zb1bRopIGFBWsWg/gChV465M8Rq4r5OoSx8s72w0mMwAJNjNDOkU2eMBBE2X8yI6XXEFQEjLGSRp4aqRknsBx5hx7CSfEQnB21fOkwHtbhXTQesFblsdwWyVjSZsnpAk5ESJ1o4gERqZhD1bSpli01TOgu5BxmIaxZuZrIIATwaRdjeu9/GMrilw4l0/WSmeKIoL+0yT1fhH5S3I3QOgZqSku6Z8EZBxlDnWOIT1GvWnt1KHv9SvKmBEWUZKjJegawNq3WzWLmWJIYQ11g0S2RhfGFv37pHnjjLRN08aG5ieshszjdpvI6UqxjJ5jlME6eXeO/q22GoupoPMMn++BVvz0/aKHriAJ3mriA9NYXL/sK3h21nW4gCXSLSJz0qQM+8A8qpSo1wajDCQ==","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMDfSVHfiewHja6ESQ55jkh2D5do1ONfyJfGUduAcmfL","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH2fCfSntLbQu/XXWSQNixGE4fEBhyIWKUKRCi8I8Z8S","ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDM9c4bMhLAibeFm0pAn5AcRcyKhmmankAgisbVZKLwyPqabinNJj7AQwu6fWAV5wExkil4hWmd7iUnf+kIg63fPZ1NmG9qZRlM3wsqh8MwmT1r/wLMw/0yLvb6F7NRjV2luohJLLDJpuXbd+wTi61+Trx8u7cr+0T7zORlkH6bpLvOEqrRoT/QnIFHB2uZTNplM77NmpROnYWIl9WT+FEoeo9hvepNqyo5zS+29qSK6UOPD+PwP7e9AjYJM2K4YDgdFqoTq7/Xj3oBD2mQBnYALT490QptPCspOIgmZ9ypvaUasFPBHWtiKku+jy9QAt0OKCRyh/iLm/nAIVn7Ny71mWjLqYPYXVjZ0talhg5cui+9LFUp6GQU9zU4Zyu1JfVXKJ+47AnOiHHL/ECY4Dpou3RYSJvC+paZc38GR9jLyETp7BnO9j9gch37eLjgXh37sheQaH7ktzEkt/vuX8FbcSLnanyy6UjTe1lENRh12V9H6xKg5L7S/56w8L6ky+M=","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBNFkk4FKv2kfWsKeJk/rawuNxQTtN9O97iNh5+mttwI"],
+  "nodes": {
+    "edge1": {
+      "index": "0",
+      "shortname": "edge1",
+      "longname": "edge1",
+      "fqdn": "edge1.rotko-newdc-bird.io",
+      "group": "",
+      "labdir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/edge1",
+      "kind": "linux",
+      "image": "quay.io/frrouting/frr:10.2.1",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.31.1.11",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman3",
+        "clab-net-mgmt": "clab-newdc-bird",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/edge1",
+        "clab-node-longname": "edge1",
+        "clab-node-name": "edge1",
+        "clab-node-type": "",
+        "clab-owner": "alice",
+        "clab-topo-file": "/steam/rotko/networking/newdc/rotko-newdc-bird.clab.yml",
+        "containerlab": "rotko-newdc-bird"
+      },
+      "port-bindings": [
+      ]
+    },
+    "h1": {
+      "index": "1",
+      "shortname": "h1",
+      "longname": "h1",
+      "fqdn": "h1.rotko-newdc-bird.io",
+      "group": "",
+      "labdir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/h1",
+      "kind": "linux",
+      "image": "localhost/clab-bird3:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.31.1.31",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman3",
+        "clab-net-mgmt": "clab-newdc-bird",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/h1",
+        "clab-node-longname": "h1",
+        "clab-node-name": "h1",
+        "clab-node-type": "",
+        "clab-owner": "alice",
+        "clab-topo-file": "/steam/rotko/networking/newdc/rotko-newdc-bird.clab.yml",
+        "containerlab": "rotko-newdc-bird"
+      },
+      "port-bindings": [
+      ]
+    },
+    "h2": {
+      "index": "2",
+      "shortname": "h2",
+      "longname": "h2",
+      "fqdn": "h2.rotko-newdc-bird.io",
+      "group": "",
+      "labdir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/h2",
+      "kind": "linux",
+      "image": "localhost/clab-bird3:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.31.1.32",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman3",
+        "clab-net-mgmt": "clab-newdc-bird",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/h2",
+        "clab-node-longname": "h2",
+        "clab-node-name": "h2",
+        "clab-node-type": "",
+        "clab-owner": "alice",
+        "clab-topo-file": "/steam/rotko/networking/newdc/rotko-newdc-bird.clab.yml",
+        "containerlab": "rotko-newdc-bird"
+      },
+      "port-bindings": [
+      ]
+    },
+    "sw1": {
+      "index": "3",
+      "shortname": "sw1",
+      "longname": "sw1",
+      "fqdn": "sw1.rotko-newdc-bird.io",
+      "group": "",
+      "labdir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/sw1",
+      "kind": "linux",
+      "image": "quay.io/frrouting/frr:10.2.1",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.31.1.21",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman3",
+        "clab-net-mgmt": "clab-newdc-bird",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/sw1",
+        "clab-node-longname": "sw1",
+        "clab-node-name": "sw1",
+        "clab-node-type": "",
+        "clab-owner": "alice",
+        "clab-topo-file": "/steam/rotko/networking/newdc/rotko-newdc-bird.clab.yml",
+        "containerlab": "rotko-newdc-bird"
+      },
+      "port-bindings": [
+      ]
+    },
+    "transit1": {
+      "index": "4",
+      "shortname": "transit1",
+      "longname": "transit1",
+      "fqdn": "transit1.rotko-newdc-bird.io",
+      "group": "",
+      "labdir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/transit1",
+      "kind": "linux",
+      "image": "quay.io/frrouting/frr:10.2.1",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.31.1.2",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "podman3",
+        "clab-net-mgmt": "clab-newdc-bird",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/steam/rotko/networking/newdc/clab-rotko-newdc-bird/transit1",
+        "clab-node-longname": "transit1",
+        "clab-node-name": "transit1",
+        "clab-node-type": "",
+        "clab-owner": "alice",
+        "clab-topo-file": "/steam/rotko/networking/newdc/rotko-newdc-bird.clab.yml",
+        "containerlab": "rotko-newdc-bird"
+      },
+      "port-bindings": [
+      ]
+    }
+  },
+  "links": [
+    {
+      "endpoints": {
+        "a": {
+          "node": "transit1",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:31:e9:03",
+          "peer": "z"
+        },
+        "z": {
+          "node": "edge1",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:d3:14:38",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "edge1",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:46:d5:1b",
+          "peer": "z"
+        },
+        "z": {
+          "node": "sw1",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:47:91:ac",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "sw1",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:84:5c:bb",
+          "peer": "z"
+        },
+        "z": {
+          "node": "h1",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:88:ed:f3",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "sw1",
+          "interface": "eth3",
+          "mac": "aa:c1:ab:e6:eb:98",
+          "peer": "z"
+        },
+        "z": {
+          "node": "h2",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:02:ae:f9",
+          "peer": "a"
+        }
+      }
+    }
+  ]
+}

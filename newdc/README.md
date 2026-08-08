@@ -12,8 +12,13 @@ pattern from `github.com/rotkonetworks/unnumbered-bgp` / niemi.lol/blog/unnumber
                                                                    │        │  unnumbered eBGP
                                                               [h1 65110] [h2 65111]  (Proxmox leaves)
 ```
-Interior links carry **no addresses and no /31s** — FRR peers over IPv6 link-local, IPv4 rides
+Interior links carry **no addresses and no /31s** — peers over IPv6 link-local, IPv4 rides
 an IPv6 next-hop (RFC 5549/8950). Only the cross-connect (transit) is numbered.
+
+**Daemon note:** the lab uses FRR, but the production **Proxmox hosts run BIRD**, and **BIRD 3.3.2
+does RFC 5549** (`extended next hop on` on the IPv4 channel — verified 2026-08). So the whole fabric
+can be **all-BIRD unnumbered** end to end; no numbered host legs and no need to switch hosts to FRR.
+Kernel needs IPv4-route-via-IPv6-nexthop (Linux ≥5.2; the hosts run 7.0.x — fine).
 
 ## ASN plan (redundancy-ready)
 | Role | ASN | Notes |

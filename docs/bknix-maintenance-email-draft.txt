@@ -1,0 +1,65 @@
+TO: support@bknix.co.th, noc@bknix.co.th
+CC: hq@rotko.net
+SUBJECT: AS142108 - Additional Peering LAN IP Request + Maintenance Notification
+
+---
+
+Dear BKNIX Team,
+
+Happy New Year 2026!
+
+We would like to request the following after the network freeze period ends:
+
+1. ADDITIONAL IP ALLOCATION REQUEST
+
+AS142108 (Rotko Networks) requests 2 additional IPv4 and IPv6 addresses on the BKNIX peering LAN for our edge router expansion.
+
+Current allocation:
+- IPv4: 203.159.68.168/23
+- IPv6: 2001:df5:b881::168/64
+
+Requested additional:
+- 2x IPv4 addresses on 203.159.68.0/23
+- 2x IPv6 addresses on 2001:df5:b881::/64
+
+Purpose: We are migrating from RouterOS to BIRD-based edge routing across 3 Linux servers for redundancy and ECMP load balancing.
+
+Currently we have a single point of failure - if our router with 203.159.68.168 goes down, we lose all BKNIX connectivity. We understand BKNIX provides redundancy via RS0/RS1 (thank you!), but we need to add redundancy on our side.
+
+With 3 peering LAN IPs, each of our servers can establish independent BGP sessions to both route servers:
+
+    RS0 ──┬── bkk06 (requested IP #1)
+          ├── bkk07 (requested IP #2)
+          └── bkk08 (current .168, will migrate)
+
+    RS1 ──┬── bkk06
+          ├── bkk07
+          └── bkk08
+
+This allows any 2 of our 3 servers to fail while maintaining BKNIX connectivity. This is the standard hyperscaler architecture pattern.
+
+Question: Does our port support optional VLAN tagging? If so, we could use separate VLANs per server on the same physical connection. Please advise on available options.
+
+2. MAINTENANCE NOTIFICATION
+
+We plan to perform firmware upgrades on our edge equipment connected to BKNIX during the following window:
+
+Proposed Date: 5 January 2026
+Time Window: 22:00 - 00:00 (UTC+7)
+Expected Impact: Brief BGP session resets (< 2 minutes per device)
+
+Devices affected:
+- bkk00 (CCR2216-1G-12XS-2XQ) - Primary edge router
+- bkk20 (backup edge router)
+
+We will use BCP 214 maintenance mode via IXP Manager before commencing work.
+
+Please confirm:
+1. Availability of the requested IP addresses
+2. Approval for the maintenance window
+
+Best regards,
+
+Tommi
+AS142108 / Rotko Networks
+noc@rotko.net

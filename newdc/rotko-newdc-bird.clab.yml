@@ -1,0 +1,82 @@
+# rotko new-DC fabric — ALL-BIRD host leaves (proves BIRD 3.3.2 unnumbered eBGP + RFC 5549 vs FRR fabric)
+#   transit1/edge1/sw1 = FRR (the fabric stand-in) ; h1/h2 = BIRD 3.3.2 (the Proxmox leaves)
+# Verifies IPv4-over-IPv6-nexthop end to end with BIRD on the hosts — no numbered legs, no FRR on hosts.
+name: rotko-newdc-bird
+prefix: ""
+
+mgmt:
+  network: clab-newdc-bird
+  ipv4-subnet: 172.31.1.0/24
+
+topology:
+  kinds:
+    linux:
+      image: quay.io/frrouting/frr:10.2.1
+
+  nodes:
+    transit1:
+      kind: linux
+      mgmt-ipv4: 172.31.1.2
+      binds: [ configs/transit1.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - ip link set eth1 up
+        - ip addr add 192.0.2.1/30 dev eth1
+        - ip -6 addr add 2001:db8:ff::1/64 dev eth1
+        - /usr/lib/frr/frrinit.sh start
+
+    edge1:
+      kind: linux
+      mgmt-ipv4: 172.31.1.11
+      binds: [ configs/edge1.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1 net.ipv4.ip_forward=1
+        - ip link set eth1 up
+        - ip addr add 192.0.2.2/30 dev eth1
+        - ip -6 addr add 2001:db8:ff::2/64 dev eth1
+        - ip link set eth2 up
+        - ip -6 addr add fd00::11/128 dev lo
+        - /usr/lib/frr/frrinit.sh start
+
+    sw1:
+      kind: linux
+      mgmt-ipv4: 172.31.1.21
+      binds: [ configs/sw1.conf:/etc/frr/frr.conf:ro, configs/daemons:/etc/frr/daemons:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1
+        - ip link set eth1 up
+        - ip link set eth2 up
+        - ip link set eth3 up
+        - ip -6 addr add fd00::100/128 dev lo
+        - /usr/lib/frr/frrinit.sh start
+
+    h1:                             # AS65110 — BIRD 3.3.2 leaf
+      kind: linux
+      image: localhost/clab-bird3:latest
+      mgmt-ipv4: 172.31.1.31
+      binds: [ configs/h1.bird.conf:/etc/bird/bird.conf:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1
+        - ip link set eth1 up
+        - ip addr add 203.0.113.10/32 dev lo
+        - ip -6 addr add 2001:db8::10/128 dev lo
+        - mkdir -p /run/bird
+        - bird -c /etc/bird/bird.conf
+
+    h2:                             # AS65111 — BIRD 3.3.2 leaf
+      kind: linux
+      image: localhost/clab-bird3:latest
+      mgmt-ipv4: 172.31.1.32
+      binds: [ configs/h2.bird.conf:/etc/bird/bird.conf:ro ]
+      exec:
+        - sysctl -w net.ipv6.conf.all.forwarding=1
+        - ip link set eth1 up
+        - ip addr add 203.0.113.11/32 dev lo
+        - ip -6 addr add 2001:db8::11/128 dev lo
+        - mkdir -p /run/bird
+        - bird -c /etc/bird/bird.conf
+
+  links:
+    - endpoints: [ "transit1:eth1", "edge1:eth1" ]   # NUMBERED cross-connect
+    - endpoints: [ "edge1:eth2", "sw1:eth1" ]         # unnumbered
+    - endpoints: [ "sw1:eth2", "h1:eth1" ]            # unnumbered (FRR<->BIRD)
+    - endpoints: [ "sw1:eth3", "h2:eth1" ]            # unnumbered (FRR<->BIRD)

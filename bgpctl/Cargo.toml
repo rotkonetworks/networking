@@ -1,0 +1,63 @@
+[package]
+name = "bgpctl"
+version = "0.1.0"
+edition = "2021"
+authors = ["rotko network operations"]
+description = "bgp route optimization daemon for as142108"
+license = "MIT"
+rust-version = "1.75"
+
+[dependencies]
+# async runtime
+tokio = { version = "1.35", features = ["full", "rt-multi-thread", "sync", "time", "signal", "net"] }
+
+# http client for mikrotik api
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls", "json"] }
+
+# serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# error handling
+thiserror = "1.0"
+
+# logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# metrics
+prometheus = "0.13"
+hyper = { version = "1.1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio", "server-auto"] }
+http-body-util = "0.1"
+
+# raw sockets for icmp
+socket2 = { version = "0.5", features = ["all"] }
+
+# time parsing
+humantime = "2.1"
+humantime-serde = "1.1"
+
+# secrets
+secrecy = { version = "0.8", features = ["serde"] }
+
+# cli
+clap = { version = "4.4", features = ["derive", "env"] }
+
+# statistics
+statrs = "0.16"
+
+[dev-dependencies]
+tokio-test = "0.4"
+wiremock = "0.5"
+tempfile = "3.9"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+[[bin]]
+name = "bgpctl"
+path = "src/main.rs"

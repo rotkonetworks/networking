@@ -18,7 +18,7 @@ a management/IPMI switch, seed compute.
       unnumbered fabric downlink (the proven `~/rotko/networking/newdc/routeros/` set:
       `/ipv6 nd add` + `/ipv6 nd prefix add prefix=none` + the bgp connection) + mgmt/SSH ACL that
       includes your remote source so you can get back in.
-- [ ] **Data switch**: config for the fabric downlinks (unnumbered to edge; numbered legs for BIRD hosts).
+- [ ] **Data switch**: config for the fabric downlinks — unnumbered to edge AND to the hosts (BIRD 3.3.2 does RFC 5549 / `extended next hop on`, so host legs need no addresses either).
 - [ ] **Mgmt/IPMI switch**: mirror bkk60's role — one port per node's BMC + one per mgmt NIC; an uplink
       + OVPN/mgmt path so you can reach IPMI remotely afterward. (Use a SPARE, keep bkk60 in the old rack.)
 - [ ] Print a **port map** (which cable → which port) and label both ends of every cable.
@@ -43,12 +43,15 @@ a management/IPMI switch, seed compute.
 HGC cross-connect ──(numbered eBGP, /30, AS9304)── [EDGE router, AS142108]
                                                          │ unnumbered eBGP (RA + nd prefix=none)
                                                     [DATA switch, private ASN]
-                                                     │ (numbered /127 legs — BIRD hosts)
+                                                     │ unnumbered eBGP (BIRD 3.3.2 RFC 5549)
                                                 [compute / validator hosts]
 
 [MGMT/IPMI switch] ── per node: BMC port + mgmt-NIC port ── every host   (OOB, + OVPN uplink)
 ```
-- **Edge↔switch**: unnumbered (cable + the two ND lines). **Host legs**: numbered (BIRD can't do RFC5549).
+- **Edge↔switch AND host legs**: all unnumbered (cable + the ND lines). **BIRD 3.3.2 does RFC 5549**
+  (`extended next hop on` on the IPv4 channel) — verified 2026-08 on bird 3.3.2, so hosts need no /127s
+  either. IPv4 rides the IPv6 link-local next-hop end to end. (The old "numbered host legs" note was for
+  bird 2.x and is obsolete.)
 - **Mgmt**: physically separate switch, one uplink out (OVPN/allow-listed SSH) for remote reach.
 
 ## D. VERIFY before you leave the building (the gate)

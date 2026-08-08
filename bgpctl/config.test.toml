@@ -1,0 +1,80 @@
+# bgpctl test config using SSH tunnels via status.rotko.net
+# bkk00: localhost:18080
+# bkk20: localhost:18081
+
+[daemon]
+decision_interval = "30s"
+collect_interval = "10s"
+log_level = "debug"
+dry_run = true
+
+[routers.bkk00]
+address = "127.0.0.1"
+port = 18080
+username = "claude"
+password_env = "BGPCTL_BKK00_PASSWORD"
+tls = false
+probe_source_ip = "160.22.181.180"
+
+[routers.bkk20]
+address = "127.0.0.1"
+port = 18081
+username = "claude"
+password_env = "BGPCTL_BKK20_PASSWORD"
+tls = false
+probe_source_ip = "160.22.181.178"
+
+[peers.bknix]
+router = "bkk00"
+capacity_mbps = 10000
+import_chain = "BKNIX-IN-v4"
+export_chain = "BKNIX-OUT-v4"
+interface = "sfp-sfpplus1"
+is_transit = false
+cost_factor = 0.5
+
+[peers.hgc_hk]
+router = "bkk00"
+capacity_mbps = 800
+import_chain = "HGC-HK-IN-v4"
+export_chain = "HGC-HK-OUT-v4"
+interface = "sfp-sfpplus2"
+is_transit = true
+cost_factor = 2.0
+
+[probes]
+targets = ["8.8.8.8", "1.1.1.1"]
+count = 3
+timeout = "2s"
+interval = "10s"
+
+[scoring.weights]
+latency = 0.15
+loss = 0.20
+jitter = 0.10
+stability = 0.10
+capacity = 0.35
+cost = 0.10
+
+[scoring.baselines]
+max_acceptable_rtt = "150ms"
+max_acceptable_loss = 0.02
+max_acceptable_jitter = "20ms"
+stable_uptime = "24h"
+congestion_threshold = 0.75
+critical_threshold = 0.90
+
+[hysteresis]
+min_delta = 0.15
+hold_time = "5m"
+stability_window = "10m"
+
+[capacity]
+target_utilization = 0.70
+enable_load_balancing = true
+max_ecmp_paths = 4
+rebalance_threshold = 0.20
+
+[metrics]
+listen = "127.0.0.1:9100"
+path = "/metrics"

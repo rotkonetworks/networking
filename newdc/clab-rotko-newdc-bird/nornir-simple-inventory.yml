@@ -1,0 +1,26 @@
+---
+edge1:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.31.1.11
+h1:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.31.1.31
+h2:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.31.1.32
+sw1:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.31.1.21
+transit1:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.31.1.2

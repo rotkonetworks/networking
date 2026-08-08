@@ -1,0 +1,85 @@
+# Rotko CURRENT production fabric — faithful model for migration planning.
+# Captured read-only 2026-08-06 (LLDP-derived interconnects). Companion doc:
+#   docs/current-infra-topology.md   raw capture: docs/_raw-gather.txt
+#
+# Conventions match clab/rotko.clab.yml: MikroTik = kind mikrotik_ros (vrnetlab CHR),
+# Proxmox hosts + transit stubs = kind linux. This models TOPOLOGY (nodes + real links),
+# not a bootable config — it is a planning artifact.
+#
+# AS142108 iBGP fabric. Dual RR = bkk00 (HK edge) + bkk20 (SG edge). bkk50 = CGNAT/cluster
+# switch + iBGP. bkk10 = pure-L2 VLAN400 core. bkk30/40 = 100G CRS504 leaves. bkk60 = mgmt sw.
+name: rotko-current
+
+topology:
+  kinds:
+    mikrotik_ros: { image: "${ROS_IMAGE:-ghcr.io/rotkonetworks/chr:7.22}" }
+    linux:        { image: "${LINUX_IMG:-ghcr.io/frrouting/frr:10.2.1}" }
+
+  nodes:
+    # ---- Upstream transit / IX stubs (real external neighbours seen on bkk00) ----
+    hgc-hk:  { kind: linux }   # Juniper ex4650 headend (bkm-ac73) — AS9304/AS142435/AMS-IX uplink, bkk00 sfp28-2
+    bknix:   { kind: linux }   # BKNIX route-servers AS63529 — bkk00 sfp28-4 (peering, currently disabled)
+
+    # ---- Edge routers (CCR2216) — public face + route-reflectors, AS142108 ----
+    bkk00:                     # EDGE-HK + RR (cluster-id 10.155.255.4), ROS 7.23
+      kind: mikrotik_ros
+      startup-config: backup/mikrotik/bkk00.rsc   # if present (see clab/rotko.clab.yml)
+    bkk20:                     # EDGE-SG + RR (cluster-id 10.155.255.2), ROS 7.22 — NOT gathered (LLDP only)
+      kind: mikrotik_ros
+
+    # ---- Core ----
+    bkk10:                     # Core L2 aggregation (CCR2116), VLAN400 hub, NO BGP
+      kind: mikrotik_ros
+    bkk50:                     # CCR2004 — CGNAT + cluster/mgmt switch + iBGP leaf; gw 192.168.69.1
+      kind: mikrotik_ros
+
+    # ---- 100G leaves (CRS504-4XQ) — compute-pod ToR (LLDP only; carry host 100G primary uplinks) ----
+    bkk30: { kind: mikrotik_ros }
+    bkk40: { kind: mikrotik_ros }
+
+    # ---- Mgmt access switch (CRS354) — LLDP only (console was held) ----
+    bkk60: { kind: mikrotik_ros }
+
+    # ---- Proxmox hosts (BIRD, iBGP RR-clients on VLAN400.100 = 10.155.100.0/24) ----
+    bkk06: { kind: linux }     # 10.155.255.6 — console server for bkk00,bkk60
+    bkk07: { kind: linux }     # 10.155.255.7
+    bkk08: { kind: linux }     # 10.155.255.8 — FSP/monitoring hub
+    bkk03: { kind: linux }     # mgmt/aux + console server for bkk50,bkk10 (single-homed to bkk50)
+    bkk12: { kind: linux }     # compute leaf, single-homed to bkk00 sfp28-12
+
+  links:
+    # ===== Upstream (numbered eBGP / IX) =====
+    - endpoints: [ "bkk00:eth-sfp28-2",  "hgc-hk:eth1" ]   # 10G transit HK (HGC-HK/SG, AMS-IX VLANs)
+    - endpoints: [ "bkk00:eth-sfp28-4",  "bknix:eth1"  ]   # 10G BKNIX IX (disabled)
+
+    # ===== Edge / core backbone (all LLDP-confirmed both ends where reachable) =====
+    - endpoints: [ "bkk00:eth-qsfp28-1-1", "bkk20:eth-qsfp28-1-1" ]  # 100G inter-edge trunk (172.16.30.0/30)
+    - endpoints: [ "bkk00:eth-qsfp28-2-1", "bkk30:eth-ether1" ]      # 100G bkk00→leaf bkk30
+    - endpoints: [ "bkk00:eth-sfp28-5",  "bkk10:eth-sfp-sfpplus1" ]  # 25G VLAN400 (p2p VLAN110 172.16.110.0/31)
+    - endpoints: [ "bkk00:eth-sfp28-11", "bkk50:eth-sfp-sfpplus1" ]  # 10G (172.16.10.0/30 + 172.16.50.0/31)
+    - endpoints: [ "bkk20:eth-sfp2",     "bkk50:eth-sfp-sfpplus2" ]  # 10G bkk20↔bkk50 (172.16.20.0/30)
+    - endpoints: [ "bkk10:eth-sfp-sfpplus3", "bkk20:eth-sfp3" ]      # bkk10↔bkk20 (VLAN400 + direct VLAN210 172.16.210.0/31)
+    - endpoints: [ "bkk10:eth-sfp-sfpplus2", "bkk60:eth-qsfpplus2-1" ] # BKK60-LAG member 1 (mgmt sw uplink)
+    - endpoints: [ "bkk10:eth-sfp-sfpplus4", "bkk60:eth-qsfpplus2-2" ] # BKK60-LAG member 2
+    #   (bkk40 CRS504 + bkk60 also bridge into the VLAN400 L2 domain via their ether1/uplinks)
+    - endpoints: [ "bkk40:eth-ether1", "bkk10:eth-ether-trunk" ]     # bkk40 leaf into VLAN400 fabric (via core; exact port unconfirmed)
+
+    # ===== Host uplinks — ALL LLDP-CONFIRMED (lldpd on bkk06/07/08, 2026-08-06) =====
+    # mgmt plane: host eno2 (1G) → bkk50 (gw 192.168.69.1). bkk03 single-homed here.
+    - endpoints: [ "bkk03:eth1",      "bkk50:eth-ether6"  ]  # enp6s0 → bkk50 ether6
+    - endpoints: [ "bkk06:eth-eno2",  "bkk50:eth-ether12" ]  # mgmt
+    - endpoints: [ "bkk07:eth-eno2",  "bkk50:eth-ether14" ]  # mgmt
+    - endpoints: [ "bkk08:eth-eno2",  "bkk50:eth-ether2"  ]  # mgmt
+
+    # BGP backup path: host eno1 (1G) → bkk10 ether6/7/8 (VLAN400.100, admit-tagged)
+    - endpoints: [ "bkk06:eth-eno1",  "bkk10:eth-ether6" ]
+    - endpoints: [ "bkk07:eth-eno1",  "bkk10:eth-ether7" ]
+    - endpoints: [ "bkk08:eth-eno1",  "bkk10:eth-ether8" ]
+
+    # BGP PRIMARY path: host 100G NIC → CRS504 leaf.  bkk06+bkk07 → bkk30, bkk08 → bkk40
+    - endpoints: [ "bkk06:eth-100g",  "bkk30:eth-qsfp28-3-1" ]  # enp193s0f1np1 → bkk30
+    - endpoints: [ "bkk07:eth-100g",  "bkk30:eth-qsfp28-4-1" ]  # enp1s0f1np1  → bkk30
+    - endpoints: [ "bkk08:eth-100g",  "bkk40:eth-qsfp28-4-1" ]  # enp193s0f1np1 → bkk40
+
+    # bkk12 single-homed to bkk00
+    - endpoints: [ "bkk12:eth1", "bkk00:eth-sfp28-12" ]   # VLAN400.112, 10.155.112.0/30
