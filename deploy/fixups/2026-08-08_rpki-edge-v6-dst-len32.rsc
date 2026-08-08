@@ -25,3 +25,10 @@
 # PENDING REAL FIX: APNIC RPKI ROA maxLength must be raised (>= /48 v6, >= /24 v4) so the
 # /36 and /48 anycast aggregates are valid again. Ticket sent to helpdesk@apnic.net
 # (member ROTKONETWORKSOU-AP, AS142108, hq@rotko.net).
+
+# --- Follow-up (2026-08-08, same session) ---
+# ROA is now 2401:a860::/32 maxLength /40 (APNIC cap = parent + 8). Therefore:
+#   - global anycast = /32 (valid)
+#   - site anycast   = /40 (2401:a860:1000::/40)  (was /48; /48 cannot be ROA'd under /32-40)
+# Edge transit filter relaxed to 'dst-len > 40 reject' (allows /32 and /40, blocks /41+).
+# Host bird (bkk06/07/08) now originates: 2401:a860::/32, 2401:a860:1000::/40, site /128 VIP.
