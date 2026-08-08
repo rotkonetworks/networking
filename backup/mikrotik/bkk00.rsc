@@ -1,4 +1,4 @@
-# 2026-08-07 15:03:04 by RouterOS 7.23
+# 2026-08-08 14:38:02 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -294,14 +294,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:NvQmRqDjyTdsADbHrtFwFAFqQUZoCvmV
+/app set lorawan-stack secrets=lorawan-stack__admin_password:FQadqugmGumtfqkWxfEeULlaNHUzrAdD
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:mLKzleZeFoVajoAVGzRxbwFhYDqQPzIE,zulip__memcached_password:mNsyIWnUedDJQKHYCJZIKcmJbuLsXJLc,zulip__rabbitmq_password:xFcZFhmuJLESUSsGHWkssmHULnQUomnD,zulip__redis_password:dPHvfJWByJcOBbQOjfsSBAFPxAPyJkrT,zulip__secret_key:QIyEkYfmJfZCbGsdAzBNbgVQOswdmCbH,zulip__email_password:piGHmXJhqbtlMRcnmADTEFaUPnEUDnDj
+/app set zulip secrets=zulip__postgres_password:VmtwejExZBgpgMbPQJuPhnZbyaUuXvYH,zulip__memcached_password:RBltJvoVYMQKyPzWviCZCFttiqGFYSGy,zulip__rabbitmq_password:JSbOgvjUWMYxAZTYVExAKfGNCyDOjSOS,zulip__redis_password:JKCLEBalncbZiisveymzUhenVjzKUMKQ,zulip__secret_key:PzBVxyMoonSRXiyoXGEqkzEZhKXMjPWw,zulip__email_password:xBQuORxrfvMurLfekBTCnPcNZCHZmRZc
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -491,8 +491,6 @@
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=prerouting disabled=yes
 /ip firewall mangle add action=fasttrack-connection chain=output disabled=yes
-/ip firewall nat add action=dst-nat chain=dstnat comment=TEMP-bkk50-rescue-20260805 dst-address=160.22.181.180 dst-port=2250 protocol=tcp to-addresses=160.22.181.181 to-ports=22
-/ip firewall nat add action=masquerade chain=srcnat comment=TEMP-bkk50-rescue-20260805 dst-address=160.22.181.181 dst-port=22 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
@@ -568,7 +566,6 @@
 /ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="ipv6 discard prefix rfc6666" distance=240 dst-address=100::/64
-/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
 /ipv6 route add blackhole comment=global_unicast_ipv6 disabled=no distance=240 dst-address=2401:a860:1000::/36
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::6
 /ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::6
@@ -782,10 +779,10 @@
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=BKNIX-OUT-v6 rule="if (dst-len > 48) { reject; }"
-/routing filter rule add chain=AMSIX-OUT-v6 rule="if (dst-len > 48) { reject; }"
-/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 48) { reject; }"
-/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=BKNIX-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=AMSIX-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 32) { reject; }"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=BKNIX-OUT-v4 disabled=no rule="if (not bgp-network) { reject; }"

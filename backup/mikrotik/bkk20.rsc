@@ -1,4 +1,4 @@
-# 2026-08-07 15:03:04 by RouterOS 7.23
+# 2026-08-08 14:38:02 by RouterOS 7.23
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -401,7 +401,6 @@
 /ipv6 route add blackhole comment="Blackhole for IPv6 Site-Local (Deprecated)" disabled=no distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
 /ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
-/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::6
 /ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::6
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::7
@@ -643,13 +642,13 @@
 /routing filter rule add chain=AMSIX-HK-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 32) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 32) { reject; }"
 /routing filter rule add chain=AMSIX-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=AMSIX-HK-OUT-v6 rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=AMSIX-HK-OUT-v6 rule="if (dst-len > 32) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 32) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { set bgp-med 20; set bgp-path-prepend 1; set bgp-large-communities location; accept; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (not bgp-network) { reject; }"
