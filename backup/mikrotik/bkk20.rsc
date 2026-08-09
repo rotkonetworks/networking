@@ -1,4 +1,4 @@
-# 2026-08-08 14:38:02 by RouterOS 7.23
+# 2026-08-09 14:42:13 by RouterOS 7.23
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -409,6 +409,7 @@
 /ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
 /ipv6 route add comment="RTR src fix: BKNIX validator v6 via HGC-SG (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::26/128 gateway=fe80::eaa2:4509:d8de:efcd%vHGC-SG-PRIMARY pref-src=2401:a860:1181::20
 /ipv6 route add comment="RTR src fix: BKNIX validator2 v6 via HGC-SG (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::36/128 gateway=fe80::eaa2:4509:d8de:efcd%vHGC-SG-PRIMARY pref-src=2401:a860:1181::20
+/ipv6 route add blackhole comment=site_anycast_v6_40 distance=240 dst-address=2401:a860:1000::/40
 /ip service set ftp address=10.0.0.0/8,192.168.88.0/24 disabled=yes
 /ip service set ssh address=95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,158.140.0.0/16,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32
 /ip service set telnet address=10.0.0.0/8,192.168.88.0/24 disabled=yes
@@ -525,6 +526,7 @@
 /ipv6 firewall address-list add address=2401:a860:1006::/48 comment="bkk06 internal" list=ipv6-internal-rotko
 /ipv6 firewall address-list add address=2401:a860:1007::/48 comment="bkk07 internal" list=ipv6-internal-rotko
 /ipv6 firewall address-list add address=2401:a860:1008::/48 comment="bkk08 internal" list=ipv6-internal-rotko
+/ipv6 firewall address-list add address=2401:a860:1000::/40 list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BAN disabled=yes dst-address=2402:b740:15::/48 port=179 protocol=tcp src-address=2402:b740:15::/48
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-HK disabled=yes dst-address=2001:df0:296::/64 port=179 protocol=tcp src-address=2001:df0:296::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-BKK disabled=yes dst-address=2402:b740:15:388::/64 port=179 protocol=tcp src-address=2402:b740:15:388::/64
@@ -642,13 +644,13 @@
 /routing filter rule add chain=AMSIX-HK-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=HGC-SG-IN-v4 comment="Reject our own prefixes" rule="if (dst in 160.22.180.0/23) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst-len > 40) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 40) { reject; }"
 /routing filter rule add chain=AMSIX-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=AMSIX-HK-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=AMSIX-HK-OUT-v6 rule="if (dst-len > 40) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 40) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v4 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { set bgp-med 20; set bgp-path-prepend 1; set bgp-large-communities location; accept; }"
 /routing filter rule add chain=AMSIX-BAN-OUT-v6 rule="if (not bgp-network) { reject; }"
@@ -787,7 +789,7 @@
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all disabled=yes rule=accept
 /routing filter rule add chain=ROUTEVIEWS-IN-v4 comment=discard rule=reject
-/routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=too-specific rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=too-specific rule="if (dst-len > 40) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=bogons rule="if (dst in ipv6-bogons) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=default rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=RPKI-invalid disabled=yes rule="if (rpki invalid) { reject; }"

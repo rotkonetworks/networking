@@ -1,4 +1,4 @@
-# 2026-08-08 14:38:02 by RouterOS 7.23
+# 2026-08-09 14:42:13 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -70,8 +70,8 @@
 /routing bgp template add afi=ipv6 disabled=no input.filter=AMSIX-IN-v6 name=AMSIX-v6 nexthop-choice=default output.as-override=no .filter-chain=AMSIX-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ipv6 disabled=no input.filter=HGC-SG-IN-v6 multihop=yes name=HGC-TH-SG-v6 nexthop-choice=default output.as-override=no .filter-chain=HGC-SG-OUT-v6 .keep-sent-attributes=yes .network=ipv6-apnic-rotko .remove-private-as=yes routing-table=main
 /routing bgp template add afi=ip disabled=no input.filter=HGC-SG-IN-v4 multihop=yes name=HGC-TH-SG-v4 nexthop-choice=default output.as-override=no .filter-chain=HGC-SG-OUT-v4 .keep-sent-attributes=yes .network=ipv4-apnic-rotko .remove-private-as=yes routing-table=main
-/routing bgp template add afi=ip input.allow-as=0 .filter=RR-CLIENT-IN-v4 name=RR-CLIENTS-v4 nexthop-choice=propagate output.add-path=ip .filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
-/routing bgp template add afi=ipv6 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=default output.add-path=ipv6 .filter-chain=RR-CLIENT-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp routing-table=main
+/routing bgp template add afi=ip input.allow-as=0 .filter=RR-CLIENT-IN-v4 name=RR-CLIENTS-v4 nexthop-choice=force-self output.add-path=ip .filter-chain=RR-CLIENT-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
+/routing bgp template add afi=ipv6 input.filter=RR-CLIENT-IN-v6 name=RR-CLIENTS-v6 nexthop-choice=force-self output.add-path=ipv6 .filter-chain=RR-CLIENT-OUT-v6 .network=ipv6-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /routing bgp template add afi=ip input.filter=iBGP-IN-v4 multihop=yes name=IBGP-ROTKO-v4 nexthop-choice=force-self output.filter-chain=iBGP-OUT-v4 .network=ipv4-apnic-rotko .redistribute=connected,static,bgp routing-table=main
 /snmp community set [ find default=yes ] addresses=0.0.0.0/0,::/0
 /system script add dont-require-permissions=no name=bcp214-start owner=ansible policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source="# Process all filter rules and find OUT chains\
@@ -294,14 +294,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:FQadqugmGumtfqkWxfEeULlaNHUzrAdD
+/app set lorawan-stack secrets=lorawan-stack__admin_password:WTwiImLRmyEKPtiqUpUXhmjphDsrdXUw
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:VmtwejExZBgpgMbPQJuPhnZbyaUuXvYH,zulip__memcached_password:RBltJvoVYMQKyPzWviCZCFttiqGFYSGy,zulip__rabbitmq_password:JSbOgvjUWMYxAZTYVExAKfGNCyDOjSOS,zulip__redis_password:JKCLEBalncbZiisveymzUhenVjzKUMKQ,zulip__secret_key:PzBVxyMoonSRXiyoXGEqkzEZhKXMjPWw,zulip__email_password:xBQuORxrfvMurLfekBTCnPcNZCHZmRZc
+/app set zulip secrets=zulip__postgres_password:RxXJtKrIgXZLttOtJZIArTiBVfrGpyPq,zulip__memcached_password:OEKzPFoWCzcDLiyVtnWsKfrHaxxiWTtK,zulip__rabbitmq_password:QkKaDIVPqCQZOnptGMEDHGllHbIDPDGu,zulip__redis_password:WZdTLMWewhXBIZvKIyVnMTgukXMhXxtG,zulip__secret_key:aGNegTEWPlaaPqwDbhMhZFzOHASjZwtU,zulip__email_password:OjgVtboHoRAatYbbVYTaKKwMdZVMAhCD
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -575,6 +575,7 @@
 /ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
 /ipv6 route add comment="RTR src fix: BKNIX validator v6 via HGC-HK (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::26/128 gateway=fe80::d207:ca09:d78b:bfc5%vHGC-HK-PRIMARY pref-src=2401:a860:181::100
 /ipv6 route add comment="RTR src fix: BKNIX validator2 v6 via HGC-HK (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::36/128 gateway=fe80::d207:ca09:d78b:bfc5%vHGC-HK-PRIMARY pref-src=2401:a860:181::100
+/ipv6 route add blackhole comment=site_anycast_v6_40 distance=240 dst-address=2401:a860:1000::/40
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128,172.31.0.0/16
 /ip service set telnet address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16 disabled=yes
@@ -665,6 +666,7 @@
 /ipv6 firewall address-list add address=2401:a860:1006::/48 comment="bkk06 internal" list=ipv6-internal-rotko
 /ipv6 firewall address-list add address=2401:a860:1007::/48 comment="bkk07 internal" list=ipv6-internal-rotko
 /ipv6 firewall address-list add address=2401:a860:1008::/48 comment="bkk08 internal" list=ipv6-internal-rotko
+/ipv6 firewall address-list add address=2401:a860:1000::/40 list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
@@ -779,10 +781,10 @@
 /routing filter rule add chain=AMSIX-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-HK-OUT-v4 rule="if (dst-len > 24) { reject; }"
 /routing filter rule add chain=HGC-SG-OUT-v4 rule="if (dst-len > 24) { reject; }"
-/routing filter rule add chain=BKNIX-OUT-v6 rule="if (dst-len > 32) { reject; }"
-/routing filter rule add chain=AMSIX-OUT-v6 rule="if (dst-len > 32) { reject; }"
-/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 32) { reject; }"
-/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 32) { reject; }"
+/routing filter rule add chain=BKNIX-OUT-v6 rule="if (dst-len > 40) { reject; }"
+/routing filter rule add chain=AMSIX-OUT-v6 rule="if (dst-len > 40) { reject; }"
+/routing filter rule add chain=HGC-HK-OUT-v6 rule="if (dst-len > 40) { reject; }"
+/routing filter rule add chain=HGC-SG-OUT-v6 rule="if (dst-len > 40) { reject; }"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=BKNIX-OUT-v6 rule="if (not bgp-network) { reject; }"
 /routing filter rule add chain=BKNIX-OUT-v4 disabled=no rule="if (not bgp-network) { reject; }"
@@ -914,7 +916,7 @@
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment="TEMP: Accept our prefix" rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v4 comment=accept-all disabled=yes rule=accept
 /routing filter rule add chain=ROUTEVIEWS-IN-v4 comment=discard rule=reject
-/routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=too-specific rule="if (dst-len > 48) { reject; }"
+/routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=too-specific rule="if (dst-len > 40) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=bogons rule="if (dst in ipv6-bogons) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=default rule="if (dst == ::/0) { reject; }"
 /routing filter rule add chain=ROUTEVIEWS-OUT-v6 comment=RPKI-invalid rule="if (rpki invalid) { reject; }"
@@ -936,11 +938,11 @@
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (dst in ipv4-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v4 rule="if (bgp-network) { accept; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-OUT-v4 rule="accept;"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-internal-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (dst in ipv6-apnic-rotko) { accept; }"
 /routing filter rule add chain=RR-CLIENT-OUT-v6 rule="if (bgp-network) { accept; }"
-/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="reject;"
+/routing filter rule add chain=RR-CLIENT-OUT-v6 rule="accept;"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (gw in ibgp-block-gw-v4) { reject; }"
 /routing filter rule add chain=RR-CLIENT-IN-v4 comment="ECMP weight for anycast" rule="set bgp-weight 1"
 /routing filter rule add chain=RR-CLIENT-IN-v4 rule="if (dst in ipv4-internal-rotko) { accept; }"
