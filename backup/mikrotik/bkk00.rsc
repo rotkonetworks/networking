@@ -1,4 +1,4 @@
-# 2026-08-11 14:59:55 by RouterOS 7.23
+# 2026-08-12 15:06:48 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -294,14 +294,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:KoXvHOaRObzgivUDDVtJnDBbGWWXJWHS
+/app set lorawan-stack secrets=lorawan-stack__admin_password:tBQIVgBJscWYMqqEJHvNXBFGiQZCeqic
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:hZpNMkLqsTtJDHqJYLbLOcFUVJzXckei,zulip__memcached_password:CCiPiIWSQqvLFEuGbCKVDIGxFYFqYJvp,zulip__rabbitmq_password:wRPMplYmhMVduVXJrSCCDuliNfZvKxfd,zulip__redis_password:hbJBbNZVWpwYuKsjXcGDVWyJoEzUfvBM,zulip__secret_key:EmHUhhEgWzytgmdVToOoMmChTGjxDRDW,zulip__email_password:OnCjxUveVbdABzpadOcyGyRwNwZMMMFY
+/app set zulip secrets=zulip__postgres_password:IJQPDhuLgNRmwLqzClwfVRptisfFXnYU,zulip__memcached_password:YTElaYvWkgOqfWskiiyUIDAIpnrcpMNS,zulip__rabbitmq_password:dqHPcHUkBedRNDXXkbpzIKZDPXrSlMqJ,zulip__redis_password:ihKsATzsfqLUmeEoQadHAzwKjFOBGcnw,zulip__secret_key:RyzlpHiJXqYgeSpEUwivRWUInmpNjzGn,zulip__email_password:aIvOQCtLOiqfmzovkCGwmfXrRptXEezd
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -746,10 +746,10 @@
 /routing bgp connection add disabled=yes hold-time=1m30s input.filter=HE-AMSIX-IN-v6 .limit-process-routes-ipv6=5000000 instance=bgp-instance-1 keepalive-time=30s local.address=2001:7f8:1:0:a500:14:2108:1 .role=ebgp name=HE-AMSIX-v6 remote.address=2001:7f8:1::a500:6939:1 .as=6939 templates=AMSIX-v6
 /routing bgp connection add afi=ip input.filter=iBGP-IN-v4 instance=bgp-instance-1 local.address=10.155.255.4 .role=ibgp multihop=yes name=ibgp-bkk50-v4 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.255.3 .as=142108 templates=IBGP-ROTKO-v4
 /routing bgp connection add afi=ipv6 input.filter=iBGP-IN-v6 instance=bgp-instance-1 local.address=fd00:dead:beef::100 .role=ibgp multihop=yes name=ibgp-bkk50-v6 nexthop-choice=force-self output.filter-chain=IBGP-OUT-v6 .redistribute=connected,static,bgp remote.address=fd00:dead:beef::50 .as=142108 templates=IBGP-ROTKO-v6
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.1 .role=ibgp-rr name=rr-client-bkk08-unified-v4 remote.address=10.155.100.8 .as=142108 templates=RR-CLIENTS-v4
-/routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::1 .role=ibgp-rr name=rr-client-bkk08-unified-v6 remote.address=fd00:155:100::8 .as=142108 templates=RR-CLIENTS-v6
-/routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.1 .role=ibgp-rr name=rr-client-bkk07-unified-v4 remote.address=10.155.100.7 .as=142108 templates=RR-CLIENTS-v4
-/routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::1 .role=ibgp-rr name=rr-client-bkk07-unified-v6 remote.address=fd00:155:100::7 .as=142108 templates=RR-CLIENTS-v6
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.1 .role=ebgp name=rr-client-bkk08-unified-v4 remote.address=10.155.100.8 .as=4200000008 templates=RR-CLIENTS-v4
+/routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::1 .role=ebgp name=rr-client-bkk08-unified-v6 remote.address=fd00:155:100::8 .as=4200000008 templates=RR-CLIENTS-v6
+/routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.1 .role=ebgp name=rr-client-bkk07-unified-v4 remote.address=10.155.100.7 .as=4200000007 templates=RR-CLIENTS-v4
+/routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::1 .role=ebgp name=rr-client-bkk07-unified-v6 remote.address=fd00:155:100::7 .as=4200000007 templates=RR-CLIENTS-v6
 /routing bgp connection add instance=bgp-instance-1 local.address=10.155.100.1 .role=ebgp name=rr-client-bkk06-unified-v4 remote.address=10.155.100.6 .as=4200000006 templates=RR-CLIENTS-v4
 /routing bgp connection add instance=bgp-instance-1 local.address=fd00:155:100::1 .role=ebgp name=rr-client-bkk06-unified-v6 remote.address=fd00:155:100::6 .as=4200000006 templates=RR-CLIENTS-v6
 /routing bgp connection add disabled=no instance=bgp-instance-1 local.address=10.155.112.0 .role=ibgp-rr name=rr-client-bkk12-v4 nexthop-choice=force-self output.filter-chain=RR-CLIENT-FULL-OUT-v4 .redistribute=connected,static,bgp remote.address=10.155.112.1 .as=142108 templates=RR-CLIENTS-v4
