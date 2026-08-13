@@ -1,4 +1,4 @@
-# 2026-08-12 15:06:48 by RouterOS 7.23
+# 2026-08-13 15:08:40 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -294,14 +294,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:tBQIVgBJscWYMqqEJHvNXBFGiQZCeqic
+/app set lorawan-stack secrets=lorawan-stack__admin_password:qiBSyDSUWspovOgIAyuzYTtQsQyvlXbk
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:IJQPDhuLgNRmwLqzClwfVRptisfFXnYU,zulip__memcached_password:YTElaYvWkgOqfWskiiyUIDAIpnrcpMNS,zulip__rabbitmq_password:dqHPcHUkBedRNDXXkbpzIKZDPXrSlMqJ,zulip__redis_password:ihKsATzsfqLUmeEoQadHAzwKjFOBGcnw,zulip__secret_key:RyzlpHiJXqYgeSpEUwivRWUInmpNjzGn,zulip__email_password:aIvOQCtLOiqfmzovkCGwmfXrRptXEezd
+/app set zulip secrets=zulip__postgres_password:IciGnHqRKasJARlNizLRjnpnTefxsBAp,zulip__memcached_password:vZQQhXXolUMpLpqEOXugAFjWjaYtYLZq,zulip__rabbitmq_password:DvZxyzNIIKVQGCVXLHwvxqEcBDizeONd,zulip__redis_password:qGoPsLnOmUUyWnJyyBTANHGOjmosvDaB,zulip__secret_key:oxiycdQEZaIEhJxAGaTPQCPPIHHpUPCD,zulip__email_password:pgesRfEXLeYlzzLadfMMegwOtbKlWHIe
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -357,9 +357,9 @@
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
 /interface wireguard peers add allowed-address=172.31.0.50/32 endpoint-address=172.16.10.2 endpoint-port=51820 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
 /interface wireguard peers add allowed-address=172.31.0.4/32 interface=wg_rotko name=bgpctl public-key="Vy/FwO7pVn27ZwA1HnllqcIGBLPHh426JtfBlQopfgY="
-/interface wireguard peers add allowed-address=172.31.0.6/32 interface=wg_rotko name=bkk06 public-key="kVfcladp4l87PsMtzLmfgBU4aumgQDC/dKOfa8NSbxk="
+/interface wireguard peers add allowed-address=172.31.0.6/32,fd00:31::6/128 interface=wg_rotko name=bkk06 public-key="kVfcladp4l87PsMtzLmfgBU4aumgQDC/dKOfa8NSbxk="
 /interface wireguard peers add allowed-address=172.31.0.7/32 interface=wg_rotko name=bkk07 public-key="4CGbVHKfkhiyga53lFaydcweOe0vgozADvXdJApyEiM="
-/interface wireguard peers add allowed-address=172.31.0.8/32 interface=wg_rotko name=bkk08 public-key="HWIsnsm+CY6ul6kX1+llsUT1JZ5IdzxOunjIAhoTvkk="
+/interface wireguard peers add allowed-address=172.31.0.8/32,fd00:31::8/128 interface=wg_rotko name=bkk08 public-key="HWIsnsm+CY6ul6kX1+llsUT1JZ5IdzxOunjIAhoTvkk="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=bkk03 public-key="sigpCqPiAg6Ro1deiaGWQg+Zk3iHx18UInq7jyBVuWY="
 /interface wireguard peers add allowed-address=172.31.0.9/32 comment=bkk09 interface=wg_rotko name=peer12 public-key="ohFfKug5RQ07GGOjOwxeJR17c3NVBaLFXlEf6Tiizhs="
 /interface wireguard peers add allowed-address=172.31.0.11/32 comment=bkk11-validator interface=wg_rotko name=peer13 public-key="OF8k2YrVl1Rg42MvhhJAFgkG3fmWlji5eZadWuLdZUc="
@@ -555,11 +555,11 @@
 /ip route add comment=temp-bkk20-recovery dst-address=160.22.181.178/32 gateway=10.155.255.2
 /ip route add dst-address=159.148.147.0/24 gateway=172.16.30.2 pref-src=160.22.181.180
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.6
-/ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.6
+/ip route add comment="anycast-site-v4 ECMP" disabled=yes distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.6
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.7
-/ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
+/ip route add check-gateway=ping comment=ac-bkk07-primary disabled=yes distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.8
-/ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.8
+/ip route add check-gateway=ping comment="anycast-site-v4 ECMP" disabled=no distance=5 dst-address=160.22.181.81/32 gateway=10.155.100.8
 /ip route add comment="RTR src fix: BKNIX validator via HGC-HK (BKNIX port down 2026-07)" dst-address=203.159.70.26/32 gateway=118.143.211.185 pref-src=160.22.181.180
 /ip route add comment="RTR src fix: BKNIX validator2 via HGC-HK (BKNIX port down 2026-07)" dst-address=203.159.70.36/32 gateway=118.143.211.185 pref-src=160.22.181.180
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
@@ -568,11 +568,11 @@
 /ipv6 route add blackhole comment="ipv6 discard prefix rfc6666" distance=240 dst-address=100::/64
 /ipv6 route add blackhole comment=global_unicast_ipv6 disabled=no distance=240 dst-address=2401:a860:1000::/36
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::6
-/ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::6
+/ipv6 route add comment="anycast-site-v6 ECMP" disabled=yes distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::6
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::7
-/ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::7
+/ipv6 route add comment=ac-bkk07-primary-v6 disabled=yes distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::7
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::8
-/ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
+/ipv6 route add check-gateway=ping comment="anycast-site-v6 ECMP" distance=5 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
 /ipv6 route add comment="RTR src fix: BKNIX validator v6 via HGC-HK (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::26/128 gateway=fe80::d207:ca09:d78b:bfc5%vHGC-HK-PRIMARY pref-src=2401:a860:181::100
 /ipv6 route add comment="RTR src fix: BKNIX validator2 v6 via HGC-HK (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::36/128 gateway=fe80::d207:ca09:d78b:bfc5%vHGC-HK-PRIMARY pref-src=2401:a860:181::100
 /ipv6 route add blackhole comment=site_anycast_v6_40 distance=240 dst-address=2401:a860:1000::/40
@@ -606,6 +606,7 @@
 /ipv6 address add address=fd00:155:107::/127 advertise=no interface=BKK07-LAG
 /ipv6 address add address=fd00:155:108::/127 advertise=no interface=BKK08-LAG
 /ipv6 address add address=fd00:155:112:: comment="BKK12 p2p v6" interface=qnq-400-112
+/ipv6 address add address=fd00:31::ff advertise=no comment=mgmt-v6-proof interface=wg_rotko
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
 /ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
@@ -999,6 +1000,7 @@
 /system scheduler add name=bcp214-upgrade on-event="/system script run bcp214-upgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2026-01-20 start-time=14:20:00
 /system scheduler add disabled=yes name=mainetnance-on-startup-al on-event="/system script run maintenance-on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
 /system watchdog set watchdog-timer=no
+/tool netwatch add comment=ac-bkk07-watch down-script=":log warning \"bkk07 haproxy DOWN -> anycast to bkk08\"; /ip route set [find comment=\"ac-bkk07-primary\"] disabled=yes; /ipv6 route set [find comment=\"ac-bkk07-primary-v6\"] disabled=yes" host=160.22.181.7 interval=10s name=ac-bkk07 port=443 timeout=3s type=tcp-conn up-script=":log info \"bkk07 haproxy UP -> anycast back to bkk07\"; /ip route set [find comment=\"ac-bkk07-primary\"] disabled=no; /ipv6 route set [find comment=\"ac-bkk07-primary-v6\"] disabled=no"
 /tool sniffer set file-name=amsix-rs.pcap filter-ip-address=80.249.208.255/32,80.249.209.0/32 filter-port=bgp memory-limit=10000000KiB
 /tool traffic-monitor add disabled=yes interface=BKNIX-10G-BKK00-LAG name=bknix
 /tool traffic-monitor add disabled=yes interface=vAMSIX-EU name=amsix

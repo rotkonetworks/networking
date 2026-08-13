@@ -1,4 +1,4 @@
-# 2026-08-12 15:06:48 by RouterOS 7.23.3
+# 2026-08-13 15:08:40 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -388,11 +388,11 @@
 /ip route add disabled=yes dst-address=160.22.181.254/32 gateway=172.16.20.2
 /ip route add comment="route to atomman via bkk00 WG" dst-address=172.31.0.4/32 gateway=172.31.0.100
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.6
-/ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.6
+/ip route add comment="anycast-site-v4 ECMP" disabled=yes distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.6
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.7
-/ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
+/ip route add check-gateway=ping comment=ac-bkk07-primary disabled=no distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.8
-/ip route add comment="anycast-site-v4 ECMP" distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.8
+/ip route add check-gateway=ping comment="anycast-site-v4 ECMP" distance=5 dst-address=160.22.181.81/32 gateway=10.155.100.8
 /ip route add comment="RTR src fix: BKNIX validator2 via HGC-SG (BKNIX port down 2026-07)" dst-address=203.159.70.36/32 gateway=118.143.234.73 pref-src=160.22.181.178
 /ip route add comment="default via HGC-SG (repointed off bkk00)" distance=10 dst-address=0.0.0.0/0 gateway=118.143.234.73
 /ip route add comment="bkk50 direct - bypass broken bkk00 hairpin 2026-08-05" distance=5 dst-address=160.22.181.176/29 gateway=172.16.20.2
@@ -402,11 +402,11 @@
 /ipv6 route add blackhole comment="Blackhole for IPv6 Discard Prefix (RFC6666)" distance=240 dst-address=100::/64
 /ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::6
-/ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::6
+/ipv6 route add comment="anycast-site-v6 ECMP" disabled=yes distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::6
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::7
-/ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::7
+/ipv6 route add comment=ac-bkk07-primary-v6 disabled=no distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::7
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::8
-/ipv6 route add comment="anycast-site-v6 ECMP" distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
+/ipv6 route add check-gateway=ping comment="anycast-site-v6 ECMP" distance=5 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
 /ipv6 route add comment="RTR src fix: BKNIX validator v6 via HGC-SG (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::26/128 gateway=fe80::eaa2:4509:d8de:efcd%vHGC-SG-PRIMARY pref-src=2401:a860:1181::20
 /ipv6 route add comment="RTR src fix: BKNIX validator2 v6 via HGC-SG (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::36/128 gateway=fe80::eaa2:4509:d8de:efcd%vHGC-SG-PRIMARY pref-src=2401:a860:1181::20
 /ipv6 route add blackhole comment=site_anycast_v6_40 distance=240 dst-address=2401:a860:1000::/40
@@ -863,5 +863,6 @@ set [ find default=yes ] advertise-dns=yes ra-lifetime=none
 /system scheduler add name=bcp214-downgrade on-event="/system script run bcp214-downgrade" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-08-15 start-time=17:01:00
 /system scheduler add disabled=yes name=mainetnance-on-startup-al on-event="/system script run maintenance-on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
 /system watchdog set watchdog-timer=no
+/tool netwatch add comment=ac-bkk07-watch down-script=":log warning \"bkk07 DOWN@bkk20\"; /ip route set [find comment=\"ac-bkk07-primary\"] disabled=yes; /ipv6 route set [find comment=\"ac-bkk07-primary-v6\"] disabled=yes" host=160.22.181.7 interval=10s name=ac-bkk07 port=443 timeout=3s type=tcp-conn up-script="/ip route set [find comment=\"ac-bkk07-primary\"] disabled=no; /ipv6 route set [find comment=\"ac-bkk07-primary-v6\"] disabled=no"
 /tool sniffer set file-name=amsix-hk.pcap filter-ip-address=103.247.139.125/32,103.247.139.126/32 filter-port=bgp memory-limit=10000000KiB
 /tool traffic-generator port add interface=BKK00-LAG name=test-port
