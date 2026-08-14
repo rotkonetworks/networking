@@ -1,4 +1,4 @@
-# 2026-08-13 15:08:40 by RouterOS 7.23.3
+# 2026-08-14 15:04:52 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -585,7 +585,7 @@
 # automatic dns option advertising is not started, re-apply dns config
 set [ find default=yes ] advertise-dns=yes ra-lifetime=none
 /ipv6 nd add advertise-dns=yes disabled=yes interface=HGC-10G-SG-BKK20-LAG
-/routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v6 output.redistribute=connected,static,bgp remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
+/routing bgp connection add afi=ipv6 disabled=yes input.limit-process-routes-ipv6=3000000 instance=bgp-instance-1 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v6 output.redistribute=connected,static,bgp remote.address=2403:5000:165:15::1 .as=9304 routing-table=main templates=HGC-SG-v6
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=3000000 instance=bgp-instance-1 local.role=ebgp multihop=no name=HGC-SG-PRIMARY-v4 remote.address=118.143.234.73 .as=9304 routing-table=main templates=HGC-SG-v4
 /routing bgp connection add afi=ip disabled=no input.limit-process-routes-ipv4=5000000 instance=bgp-instance-1 local.address=103.100.140.31 .role=ebgp multihop=yes name=AMSIX-HE-TH-v4 remote.address=103.100.140.44 .as=6939 routing-table=main templates=AMSIX-BAN-v4
 /routing bgp connection add afi=ipv6 disabled=no input.limit-process-routes-ipv6=5000000 instance=bgp-instance-1 local.address=2402:b740:15:388:a500:14:2108:1 .role=ebgp multihop=yes name=AMSIX-HE-TH-v6 remote.address=2402:b740:15:388:0:a500:6939:1 .as=6939 routing-table=main templates=AMSIX-BAN-v6
