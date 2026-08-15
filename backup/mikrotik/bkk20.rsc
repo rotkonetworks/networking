@@ -1,4 +1,4 @@
-# 2026-08-14 15:04:52 by RouterOS 7.23.3
+# 2026-08-15 14:19:31 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -864,5 +864,5 @@ set [ find default=yes ] advertise-dns=yes ra-lifetime=none
 /system scheduler add disabled=yes name=mainetnance-on-startup-al on-event="/system script run maintenance-on-startup" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
 /system watchdog set watchdog-timer=no
 /tool netwatch add comment=ac-bkk07-watch down-script=":log warning \"bkk07 DOWN@bkk20\"; /ip route set [find comment=\"ac-bkk07-primary\"] disabled=yes; /ipv6 route set [find comment=\"ac-bkk07-primary-v6\"] disabled=yes" host=160.22.181.7 interval=10s name=ac-bkk07 port=443 timeout=3s type=tcp-conn up-script="/ip route set [find comment=\"ac-bkk07-primary\"] disabled=no; /ipv6 route set [find comment=\"ac-bkk07-primary-v6\"] disabled=no"
-/tool sniffer set file-name=amsix-hk.pcap filter-ip-address=103.247.139.125/32,103.247.139.126/32 filter-port=bgp memory-limit=10000000KiB
+/tool sniffer set file-limit=45000KiB file-name=v6syn.pcap filter-interface=vAMSIX-BKK filter-ip-protocol=tcp filter-operator-between-entries=and filter-src-ipv6-address=2a01:4ff:2f0:23c1::1/128 memory-limit=10000000KiB only-headers=yes
 /tool traffic-generator port add interface=BKK00-LAG name=test-port
