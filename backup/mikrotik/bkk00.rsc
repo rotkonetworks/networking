@@ -1,4 +1,4 @@
-# 2026-08-14 15:04:52 by RouterOS 7.23
+# 2026-08-16 14:20:17 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -294,14 +294,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:gUhfqnlcxEVSXJgCuIDvvLbzsVHeMXBS
+/app set lorawan-stack secrets=lorawan-stack__admin_password:IvHkZYpuirIcITQDNMlXOFCuzAiOkyNh
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:bdiCIFlKGbsHEhbOzRCHbJoOVqanCzxJ,zulip__memcached_password:cLwDXruDHKZTWgNTQezeIysmyUMmXzUP,zulip__rabbitmq_password:jWPAfvrCiyCUQvazdPHCqEwZUAEyZAKr,zulip__redis_password:GGFxABYgmUegoYaeaayRFcYNBgcwzcbH,zulip__secret_key:kGPGPURFXkpCuAMMzsJXgLRoOznJkGMh,zulip__email_password:KjJsrPRgyLONUOKJrhLdDUZJThKHIasU
+/app set zulip secrets=zulip__postgres_password:shFJrmGkomFkaidzQZOzxNQJOGFXHfra,zulip__memcached_password:baDOaVoRBEzrhCdCesBexYotgNtCVCFx,zulip__rabbitmq_password:TzzvKAwWQzqgvxCWQzXCATkzdBuGYBFh,zulip__redis_password:ftmUdEQdqoHSezpwtxVXJevkXMHwkmkC,zulip__secret_key:YpHqcXWWaPGiyPIwRsmyhJrycGMCJbPN,zulip__email_password:xpEzKTahVYVajnJDXjblmMvyUFnUxLCO
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
