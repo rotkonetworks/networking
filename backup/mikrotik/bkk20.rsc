@@ -1,4 +1,4 @@
-# 2026-08-17 14:40:46 by RouterOS 7.23.3
+# 2026-08-18 14:26:55 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -17,14 +17,14 @@
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR arp-timeout=4h comment=HGC/core3,4/MMR-3A
 /interface ethernet set [ find default-name=sfp28-3 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="empty cable atm to mmr-b, not in use / dark"
-/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3
+/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=bkk10sfp3 l2mtu=9570
 /interface ethernet set [ find default-name=sfp28-6 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-7 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-8 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-9 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-10 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
-/interface ethernet set [ find default-name=sfp28-12 ] comment=BKK12
+/interface ethernet set [ find default-name=sfp28-12 ] comment=BKK12 l2mtu=9570
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
 /interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
 /interface vlan add interface=bridge_vlan name=vlan-p2p-bkk10 vlan-id=210
@@ -215,7 +215,6 @@
 /interface bridge vlan add bridge=bridge_vlan untagged=bridge_vlan,BKK10-LAG vlan-ids=1
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=110
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK10-LAG,bridge_vlan vlan-ids=210
-/interface ethernet switch set switch1 l3-hw-offloading=yes
 /interface list member add interface=ether1 list=LAN
 /interface list member add interface=lo list=LAN
 /interface list member add interface=wg_rotko list=LAN
