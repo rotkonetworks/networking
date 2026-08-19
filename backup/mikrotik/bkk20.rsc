@@ -1,4 +1,4 @@
-# 2026-08-18 14:26:55 by RouterOS 7.23.3
+# 2026-08-19 14:27:28 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -9,7 +9,7 @@
 /interface ethernet set [ find default-name=qsfp28-1-2 ] comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-1-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2 comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-1-4 ] comment="breakout dark"
-/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=bkk00-2
+/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=bkk00-2 l2mtu=9570
 /interface ethernet set [ find default-name=qsfp28-2-2 ] comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-2-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2 comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-2-4 ] comment="breakout dark"
@@ -26,14 +26,14 @@
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50sfp2
 /interface ethernet set [ find default-name=sfp28-12 ] comment=BKK12 l2mtu=9570
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
+/interface vlan add interface=bridge_vlan mtu=9000 name=vlan-400 vlan-id=400
 /interface vlan add interface=bridge_vlan name=vlan-p2p-bkk10 vlan-id=210
 /interface bonding add comment=bkk00-2x100Gqsfp-edge lacp-rate=1sec mode=802.3ad name=BKK00-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=bkk10-sfp5-gw lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add mode=802.3ad name=BKK40-LAG slaves=qsfp28-2-1
 /interface bonding add comment=bkk50-sfp11-gw lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp28-11 transmit-hash-policy=layer-2-and-3
 /interface bonding add arp-timeout=4h comment="sfp28-2 HGC/core3,4 MMR-3A" lacp-rate=1sec mode=802.3ad name=HGC-10G-SG-BKK20-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
-/interface vlan add interface=vlan-400 name=qnq-400-100 vlan-id=100
+/interface vlan add interface=vlan-400 mtu=9000 name=qnq-400-100 vlan-id=100
 /interface vlan add interface=vlan-400 name=qnq-400-200 vlan-id=200
 /interface vlan add interface=vlan-400 name=qnq-400-206 vlan-id=206
 /interface vlan add interface=vlan-400 name=qnq-400-207 vlan-id=207

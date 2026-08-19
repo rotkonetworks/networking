@@ -1,4 +1,4 @@
-# 2026-08-17 10:40:54 by RouterOS 7.23.3
+# 2026-08-19 10:27:38 by RouterOS 7.23.3
 # software id = SF1Q-LGYJ
 #
 # model = CCR2116-12G-4S+
@@ -21,17 +21,13 @@
 /routing ospf area add disabled=no instance=ospf-instance-1 name=backbone
 /routing ospf area add disabled=no instance=ospf-instance-v3 name=backbone-v6
 /interface bridge port add bridge=bridge_vlan interface=BKK00-LAG
-/interface bridge port add bridge=bridge_vlan interface=BKK60-LAG
-/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=ether6
-/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=ether7
-/interface bridge port add bridge=bridge_vlan frame-types=admit-only-vlan-tagged interface=ether8
-/interface bridge port add bridge=bridge_vlan disabled=yes frame-types=admit-only-vlan-tagged interface=BKK20-LAG
-/interface bridge port add bridge=bridge_vlan interface=vlan-400-to-bkk20
 /ipv6 settings set accept-router-advertisements=no
 /interface bridge vlan
-# BKK20-LAG not a bridge port
+# ether6,ether7,ether8,BKK20-LAG,BKK60-LAG not a bridge port
 add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG vlan-ids=400
-/interface bridge vlan add bridge=bridge_vlan untagged=BKK00-LAG,BKK60-LAG,bridge_vlan vlan-ids=1
+/interface bridge vlan
+# BKK60-LAG not a bridge port
+add bridge=bridge_vlan untagged=BKK00-LAG,BKK60-LAG,bridge_vlan vlan-ids=1
 /interface bridge vlan add bridge=bridge_vlan tagged=BKK00-LAG,bridge_vlan vlan-ids=110
 /interface bridge vlan add bridge=bridge_vlan tagged=bridge_vlan vlan-ids=210
 /interface list member add interface=bridge_local list=LAN

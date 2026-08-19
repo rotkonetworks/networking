@@ -1,15 +1,15 @@
-# 2026-08-17 14:40:45 by RouterOS 7.23
+# 2026-08-19 14:27:27 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
 # serial number = HH40ADXHPY7
 /interface bridge add name=bridge_vlan vlan-filtering=yes
 /interface ethernet set [ find default-name=ether1 ] comment="mgmt OOBM"
-/interface ethernet set [ find default-name=qsfp28-1-1 ] comment=EDGE-BKK20-LAG
+/interface ethernet set [ find default-name=qsfp28-1-1 ] comment=EDGE-BKK20-LAG l2mtu=9000
 /interface ethernet set [ find default-name=qsfp28-1-2 ] comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-1-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2 comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-1-4 ] comment="breakout dark"
-/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=EDGE-BKK20-LAG
+/interface ethernet set [ find default-name=qsfp28-2-1 ] comment=EDGE-BKK20-LAG l2mtu=9570
 /interface ethernet set [ find default-name=qsfp28-2-2 ] comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-2-3 ] advertise=10M-baseT-half,10M-baseT-full,100M-baseT-half,100M-baseT-full,1G-baseT-half,1G-baseT-full,1G-baseX,2.5G-baseT,2.5G-baseX,5G-baseT,10G-baseT,10G-baseSR-LR,10G-baseCR,40G-baseSR4-LR4,40G-baseCR4,25G-baseSR-LR,25G-baseCR,50G-baseSR2-LR2,50G-baseCR2 comment="breakout dark"
 /interface ethernet set [ find default-name=qsfp28-2-4 ] comment="breakout dark"
@@ -17,16 +17,16 @@
 /interface ethernet set [ find default-name=sfp28-2 ] advertise=10G-baseSR-LR comment="HGC-HK-MMR-A-XXX ORIGINAL-MAC=F4:1E:57:4B:D7:1D" mac-address=78:9A:18:80:E2:E4
 /interface ethernet set [ find default-name=sfp28-3 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-4 ] advertise=10G-baseSR-LR comment="BKNIX-core7,8-MMRB ORIGINAL-MAC-F4:1E:57:4B:D7:1F" mac-address=78:9A:18:80:E2:E6
-/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=BKK10-LAG
+/interface ethernet set [ find default-name=sfp28-5 ] advertise=10G-baseCR comment=BKK10-LAG l2mtu=9570
 /interface ethernet set [ find default-name=sfp28-6 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-7 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-8 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-9 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-10 ] comment=dark/available
 /interface ethernet set [ find default-name=sfp28-11 ] advertise=10G-baseCR comment=BKK50-LAG
-/interface ethernet set [ find default-name=sfp28-12 ] comment=BKK12
+/interface ethernet set [ find default-name=sfp28-12 ] comment=BKK12 l2mtu=9570
 /interface wireguard add listen-port=51820 mtu=1420 name=wg_rotko
-/interface vlan add interface=bridge_vlan name=vlan-400 vlan-id=400
+/interface vlan add interface=bridge_vlan mtu=9000 name=vlan-400 vlan-id=400
 /interface vlan add interface=bridge_vlan name=vlan-p2p-bkk10 vlan-id=110
 /interface bonding add comment=bkk10-sfp28-5 lacp-rate=1sec mode=802.3ad name=BKK10-LAG slaves=sfp28-5 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment=100G-EDGE-TO-BKK20 lacp-rate=1sec mode=802.3ad name=BKK20-LAG slaves=qsfp28-1-1 transmit-hash-policy=layer-2-and-3
@@ -34,21 +34,12 @@
 /interface bonding add comment=bkk50-sfp28-11 lacp-rate=1sec mode=802.3ad name=BKK50-LAG slaves=sfp28-11 transmit-hash-policy=layer-2-and-3
 /interface bonding add comment="sfp28-4 BKNIX-core7,8 MMR-B" mode=802.3ad mtu=1514 name=BKNIX-10G-BKK00-LAG slaves=sfp28-4 transmit-hash-policy=layer-3-and-4
 /interface bonding add comment="sfp28-2 HGC-HK MMR-A" mode=802.3ad mtu=1514 name=HGC-10G-HK-BKK00-LAG slaves=sfp28-2 transmit-hash-policy=layer-3-and-4
-/interface vlan add interface=vlan-400 name=qnq-400-100 vlan-id=100
-/interface vlan add interface=vlan-400 name=qnq-400-106 vlan-id=106
-/interface vlan add interface=vlan-400 name=qnq-400-107 vlan-id=107
-/interface vlan add disabled=yes interface=vlan-400 name=qnq-400-108 vlan-id=108
+/interface vlan add interface=vlan-400 mtu=9000 name=qnq-400-100 vlan-id=100
 /interface vlan add comment="BKK12 p2p" interface=vlan-400 name=qnq-400-112 vlan-id=112
-/interface vlan add interface=vlan-400 name=qnq-400-116 vlan-id=116
-/interface vlan add interface=vlan-400 name=qnq-400-117 vlan-id=117
-/interface vlan add interface=vlan-400 name=qnq-400-118 vlan-id=118
 /interface vlan add interface=vlan-400 name=qnq-400-200 vlan-id=200
 /interface vlan add interface=HGC-10G-HK-BKK00-LAG name=vAMSIX-EU vlan-id=3995
 /interface vlan add interface=HGC-10G-HK-BKK00-LAG name=vHGC-HK-PRIMARY vlan-id=2519
 /interface vlan add interface=HGC-10G-HK-BKK00-LAG name=vHGC-SG-BACKUP vlan-id=2518
-/interface bonding add mode=active-backup name=BKK06-LAG slaves=qnq-400-106,qnq-400-116
-/interface bonding add mode=active-backup name=BKK07-LAG slaves=qnq-400-107,qnq-400-117
-/interface bonding add mode=active-backup name=BKK08-LAG slaves=qnq-400-108,qnq-400-118
 /interface list add name=LAN
 /interface list add name=WAN
 /ip pool add name=dhcp_pool ranges=192.168.69.50-192.168.69.70
@@ -294,14 +285,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:RPKScZfYpdNhYBHvSjOyLZWGgQpcbNGk
+/app set lorawan-stack secrets=lorawan-stack__admin_password:IUSNrxmpQXpgPCGnAFrcdAvHGPtLIVZW
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:VmfIgIGhJfPAvpyXlNJNVBjaGEFfFytJ,zulip__memcached_password:cidpUDgwtBwGhkUppydvwKYALyQZbAEF,zulip__rabbitmq_password:iSPouofkLRUmrefljPlhKHWnyWhcTdZx,zulip__redis_password:LjpavisESDSJmyruqxdeYTwptJYhMKZo,zulip__secret_key:fquDcvewRYNIVeJBWRSREfYrDuzdYZzJ,zulip__email_password:fXOVVahYwFahrguQDVKZavQjZXCgdsFj
+/app set zulip secrets=zulip__postgres_password:xSmZzAYgItkgLBPQdxHNwmYdndqMBiAb,zulip__memcached_password:ewYkKAJNAxwegTwgbrERURehOJOpGdAk,zulip__rabbitmq_password:lFDieJAvljrIOUxsSAvuPaWdxJZqkOfH,zulip__redis_password:bAAyPBiOevLWzfqISIlzuGZQbxJdxPVQ,zulip__secret_key:whtxFRYmHtHAzSPVVJYKpGEwdzpXEbUj,zulip__email_password:KNcoChhynKbadWrPyaIbYhgnRiCVvYOC
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -349,9 +340,6 @@
 /interface list member add interface=qsfp28-1-1 list=LAN
 /interface list member add interface=qsfp28-2-1 list=LAN
 /interface list member add interface=vlan-400 list=LAN
-/interface list member add interface=qnq-400-106 list=LAN
-/interface list member add interface=qnq-400-107 list=LAN
-/interface list member add interface=qnq-400-108 list=LAN
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
 /interface wireguard peers add allowed-address=172.31.0.20/32 interface=wg_rotko name=bkk20 public-key="/09ofEbIM1qjlq7xM/R0KfJMQ8R/UR9aHaph70FTp30="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
@@ -381,9 +369,6 @@
 /ip address add address=10.155.254.100 interface=lo network=10.155.254.100
 /ip address add address=172.16.110.0/31 interface=vlan-p2p-bkk10 network=172.16.110.0
 /ip address add address=10.155.100.1/24 interface=qnq-400-100 network=10.155.100.0
-/ip address add address=10.155.106.0/31 interface=BKK06-LAG network=10.155.106.0
-/ip address add address=10.155.107.0/31 interface=BKK07-LAG network=10.155.107.0
-/ip address add address=10.155.108.0/31 interface=BKK08-LAG network=10.155.108.0
 /ip address add address=172.16.200.100/24 disabled=yes interface=bridge_vlan network=172.16.200.0
 /ip address add address=10.155.112.0/30 comment="BKK12 p2p v4" interface=qnq-400-112 network=10.155.112.0
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=8.8.8.8,9.9.9.9,1.1.1.1
@@ -601,9 +586,6 @@
 /ipv6 address add address=2401:a860:1181:50::/127 advertise=no comment="Global P2P to BKK50" interface=BKK50-LAG
 /ipv6 address add address=fd00:155:254::100 advertise=no comment="BGP RR VLAN IPv6" interface=vlan-400
 /ipv6 address add address=fd00:155:100::1 advertise=no interface=qnq-400-100
-/ipv6 address add address=fd00:155:106::/127 advertise=no interface=BKK06-LAG
-/ipv6 address add address=fd00:155:107::/127 advertise=no interface=BKK07-LAG
-/ipv6 address add address=fd00:155:108::/127 advertise=no interface=BKK08-LAG
 /ipv6 address add address=fd00:155:112:: comment="BKK12 p2p v6" interface=qnq-400-112
 /ipv6 address add address=fd00:31::ff advertise=no comment=mgmt-v6-proof interface=wg_rotko
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
