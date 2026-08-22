@@ -1,4 +1,4 @@
-# 2026-08-21 10:32:20 by RouterOS 7.23.3
+# 2026-08-22 10:21:00 by RouterOS 7.23.3
 # software id = VILU-XVN6
 #
 # model = CRS354-48G-4S+2Q+
@@ -101,10 +101,10 @@
 /interface bridge port add bridge=bridge interface=BKK40-QSFP3-LAG
 /interface bridge vlan add bridge=bridge tagged=BKK10-SFP24-LAG vlan-ids=400
 /interface ovpn-server server add mac-address=FE:71:39:D1:05:64 name=ovpn-server1
-/ip address add address=192.168.88.1/24 comment=defconf interface=bridge network=192.168.88.0
 /ip address add address=160.22.181.186 interface=lo network=160.22.181.186
 /ip address add address=192.168.69.2/16 interface=bridge network=192.168.0.0
 /ip address add address=160.22.181.186 interface=bridge network=160.22.181.186
+/ip address add address=192.168.88.60/24 comment="mgmt bkk60" interface=bridge network=192.168.88.0
 /ip dhcp-relay add dhcp-server=192.168.69.1 interface=bridge local-address=192.168.69.2 name=relay-bkk50
 /ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1
 /ip hotspot profile set [ find default=yes ] html-directory=hotspot
@@ -112,7 +112,7 @@
 /ip route add dst-address=0.0.0.0/0 gateway=192.168.69.1
 /ipv6 route add check-gateway=ping distance=1 dst-address=::/0 gateway=fe80::4aa9:8aff:fec0:8252%bridge
 /ip service set ftp disabled=yes
-/ip service set ssh address=172.104.169.64/32,158.140.0.0/16
+/ip service set ssh address=172.104.169.64/32,158.140.0.0/16,192.168.69.0/24,192.168.88.0/24,160.22.180.0/23,10.155.0.0/16
 /ip service set telnet disabled=yes
 /ip service set www disabled=yes
 /ip service set winbox disabled=yes
