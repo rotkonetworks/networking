@@ -1,4 +1,4 @@
-# 2026-08-22 14:20:56 by RouterOS 7.23.3
+# 2026-08-23 14:22:39 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -389,7 +389,7 @@
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.6
 /ip route add comment="anycast-site-v4 ECMP" disabled=yes distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.6
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.7
-/ip route add check-gateway=ping comment=ac-bkk07-primary disabled=no distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
+/ip route add check-gateway=ping comment=ac-bkk07-primary disabled=yes distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.8
 /ip route add check-gateway=ping comment="anycast-site-v4 ECMP" distance=5 dst-address=160.22.181.81/32 gateway=10.155.100.8
 /ip route add comment="RTR src fix: BKNIX validator2 via HGC-SG (BKNIX port down 2026-07)" dst-address=203.159.70.36/32 gateway=118.143.234.73 pref-src=160.22.181.178

@@ -1,4 +1,4 @@
-# 2026-08-22 14:20:56 by RouterOS 7.23
+# 2026-08-23 14:22:38 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -285,14 +285,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:vimVnxmQEUVGJkzWPApEoBHNyaIMmweX
+/app set lorawan-stack secrets=lorawan-stack__admin_password:OlXgoWMCMUVxVdFRonWUhSwwyOvmMBhr
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:PIUNEVCdynCXGKvRXtmUuwdATBUlIVHu,zulip__memcached_password:WeqKMKtmylcslsyBIaRHoteajkgcFiWO,zulip__rabbitmq_password:zwntVzBJvBPOBsTOvveDTmVeiBTfQQxm,zulip__redis_password:IgGvkaFrsdMKNcEnHxlWNWBWwAKLcDpZ,zulip__secret_key:ghtULHPqZcqdBSntRcqkfyfvhrhPxctC,zulip__email_password:SKjohyHkKIHazMAFVQcvRUNLmfWYMfxK
+/app set zulip secrets=zulip__postgres_password:TZotOXOYTDTLSgsrnbWPrSqVEhewoCRp,zulip__memcached_password:PXSgwEjBfxzEYaIIDswfjVSalYqGrUyd,zulip__rabbitmq_password:pDjeAdFJpBeNdqwbrNTkgfOmBRZEmdwv,zulip__redis_password:RmtUZOQwTRaYjYUExbYZbjLhaBxOVHyO,zulip__secret_key:lSOszfRdDrOBvjpncDagHmqmsWhZlYHa,zulip__email_password:LZVJWptNLxcsxipetmhOTzCCyglkgphD
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -542,7 +542,7 @@
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.6
 /ip route add comment="anycast-site-v4 ECMP" disabled=yes distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.6
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.7
-/ip route add check-gateway=ping comment=ac-bkk07-primary disabled=no distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
+/ip route add check-gateway=ping comment=ac-bkk07-primary disabled=yes distance=1 dst-address=160.22.181.81/32 gateway=10.155.100.7
 /ip route add comment="anycast-global-v4 ECMP" distance=1 dst-address=160.22.180.180/32 gateway=10.155.100.8
 /ip route add check-gateway=ping comment="anycast-site-v4 ECMP" disabled=no distance=5 dst-address=160.22.181.81/32 gateway=10.155.100.8
 /ip route add comment="RTR src fix: BKNIX validator via HGC-HK (BKNIX port down 2026-07)" dst-address=203.159.70.26/32 gateway=118.143.211.185 pref-src=160.22.181.180
