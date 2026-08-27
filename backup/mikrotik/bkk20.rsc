@@ -1,4 +1,4 @@
-# 2026-08-26 14:34:42 by RouterOS 7.23.3
+# 2026-08-28 00:56:34 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -235,7 +235,7 @@
 /interface list member add interface=*6D list=LAN
 /interface list member add interface=vlan-400 list=LAN
 /interface wireguard peers add allowed-address=172.31.0.1/32 interface=wg_rotko name=laptop public-key="udBx+UmZ60dJCyF6QxxNmEPnBT+nIkv6ZdCZKTAVdSA="
-/interface wireguard peers add allowed-address=172.31.0.10/32 interface=wg_rotko name=bkk10 public-key="nahvhOxYg+859oPKgnXopw2fqvcpJFaC92SqdMckI0I="
+/interface wireguard peers add allowed-address=172.31.0.10/32 endpoint-address=103.168.174.178 endpoint-port=51820 interface=wg_rotko name=bkk10 persistent-keepalive=25s public-key="PUEhNg4U7Fgb8kfJfUHgvYYDkIfXjFQcspFxhywbUjg="
 /interface wireguard peers add allowed-address=172.31.0.2/32 interface=wg_rotko name=gatus public-key="k9UnZ8ssv9SccGUMwQ8PHIwXeT4j5P0jDDoWhi3abCI="
 /interface wireguard peers add allowed-address=172.31.0.3/32 interface=wg_rotko name=amdnuc public-key="IlZR7z5LVE6BKwkApq+VTvXRGaOp0hvmKSSrgi1R/V4="
 /interface wireguard peers add allowed-address=172.31.0.50/32 interface=wg_rotko name=bkk50 public-key="HSEVRjXj7x7jSVy8A9YQducW6BNme/a19/o5CA/KrUI="
@@ -323,6 +323,7 @@
 /ip firewall address-list add address=10.6.0.0/16 comment="bkk06 internal" list=ipv4-internal-rotko
 /ip firewall address-list add address=10.7.0.0/16 comment="bkk07 internal" list=ipv4-internal-rotko
 /ip firewall address-list add address=10.8.0.0/16 comment="bkk08 internal" list=ipv4-internal-rotko
+/ip firewall address-list add address=160.22.181.0/24 comment="inter-site more-specific 2026-08-28" list=ipv4-apnic-rotko
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=udp
 /ip firewall raw add action=accept chain=prerouting comment="DNS bypass all" port=53 protocol=tcp
 /ip firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp

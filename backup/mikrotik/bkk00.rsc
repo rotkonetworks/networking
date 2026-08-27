@@ -1,4 +1,4 @@
-# 2026-08-26 14:34:41 by RouterOS 7.23
+# 2026-08-28 00:56:33 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -285,14 +285,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:dhgyauPfiyApNgaxpPKrgJItMmnPOWdT
+/app set lorawan-stack secrets=lorawan-stack__admin_password:ozoCJMVHUAHKjivfmeCEyApwqUKYjKgA
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:tqFUOmPAGFIuTDNQemmcsORHymWJYnAE,zulip__memcached_password:jbYeroQcygLiBixBRKkEFnhWbqMQivTS,zulip__rabbitmq_password:sXEwezIMXHggnijXpaFYQwkehOWUWUzf,zulip__redis_password:WcTWhnToQpEyAJynqhwhFVldzzZBDGte,zulip__secret_key:lWPhssgMKcqebMtaWlmVQfPYstLifEXP,zulip__email_password:vAmOfYlaTffXlKFAcgfIpbcxaFtALMwx
+/app set zulip secrets=zulip__postgres_password:RylmeYQVDeWExyoTFPGKhwjgSSgDJLhh,zulip__memcached_password:QcvdSfTDcrQlNTiIBlVzTRlQKvjbwofg,zulip__rabbitmq_password:phFcwcdPubREQcyhgfbzUjmQzAsylaeg,zulip__redis_password:BTULWlNjWqFYhgyYAtrDAweEtMMSjxoF,zulip__secret_key:ESBEiXcWdiXPzHnVECdhQvpcCOatUOve,zulip__email_password:UjBOraTrPJTLoeHrsdXVZOYUaILThJVR
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -353,6 +353,7 @@
 /interface wireguard peers add allowed-address=172.31.0.11/32 comment=bkk11-validator interface=wg_rotko name=peer13 public-key="OF8k2YrVl1Rg42MvhhJAFgkG3fmWlji5eZadWuLdZUc="
 /interface wireguard peers add allowed-address=172.31.0.12/32 comment=bkk12-validator interface=wg_rotko name=peer14 public-key="Lkd/T8OD+udQnOzRYVPCg7/44H8s+wGDBGOscy6HoB4="
 /interface wireguard peers add allowed-address=172.31.0.13/32 comment=bkk13-validator interface=wg_rotko name=peer15 public-key="tTVnDs307swj3aV1CbM/a18epWCooPKDLwa/Aa9W4xM="
+/interface wireguard peers add allowed-address=172.31.0.10/32 endpoint-address=103.168.174.178 endpoint-port=51820 interface=wg_rotko name=bkk10 persistent-keepalive=25s public-key="PUEhNg4U7Fgb8kfJfUHgvYYDkIfXjFQcspFxhywbUjg="
 /ip address add address=192.168.88.100/24 comment=defconf interface=ether1 network=192.168.88.0
 /ip address add address=172.16.30.1/30 interface=BKK20-LAG network=172.16.30.0
 /ip address add address=160.22.181.180 interface=lo network=160.22.181.180

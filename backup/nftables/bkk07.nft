@@ -136,10 +136,10 @@ table ip nat {
 		type nat hook postrouting priority srcnat; policy accept;
 		ip saddr 10.7.0.0/16 ip daddr { 10.6.0.0-10.8.255.255, 10.12.0.0/16, 10.155.0.0/16 } oifname "vmbr2" return
 		ip saddr 192.168.0.0/16 ip daddr { 10.6.0.0-10.8.255.255, 10.12.0.0/16, 10.155.0.0/16 } oifname "vmbr2" return
-		ip saddr 10.7.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.180.7 }
-		ip saddr 10.7.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.180.7 }
-		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.180.7 }
-		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.180.7 }
+		ip saddr 10.7.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.181.7 }
+		ip saddr 10.7.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.181.7 }
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.181.7 }
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.7, 1 : 160.22.181.7 }
 		ip saddr 10.7.0.0/16 oifname "vmbr2" snat to 160.22.181.7
 		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to 160.22.181.7
 		ip saddr 10.99.7.0/24 oifname "vmbr2" snat to 160.22.181.7
