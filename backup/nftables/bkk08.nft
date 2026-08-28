@@ -18,7 +18,7 @@ table inet filter {
 		ct state invalid drop
 		iif "lo" accept
 		ip6 nexthdr ipv6-icmp icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
-		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10000/second accept
+		ip protocol icmp icmp type { destination-unreachable, echo-request, time-exceeded, parameter-problem } limit rate 10000/second burst 5 packets accept
 		tcp dport 179 ip saddr { 10.155.100.1, 10.155.100.2 } accept
 		tcp dport 179 ip6 saddr { fd00:155:100::1, fd00:155:100::2 } accept
 		udp dport { 3784, 4784 } ip saddr { 10.155.100.1, 10.155.100.2 } accept
@@ -33,7 +33,7 @@ table inet filter {
 		iifname "vmbr2" ip saddr 10.155.100.0/24 udp dport 5405-5412 accept
 		iifname "vmbr1" udp dport 53 accept
 		iifname "vmbr1" tcp dport 53 accept
-		iifname "vmbr1" tcp dport { 9100, 9103 } accept
+		iifname "vmbr1" tcp dport { 9100, 9103, 9125 } accept
 		iifname "vmbr0" udp dport 53 accept
 		iifname "vmbr0" tcp dport 53 accept
 		ip daddr 10.155.181.81 tcp dport { 53, 853 } accept
@@ -55,22 +55,25 @@ table inet filter {
 		ip6 daddr 2401:a860:: tcp dport { 53, 853 } accept
 		ip6 daddr 2401:a860:: udp dport 53 accept
 		tcp dport { 80, 443 } accept
+		udp dport 443 accept
 		iif "lo" tcp dport 8404 accept
 		udp dport 4433 accept
 		tcp dport { 30335, 31003, 31252, 34032, 34072 } accept
 		udp dport { 30335, 31003, 31252, 34032, 34072 } accept
 		tcp dport 30435 accept
-		limit rate 5/minute log prefix "[DROP-IN] "
-		udp dport 443 accept
+		limit rate 5/minute burst 5 packets log prefix "[DROP-IN] "
 	}
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
 		ct state established,related accept
 		ct state invalid drop
-		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 587 drop
-		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 465 drop
 		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 25 drop
+		oifname "vmbr1" ip6 daddr 2401:a860:1008:ff00::/56 tcp dport 22 accept
+		oifname "vmbr1" ip6 daddr 2401:a860:1008::/48 tcp dport 22 accept
+		oifname "vmbr1" ip6 daddr 2401:a860:1008:c0de::1 tcp dport 22 accept
+		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 465 drop
+		ip6 saddr 2401:a860:1008:ff00::/56 tcp dport 587 drop
 		iifname "vmbr1" accept
 		iifname "vmbr0" accept
 		ct status dnat accept
@@ -81,10 +84,7 @@ table inet filter {
 		iifname "vmbr2" ip6 saddr 2401:a860::/32 accept
 		oifname "vmbr2" ip6 daddr 2401:a860::/32 accept
 		iifname "vmbr2" ip saddr { 10.6.0.0-10.8.255.255, 10.12.0.0/16 } ip daddr 10.8.0.0/16 accept
-		oifname "vmbr1" ip6 daddr 2401:a860:1008:ff00::/56 tcp dport 22 accept
-		oifname "vmbr1" ip6 daddr 2401:a860:1008:c0de::1 tcp dport 22 accept
-		oifname "vmbr1" ip6 daddr 2401:a860:1008::/48 tcp dport 22 accept
-		limit rate 5/minute log prefix "[DROP-FWD] "
+		limit rate 5/minute burst 5 packets log prefix "[DROP-FWD] "
 	}
 
 	chain output {
@@ -108,13 +108,24 @@ table ip nat {
 		type nat hook postrouting priority srcnat; policy accept;
 		ip saddr 10.8.0.0/16 ip daddr { 10.6.0.0-10.8.255.255, 10.12.0.0/16, 10.155.0.0/16 } oifname "vmbr2" return
 		ip saddr 192.168.0.0/16 ip daddr { 10.6.0.0-10.8.255.255, 10.12.0.0/16, 10.155.0.0/16 } oifname "vmbr2" return
-		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
-		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
-		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
-		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.180.8 }
+		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.181.8 }
+		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.181.8 }
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . tcp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.181.8 }
+		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to jhash ip saddr . udp sport mod 2 map { 0 : 160.22.181.8, 1 : 160.22.181.8 }
 		ip saddr 10.8.0.0/16 oifname "vmbr2" snat to 160.22.181.8
 		ip saddr 192.168.0.0/16 oifname "vmbr2" snat to 160.22.181.8
 	}
 }
 table ip6 nat {
+}
+table ip hermes_nat44 {
+	chain prerouting {
+		type nat hook prerouting priority dstnat - 10; policy accept;
+		ip daddr 160.22.180.65 dnat to 10.8.20.1
+	}
+
+	chain postrouting {
+		type nat hook postrouting priority srcnat - 10; policy accept;
+		ip saddr 10.8.20.1 oifname "vmbr2" snat to 160.22.180.65
+	}
 }
