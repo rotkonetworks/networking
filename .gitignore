@@ -9,3 +9,6 @@ bgpctl/target/
 # secrets
 *.age
 !*.age.example
+
+# wireguard client configs: encrypted to id_claude, safe to commit
+!deploy/wireguard/clients/*.conf.age

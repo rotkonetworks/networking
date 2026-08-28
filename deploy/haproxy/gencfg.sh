@@ -10,18 +10,46 @@ NETWORK_CONFIG="${CONFIG_DIR}/network.json"
 # Generate timestamp
 TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-# Anycast IPs - bind only to these so haproxy CTs on vmbr0 can handle bkk50 NAT traffic
-ANYCAST_SITE_V4=$(jq -r '.networks.anycast_v4.site' "$NETWORK_CONFIG" | sed 's|/.*||')
-ANYCAST_GLOBAL_V4=$(jq -r '.networks.anycast_v4.global' "$NETWORK_CONFIG" | sed 's|/.*||')
-ANYCAST_LOCAL_V4=$(jq -r '.networks.anycast_v4.local' "$NETWORK_CONFIG" | sed 's|/.*||')
-ANYCAST_SITE_V6=$(jq -r '.networks.anycast_v6.site' "$NETWORK_CONFIG" | sed 's|/.*||')
-ANYCAST_GLOBAL_V6=$(jq -r '.networks.anycast_v6.global' "$NETWORK_CONFIG" | sed 's|/.*||')
-ANYCAST_LOCAL_V6=$(jq -r '.networks.anycast_v6.local' "$NETWORK_CONFIG" | sed 's|/.*||')
+# Target host — REQUIRED. Bind addresses are per-site, so this is not optional.
+TARGET_HOST="${1:-}"
+if [[ -z "$TARGET_HOST" ]] || [[ $(jq -r --arg h "$TARGET_HOST" '.sites | has($h)' "$NETWORK_CONFIG") != "true" ]]; then
+  echo "usage: $0 <site>   (site must exist in network.json .sites)" >&2
+  exit 1
+fi
 
-# Per-port bind lists (v4 + v6 anycast — supports DNS multi-A/AAAA traffic balancing across both /32 + both /48)
+site_val() { jq -r --arg h "$TARGET_HOST" --arg k "$2" '.sites[$h][$k] // empty' "$NETWORK_CONFIG" | sed 's|/.*||'; }
+
+# Anycast + this host's own public v4. Sourced from .sites.<host> so each site
+# renders its own binds — a shared render would omit the host IP that public DNS
+# actually points at (see docs: haproxy gencfg host-awareness).
+PUBLIC_V4=$(site_val "$TARGET_HOST" public_v4)
+ANYCAST_SITE_V4=$(site_val "$TARGET_HOST" anycast_site_v4)
+ANYCAST_GLOBAL_V4=$(site_val "$TARGET_HOST" anycast_global_v4)
+ANYCAST_LOCAL_V4=$(site_val "$TARGET_HOST" anycast_local_v4)
+ANYCAST_SITE_V6=$(site_val "$TARGET_HOST" anycast_site_v6)
+ANYCAST_GLOBAL_V6=$(site_val "$TARGET_HOST" anycast_global_v6)
+ANYCAST_LOCAL_V6=$(site_val "$TARGET_HOST" anycast_local_v6)
+
+for _v in PUBLIC_V4 ANYCAST_SITE_V4 ANYCAST_GLOBAL_V4 ANYCAST_LOCAL_V4 \
+          ANYCAST_SITE_V6 ANYCAST_GLOBAL_V6 ANYCAST_LOCAL_V6; do
+  [[ -n "${!_v}" ]] || { echo "error: ${_v} missing for site ${TARGET_HOST} in network.json" >&2; exit 1; }
+done
+
+# Per-port bind lists (v4 + v6 anycast — supports DNS multi-A/AAAA traffic balancing across both /32 + both /48).
+# Public-facing ports (80/443) additionally bind this host's own public v4,
+# because per-service DNS resolves to it directly, not to the anycast address.
 binds_for() {
   local port="$1"
-  echo "${ANYCAST_SITE_V4}:${port},${ANYCAST_GLOBAL_V4}:${port},${ANYCAST_LOCAL_V4}:${port},[${ANYCAST_SITE_V6}]:${port},[${ANYCAST_GLOBAL_V6}]:${port},[${ANYCAST_LOCAL_V6}]:${port}"
+  local with_public="${2:-no}"
+  local prefix=""
+  [[ "$with_public" == "public" ]] && prefix="${PUBLIC_V4}:${port},"
+  echo "${prefix}${ANYCAST_SITE_V4}:${port},${ANYCAST_GLOBAL_V4}:${port},${ANYCAST_LOCAL_V4}:${port},[${ANYCAST_SITE_V6}]:${port},[${ANYCAST_GLOBAL_V6}]:${port},[${ANYCAST_LOCAL_V6}]:${port}"
+}
+
+# QUIC/h3 binds: anycast v4+v6 only (no host IP, no link-local anycast).
+quic_binds_for() {
+  local port="$1"
+  echo "quic4@${ANYCAST_SITE_V4}:${port},quic4@${ANYCAST_GLOBAL_V4}:${port},quic6@[${ANYCAST_SITE_V6}]:${port},quic6@[${ANYCAST_GLOBAL_V6}]:${port}"
 }
 BIND_ADDRS="${ANYCAST_SITE_V4},${ANYCAST_GLOBAL_V4},${ANYCAST_LOCAL_V4}"
 
@@ -36,6 +64,7 @@ generate_global() {
 # Global settings
 global
     log 127.0.0.1:514 local0 info  # Log more for monitoring
+    limited-quic  # required: the packaged SSL lib lacks full QUIC support
     chroot /var/lib/haproxy
     pidfile /var/run/haproxy.pid
     maxconn 500000
@@ -115,7 +144,7 @@ generate_http_frontend() {
   cat <<EOF
 # HTTP Frontend - redirect only
 frontend http-frontend
-    bind $(binds_for 80)
+    bind $(binds_for 80 public)
     mode http
     
     # Track requests for monitoring (no limiting)
@@ -139,11 +168,13 @@ generate_ssl_frontend() {
 
   echo "# SSL Frontend"
   echo "frontend ssl-frontend"
-  echo "    bind $(binds_for 443) ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1"
+  echo "    bind $(binds_for 443 public) ssl crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1"
+  echo "    bind $(quic_binds_for 443) ssl crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h3"
   cat <<'EOF'
     mode http
     
     # Security headers
+    http-response set-header alt-svc "h3=\":443\"; ma=86400"
     http-response set-header X-Frame-Options "DENY"
     http-response set-header X-Content-Type-Options "nosniff"
     http-response set-header X-XSS-Protection "1; mode=block"
@@ -196,7 +227,7 @@ EOF
       echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net${aliases:+ $aliases}"
     else
       # Substrate chains use all domain suffixes
-      echo "    acl is_${chain} hdr(host) -i ${chain}.ibp.network ${chain}.dotters.network ${chain}.rotko.net"
+      echo "    acl is_${chain} hdr(host) -i ${chain}.rotko.net"
     fi
   done
 
@@ -206,12 +237,29 @@ EOF
   echo "    acl is_rpc hdr_beg(host) -i rpc."
   echo "    acl is_sys hdr_beg(host) -i sys."
 
+  # Protocol-split ACLs (content-type / path). Needed because zcash and zrelay
+  # multiplex gRPC, WebSocket and plain HTTP on one hostname — the per-chain
+  # host ACLs above cannot express that split.
+  if [[ $(echo "$chains" | jq -r 'has("zcash") or has("zrelay")') == "true" ]]; then
+    echo "    acl is_grpc_ct req.hdr(content-type) -m beg application/grpc"
+    echo "    acl is_relay_path path_beg /relay.v1.Relay/"
+    echo "    acl is_ws_path path /ws"
+  fi
+
   echo "$chains" | jq -r 'to_entries[] | select(.value.type != "misc" and .value.type != "grpc") | .key' | while read -r chain; do
     echo "    acl path_${chain} path_beg -i /${chain}"
   done
 
   echo ""
   echo "    # Backend routing"
+
+  # Protocol-split overrides — MUST precede the generic host routing below,
+  # because haproxy takes the first matching use_backend.
+  if [[ $(echo "$chains" | jq -r 'has("zcash") and has("zrelay-grpc")') == "true" ]]; then
+    echo "    use_backend zrelay-grpc-backend if is_zcash is_relay_path"
+    echo "    use_backend zrelay-backend if is_zcash is_ws_path"
+    echo "    use_backend zrelay-grpc-backend if is_zrelay is_grpc_ct"
+  fi
 
   # Direct domain routing
   echo "$chains" | jq -r 'keys[]' | while read -r chain; do
@@ -523,7 +571,7 @@ generate_monitoring() {
 
 # Prometheus/Metrics Frontend (port 9090)
 frontend prometheus-frontend
-    bind $(binds_for 9090) ssl crt /etc/haproxy/certs/ibp crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1
+    bind $(binds_for 9090) ssl crt /etc/haproxy/certs/rotko crt /etc/haproxy/certs alpn h2,http/1.1
     mode http
     option httplog
     compression algo gzip deflate
@@ -563,8 +611,8 @@ backend ocr-backend
     http-check expect status 200
     # Cosmetic but useful: clean up redundant Host header on egress.
     http-response set-header X-Served-By "ocr-rotko-net"
-    server bkk07-ocr 192.168.77.92:80 check inter 5s fall 3 rise 2
-    server bkk08-ocr 192.168.78.92:80 check inter 5s fall 3 rise 2
+    server bkk07-ocr 10.7.77.92:80 check inter 5s fall 3 rise 2
+    server bkk08-ocr 10.8.78.92:80 check inter 5s fall 3 rise 2
 EOF
 }
 
