@@ -48,9 +48,6 @@ table inet filter {
 		ip6 daddr 2401:a860:1081:: tcp dport { 80, 443 } accept
 		ip6 daddr 2401:a860:1081:: tcp dport { 53, 853 } accept
 		ip6 daddr 2401:a860:1081:: udp dport 53 accept
-		ip daddr 160.22.180.180 tcp dport { 80, 443 } accept
-		ip daddr 160.22.180.180 tcp dport { 53, 853 } accept
-		ip daddr 160.22.180.180 udp dport 53 accept
 		ip6 daddr 2401:a860:: tcp dport { 80, 443 } accept
 		ip6 daddr 2401:a860:: tcp dport { 53, 853 } accept
 		ip6 daddr 2401:a860:: udp dport 53 accept
@@ -94,14 +91,14 @@ table inet filter {
 table ip nat {
 	chain prerouting {
 		type nat hook prerouting priority dstnat; policy accept;
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 31003 dnat to 10.8.113.10:31003
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 31003 dnat to 10.8.113.10:31003
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 34072 dnat to 10.8.142.17:34072
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 34072 dnat to 10.8.142.17:34072
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 34032 dnat to 10.8.142.13:34032
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 34032 dnat to 10.8.142.13:34032
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } tcp dport 31252 dnat to 10.8.112.35:31252
-		ip daddr { 10.155.181.81, 160.22.180.8, 160.22.180.180, 160.22.181.8, 160.22.181.81 } udp dport 31252 dnat to 10.8.112.35:31252
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } tcp dport 31003 dnat to 10.8.113.10:31003
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } udp dport 31003 dnat to 10.8.113.10:31003
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } tcp dport 34072 dnat to 10.8.142.17:34072
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } udp dport 34072 dnat to 10.8.142.17:34072
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } tcp dport 34032 dnat to 10.8.142.13:34032
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } udp dport 34032 dnat to 10.8.142.13:34032
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } tcp dport 31252 dnat to 10.8.112.35:31252
+		ip daddr { 10.155.181.81, 160.22.181.8, 160.22.181.81 } udp dport 31252 dnat to 10.8.112.35:31252
 	}
 
 	chain postrouting {
@@ -121,11 +118,11 @@ table ip6 nat {
 table ip hermes_nat44 {
 	chain prerouting {
 		type nat hook prerouting priority dstnat - 10; policy accept;
-		ip daddr 160.22.180.65 dnat to 10.8.20.1
+		ip daddr 160.22.181.33 dnat to 10.8.20.1
 	}
 
 	chain postrouting {
 		type nat hook postrouting priority srcnat - 10; policy accept;
-		ip saddr 10.8.20.1 oifname "vmbr2" snat to 160.22.180.65
+		ip saddr 10.8.20.1 oifname "vmbr2" snat to 160.22.181.33
 	}
 }
