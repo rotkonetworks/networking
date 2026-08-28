@@ -206,7 +206,7 @@ CONSTANTS
     echo "# Anycast IPv6 network prefixes (for BGP announcement)"
     [[ -n "$ANYCAST_LOCAL_V6_PREFIX" ]] && echo "define ANYCAST_LOCAL_V6_PREFIX = ${ANYCAST_LOCAL_V6_PREFIX};  # ULA /48 - internal only"
     [[ -n "$ANYCAST_SITE_V6_PREFIX" ]] && echo "define ANYCAST_SITE_V6_PREFIX = ${ANYCAST_SITE_V6_PREFIX};    # GUA /48 - Bangkok"
-    [[ -n "$ANYCAST_GLOBAL_V6_PREFIX" ]] && echo "define ANYCAST_GLOBAL_V6_PREFIX = ${ANYCAST_GLOBAL_V6_PREFIX}; # GUA /32 - global"
+    [[ -n "$ANYCAST_GLOBAL_V6_PREFIX" ]] && echo "define ANYCAST_GLOBAL_V6_PREFIX = ${ANYCAST_GLOBAL_V6_PREFIX}; # GUA /36 - global"
   fi
 
   # VM public IPs (VMs with direct public IP on vmbr2)
@@ -497,7 +497,7 @@ protocol bgp RR1_v6 from BGP_COMMON {
             # Export GUA anycast prefixes for external BGP
             # Site-local /48 - Bangkok only services
             if net = ANYCAST_SITE_V6_PREFIX then accept;
-            # Global /32 - worldwide services
+            # Global /36 - worldwide services
             if net = ANYCAST_GLOBAL_V6_PREFIX then accept;
 
             # ULA anycast stays internal only (not exported to eBGP)
@@ -596,7 +596,7 @@ protocol bgp RR2_v6 from BGP_COMMON {
             # Export GUA anycast prefixes for external BGP
             # Site-local /48 - Bangkok only services
             if net = ANYCAST_SITE_V6_PREFIX then accept;
-            # Global /32 - worldwide services
+            # Global /36 - worldwide services
             if net = ANYCAST_GLOBAL_V6_PREFIX then accept;
 
             # ULA anycast stays internal only (not exported to eBGP)

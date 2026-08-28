@@ -60,7 +60,7 @@ add bridge=bridge_vlan tagged=ether6,ether7,ether8,BKK00-LAG,BKK20-LAG,BKK60-LAG
 /ipv6 route add distance=220 gateway=fd00:dead:beef:10::
 /ipv6 route add blackhole distance=240 dst-address=2401:a860:1181::/48
 /ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
-/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/32
+/ipv6 route add blackhole comment=global_anycast_ipv6 distance=240 dst-address=2401:a860::/36
 /ipv6 route add blackhole comment=global_unicast_ipv6 distance=240 dst-address=2401:a860:1000::/36
 /ip service set ftp address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,172.104.169.64/32,160.22.181.181/32
