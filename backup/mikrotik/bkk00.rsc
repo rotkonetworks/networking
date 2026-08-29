@@ -1,4 +1,4 @@
-# 2026-08-29 02:06:47 by RouterOS 7.23
+# 2026-08-29 19:51:12 by RouterOS 7.23
 # software id = 61HF-9FEH
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -285,14 +285,14 @@
 /app set cinny firewall-redirects=8094:80:tcp:web
 /app set goaway container-command-lines=goaway:none:docker.io/pommee/goaway:latest
 /app set home-assistant container-command-lines=home-assistant:none:lscr.io/linuxserver/homeassistant
-/app set lorawan-stack secrets=lorawan-stack__admin_password:eklTRaKMpuEtQfzSWkpcpHSmClcftyUd
+/app set lorawan-stack secrets=lorawan-stack__admin_password:QlMSPZoQMJNcRPHDYVXqZFqtJvdLlqap
 /app set n8n firewall-redirects=5678:5678:tcp:web
 /app set nextcloud container-command-lines="db:none:docker.io/postgres:17,redis:none:docker.io/valkey/valkey:/bin/sh -c 'valkey-server --port 6379 --appendonly yes --requirepass \$VALKEY_PASSWORD',server:none:docker.io/nextcloud:apache"
 /app set pihole environment="pihole:FTLCONF_dns_listeningMode=all,pihole:FTLCONF_webserver_api_password=password"
 /app set redlib firewall-redirects=8087:8080:tcp:web
 /app set solr container-command-lines=solr:none:docker.io/solr:latest
 /app set uptime-kuma container-command-lines=uptime-kuma:none:docker.io/louislam/uptime-kuma:1
-/app set zulip secrets=zulip__postgres_password:RUoEapgjdViAmyvYyoGbiHgSCogVWJvs,zulip__memcached_password:yfEECdQQpRcmRNxgTWLmObYJoFwsnGRa,zulip__rabbitmq_password:TBYZACHXYLfVwEYqHsKlYGvTUkywSooE,zulip__redis_password:hQHhyTfaxoSXwavOvBdeSZucpPwlECKd,zulip__secret_key:gwUgFozrSsShOoNbljoEKLakkFJzQcNI,zulip__email_password:aEPRLTGGQhYHMMUOoBXkuANDWekXQqVI
+/app set zulip secrets=zulip__postgres_password:gaWFhusmFTNLqBzdGQkLlwdDFIRHzvmL,zulip__memcached_password:erItvNQHzJoazpzkVrxkFZBeotmQIZgW,zulip__rabbitmq_password:IUPjcABLEvSapYnwCdRHVmmBdkEsVlAb,zulip__redis_password:PCPQJjeHlFKVpDNsRhOxgZCIuOZkUSJs,zulip__secret_key:unvALgwDVgwzSIRlBynpfNzCyoQLGXMp,zulip__email_password:ZPUVgcLyTEebfasApxLubEwDxGSNUeaG
 /interface bridge filter add action=accept chain=forward mac-protocol=ip out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=arp out-interface-list=WAN
 /interface bridge filter add action=accept chain=forward mac-protocol=ipv6 out-interface-list=WAN
@@ -375,7 +375,6 @@
 /ip dns set allow-remote-requests=yes cache-max-ttl=1d cache-size=4096KiB max-concurrent-queries=50 max-concurrent-tcp-sessions=10 max-udp-packet-size=512 servers=8.8.8.8,9.9.9.9,1.1.1.1
 /ip dns static add address=159.148.147.251 disabled=yes name=download.mikrotik.com type=A
 /ip dns static add address=159.148.147.251 disabled=yes name=upgrade.mikrotik.com type=A
-/ip firewall address-list add address=160.22.180.0/23 list=ipv4-apnic-rotko
 /ip firewall address-list add address=10.0.0.0/8 list=internal-ipv4
 /ip firewall address-list add address=192.168.88.0/24 list=mgmt-ipv4
 /ip firewall address-list add address=160.22.180.0/24 list=ibp-anycast-ipv4
@@ -516,7 +515,6 @@
 /ip firewall raw add action=drop chain=prerouting comment="Block external access to BGP loopbacks" dst-address-list=bgp-loopback-ips in-interface-list=WAN
 /ip firewall raw add action=accept chain=prerouting comment="Accept from WAN" in-interface-list=WAN
 /ip ipsec profile set [ find default=yes ] dpd-interval=2m dpd-maximum-failures=5
-/ip route add blackhole comment=global_ipv4_resources distance=240 dst-address=160.22.180.0/23
 /ip route add distance=220 gateway=172.16.30.2 pref-src=160.22.181.180
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=0.0.0.0/8
 /ip route add blackhole comment="Blackhole route for RFC6890 (aggregated)" disabled=no distance=240 dst-address=172.16.0.0/12
@@ -551,7 +549,6 @@
 /ip route add comment="bkk10 WG endpoint via HGC SG-backup PE - bkk20 still holds the relocated /30 (2026-08-29)" distance=1 dst-address=103.168.174.178/32 gateway=103.168.174.181
 /ip route add comment="Telehouse via WG tunnel (bkk10) - symmetric inter-site path (2026-08-29)" distance=5 dst-address=160.22.180.0/24 gateway=wg_rotko pref-src=160.22.181.180
 /ip route add comment="Telehouse fabric via WG (2026-08-29)" distance=5 dst-address=10.6.0.0/16 gateway=wg_rotko pref-src=160.22.181.180
-/ipv6 route add blackhole comment=global_ipv6_resources distance=240 dst-address=2401:a860::/32
 /ipv6 route add blackhole comment="ipv6 ula rfc4193" distance=240 dst-address=fc00::/7
 /ipv6 route add blackhole comment="ipv6 site-local deprecated" distance=240 dst-address=fec0::/10
 /ipv6 route add blackhole comment="ipv6 discard prefix rfc6666" distance=240 dst-address=100::/64
@@ -564,7 +561,6 @@
 /ipv6 route add check-gateway=ping comment="anycast-site-v6 ECMP" distance=5 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
 /ipv6 route add comment="RTR src fix: BKNIX validator v6 via HGC-HK (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::26/128 gateway=fe80::d207:ca09:d78b:bfc5%vHGC-HK-PRIMARY pref-src=2401:a860:181::100
 /ipv6 route add comment="RTR src fix: BKNIX validator2 v6 via HGC-HK (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::36/128 gateway=fe80::d207:ca09:d78b:bfc5%vHGC-HK-PRIMARY pref-src=2401:a860:181::100
-/ipv6 route add blackhole comment=site_anycast_v6_40 distance=240 dst-address=2401:a860:1000::/40
 /ipv6 route add comment="Telehouse v6 via WG tunnel (2026-08-29)" distance=5 dst-address=2401:a860:2000::/40 gateway=wg_rotko
 /ip service set ftp address=172.31.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16 disabled=yes
 /ip service set ssh address=10.0.0.0/8,95.217.216.149/32,2a01:4f9:c012:fbcd::/64,119.76.35.40/32,160.22.181.181/32,125.164.0.0/16,192.168.0.0/16,172.16.0.0/12,172.104.169.64/32,171.101.163.225/32,95.217.134.129/32,160.22.180.0/23,158.140.0.0/16,2400:8901::f03c:94ff:fe03:c318/128,172.31.0.0/16
@@ -596,7 +592,6 @@
 /ipv6 address add address=fd00:31::100 advertise=no comment="inter-site WG v6 (bkk00)" interface=wg_rotko
 /ipv6 firewall address-list add address=2001:df5:b881::/64 list=bknix-ipv6
 /ipv6 firewall address-list add address=2001:df5:b881::168/128 list=bknix-rotko-address
-/ipv6 firewall address-list add address=2401:a860::/32 list=ipv6-apnic-rotko
 /ipv6 firewall address-list add address=2402:b740:15::/48 list=amsix-ipv6
 /ipv6 firewall address-list add address=::/128 comment="Unspecified address" list=bogons-v6
 /ipv6 firewall address-list add address=::1/128 comment="Loopback address" list=bogons-v6
@@ -654,7 +649,7 @@
 /ipv6 firewall address-list add address=2401:a860:1006::/48 comment="bkk06 internal" list=ipv6-internal-rotko
 /ipv6 firewall address-list add address=2401:a860:1007::/48 comment="bkk07 internal" list=ipv6-internal-rotko
 /ipv6 firewall address-list add address=2401:a860:1008::/48 comment="bkk08 internal" list=ipv6-internal-rotko
-/ipv6 firewall address-list add address=2401:a860:1000::/40 list=ipv6-apnic-rotko
+/ipv6 firewall address-list add address=2401:a860:1000::/36 list=ipv6-apnic-rotko
 /ipv6 firewall raw add action=drop chain=prerouting comment=SNMP-DANGER dst-port=161,162 in-interface-list=WAN protocol=udp
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-BKNIX disabled=yes dst-address=2001:df5:b881::/64 port=179 protocol=tcp src-address=2001:df5:b881::/64
 /ipv6 firewall raw add action=drop chain=prerouting comment=BGP-MAINTENANCE-MODE-AMSIX-EU disabled=yes dst-address=2001:7f8:1::/64 port=179 protocol=tcp src-address=2001:7f8:1::/64
