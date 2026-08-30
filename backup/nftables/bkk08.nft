@@ -14,6 +14,13 @@ table inet filter {
 
 	chain input {
 		type filter hook input priority filter; policy drop;
+		ip6 saddr 2401:a860:2000::/40 tcp dport 9102 accept comment "sttfwd"
+		ip6 saddr 2401:a860:2000::/40 tcp dport 9101 accept comment "sttfwd"
+		ip6 saddr 2401:a860:2000::/40 tcp dport 9092 accept comment "sttfwd"
+		ip6 saddr 2401:a860:2000::/40 tcp dport 9091 accept comment "sttfwd"
+		ip6 saddr 2401:a860:2000::/40 tcp dport 3101 accept comment "sttfwd"
+		ip saddr 10.8.0.0/16 tcp dport 9650 accept comment "rpc-relay-201"
+		ip saddr 10.8.0.0/16 tcp dport 19650 accept comment "rpc-relay-ct"
 		ct state established,related accept
 		ct state invalid drop
 		iif "lo" accept
