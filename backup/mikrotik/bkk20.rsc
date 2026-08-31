@@ -1,4 +1,4 @@
-# 2026-08-30 19:20:30 by RouterOS 7.23.3
+# 2026-08-31 21:30:48 by RouterOS 7.23.3
 # software id = 74Z8-YX0B
 #
 # model = CCR2216-1G-12XS-2XQ
@@ -401,7 +401,7 @@
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::6
 /ipv6 route add comment="anycast-site-v6 ECMP" disabled=yes distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::6
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::7
-/ipv6 route add comment=ac-bkk07-primary-v6 disabled=no distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::7
+/ipv6 route add comment=ac-bkk07-primary-v6 disabled=yes distance=1 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::7
 /ipv6 route add comment="anycast-global-v6 ECMP" distance=1 dst-address=2401:a860::/128 gateway=fd00:155:100::8
 /ipv6 route add check-gateway=ping comment="anycast-site-v6 ECMP" distance=5 dst-address=2401:a860:1081::/128 gateway=fd00:155:100::8
 /ipv6 route add comment="RTR src fix: BKNIX validator v6 via HGC-SG (BKNIX port down 2026-07)" dst-address=2001:deb:0:4070::26/128 gateway=fe80::eaa2:4509:d8de:efcd%vHGC-SG-PRIMARY pref-src=2401:a860:1181::20
